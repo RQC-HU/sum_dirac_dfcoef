@@ -83,13 +83,10 @@ def parse_atom_and_the_number_of_atoms(split_list: "list[str]", atoms: Atoms) ->
     for elem in split_list:
 
         letter = parse_atom(split_list, elem, atoms)
-
         atoms.atom_types.append(letter)
 
         num = parse_atom_num(elem)
         atoms.atom_nums.append(num)
-
-        print(f"{letter} {num}")
     return atoms
 
 
@@ -112,11 +109,11 @@ def create_data_per_atom(
 ) -> "np.ndarray":
     data_type = [("atom", "U2"), ("orbital_type", "U20"), ("mo_percentage", "f8")]
     data_per_atom = np.zeros(len(atoms.orbital_types), dtype=data_type)
-    for idx, (orb, var, atom) in enumerate(zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list)):
+    for idx, (orb, coefficient, atom) in enumerate(zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list)):
         data_per_atom[idx]["atom"] = atom
         data_per_atom[idx]["orbital_type"] = orb
         atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
-        data_per_atom[idx]["mo_percentage"] = var * 100 / (coefficients.norm_const_sum * atom_num)
+        data_per_atom[idx]["mo_percentage"] = coefficient * 100 / (coefficients.norm_const_sum * atom_num)
     return data_per_atom
 
 
@@ -155,16 +152,22 @@ def need_to_write_results(words: "list[str]", is_read_value: bool) -> bool:
         return False
 
 
+def need_to_get_mo_sym_type(words: "list[str]", is_read_value: bool) -> bool:
+    if not is_read_value and len(words) == 3 and words[0] == "Fermion" and words[1] == "ircop":
+        return True
+    return False
+
+
 def main() -> None:
 
     args: "argparse.Namespace" = parse_args()
+    threshold: float = args.threshold if args.threshold else 0.1
     dirac_file: str = get_dirac_filename(args)
     atoms: Atoms = parse_molecule_input(args)
-    threshold: float = args.threshold if args.threshold else 0.1
     is_read_value: bool = False
     symmetry_type: str = ""
-    eigenvalue_num: int = 0
-    eg_type: str = "E1g"
+    electron_number: int = 0
+    mo_sym_type: str = ""
     coefficients = Coefficients()
 
     print(f"threshold is {threshold} %\n")
@@ -176,21 +179,16 @@ def main() -> None:
             if need_to_skip_this_line(words, is_read_value):
                 continue
 
-            # If this condition is true, end print eigenvalues under this line.
-            # So we need to set down is_read_value flag to quit to read values.
+            if need_to_get_mo_sym_type(words, is_read_value):
+                mo_sym_type = words[2]
+
             if need_to_write_results(words, is_read_value):
                 is_read_value = False
 
                 data_per_atom = create_data_per_atom(atoms, coefficients)
-
                 coefficients.sum_of_mo_coefficient = calculate_sum_of_mo_coefficient(coefficients)
 
-                write_results(
-                    data_per_atom,
-                    atoms,
-                    coefficients,
-                    threshold,
-                )
+                write_results(data_per_atom, atoms, coefficients, threshold)
 
                 # Reset variables
                 coefficients.reset()
@@ -237,14 +235,10 @@ def main() -> None:
                 orb_type_idx = atoms.orbital_types.index(atom_orb_type)
                 coefficients.mo_coefficient_list[orb_type_idx] += coefficient
 
-            # If this condition is true, start print eigenvalues under this line.
-            # So set up is_read_value flag to read values under this line.
             if not is_read_value and words[1] == "Electronic" and len(words) == 6:
                 is_read_value = True
-                if eigenvalue_num >= int(words[4][:-1]):
-                    eg_type = "E1u"
-                eigenvalue_num = int(words[4][:-1])
-                print("Electronic no.", eigenvalue_num, eg_type)
+                electron_number = int(words[4][:-1])
+                print("Electronic no.", electron_number, mo_sym_type)
 
 
 if __name__ == "__main__":
