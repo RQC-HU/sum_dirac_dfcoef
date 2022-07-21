@@ -1,6 +1,6 @@
 # SUMMARIZE DIRAC DFCOEF COEFFICIENTS
 
-This program summarize the coefficients from DIRAC output file that *PRIVEC option is used.  
+This program summarize the coefficients from DIRAC output file that *PRIVEC option was used.  
 (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)
 
 ## Requirements
