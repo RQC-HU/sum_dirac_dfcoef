@@ -17,7 +17,7 @@ You can use this program with the following command!
 python summarize_dirac_dfcoef_coefficients.py -f OUPUT_FILE_PATH -mol MOLECULE_NAME
 ```
 
-(e.g)
+(e.g.)
 
 ```sh
 python summarize_dirac_dfcoef_coefficients.py -f uo2_uo2.out -mol UO2
