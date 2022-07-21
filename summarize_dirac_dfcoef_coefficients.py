@@ -23,142 +23,19 @@ class Atoms:
     atom_types: "list[str]" = list()
     atom_list: "list[str]" = list()
     orbital_types: "list[str]" = list()
-    elements: "list[str]" = [
-        "H",
-        "He",
-        "Li",
-        "Be",
-        "B",
-        "C",
-        "N",
-        "O",
-        "F",
-        "Ne",
-        "Na",
-        "Mg",
-        "Al",
-        "Si",
-        "P",
-        "S",
-        "Cl",
-        "Ar",
-        "K",
-        "Ca",
-        "Sc",
-        "Ti",
-        "V",
-        "Cr",
-        "Mn",
-        "Fe",
-        "Co",
-        "Ni",
-        "Cu",
-        "Zn",
-        "Ga",
-        "Ge",
-        "As",
-        "Se",
-        "Br",
-        "Kr",
-        "Rb",
-        "Sr",
-        "Y",
-        "Zr",
-        "Nb",
-        "Mo",
-        "Tc",
-        "Ru",
-        "Rh",
-        "Pd",
-        "Ag",
-        "Cd",
-        "In",
-        "Sn",
-        "Sb",
-        "Te",
-        "I",
-        "Xe",
-        "Cs",
-        "Ba",
-        "La",
-        "Ce",
-        "Pr",
-        "Nd",
-        "Pm",
-        "Sm",
-        "Eu",
-        "Gd",
-        "Tb",
-        "Dy",
-        "Ho",
-        "Er",
-        "Tm",
-        "Yb",
-        "Lu",
-        "Hf",
-        "Ta",
-        "W",
-        "Re",
-        "Os",
-        "Ir",
-        "Pt",
-        "Au",
-        "Hg",
-        "Tl",
-        "Pb",
-        "Bi",
-        "Po",
-        "At",
-        "Rn",
-        "Fr",
-        "Ra",
-        "Ac",
-        "Th",
-        "Pa",
-        "U",
-        "Np",
-        "Pu",
-        "Am",
-        "Cm",
-        "Bk",
-        "Cf",
-        "Es",
-        "Fm",
-        "Md",
-        "No",
-        "Lr",
-        "Rf",
-        "Db",
-        "Sg",
-        "Bh",
-        "Hs",
-        "Mt",
-        "Ds",
-        "Rg",
-        "Uub",
-        "Uut",
-        "Uuq",
-        "Uup",
-        "Uuh",
-        "Uus",
-        "Uuo",
-    ]
+    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Uub", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"]
 
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
 
     def reset(self):
-        self.atom_nums: "list[int]" = list()
-        self.atom_types: "list[str]" = list()
         self.atom_list: "list[str]" = list()
         self.orbital_types: "list[str]" = list()
 
 
 def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize vector priors.")
-    parser.add_argument(
-        "-f", "--file", type=str, help="(required) file name of DIRAC output"
-    )
+    parser.add_argument("-f", "--file", type=str, help="(required) file name of DIRAC output")
     parser.add_argument(
         "-mol",
         "--molecule",
@@ -174,6 +51,56 @@ def parse_args() -> "argparse.Namespace":
     return parser.parse_args()
 
 
+def get_dirac_filename(args: "argparse.Namespace") -> str:
+    if not args.file:
+        sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
+    return args.file
+
+
+def get_atom_num(num_str: "str | None", elem: str) -> int:
+    if num_str is None:
+        return 1
+    elif num_str not in elem:
+        sys.exit(f"ERROR: {num_str} is not in {elem}")
+    return int(num_str)
+
+
+def parse_atom_num(line: str) -> int:
+    num_str = "".join(filter(str.isdigit, line)) or None
+    return get_atom_num(num_str, line)
+
+
+def parse_atom(input_list: "list[str]", line: str, atoms: Atoms) -> str:
+    letter = "".join(filter(str.isalpha, line)) or None
+    if letter not in atoms.elements:
+        sys.exit(f"ERROR: {line} is invalid.")
+    if letter in atoms.atom_types:
+        sys.exit(f"ERROR: {letter} is duplicated.\nYour input: {''.join(input_list)}")
+    return letter
+
+
+def parse_atom_and_the_number_of_atoms(split_list: "list[str]", atoms: Atoms) -> Atoms:
+    for elem in split_list:
+
+        letter = parse_atom(split_list, elem, atoms)
+
+        atoms.atom_types.append(letter)
+
+        num = parse_atom_num(elem)
+        atoms.atom_nums.append(num)
+
+        print(f"{letter} {num}")
+    return atoms
+
+
+def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
+    atoms = Atoms()
+    if not args.molecule:
+        sys.exit("ERROR: Molecule is not specified. Please use -mol option. (e.g. -mol Cu2O)")
+    split_per_atom = re.findall("[A-Z][^A-Z]*", args.molecule)
+    return parse_atom_and_the_number_of_atoms(split_per_atom, atoms)
+
+
 def parse_not_empty(line: str) -> "list[str]":
     words = re.split(" +", line.rstrip("\n"))
     return [word for word in words if word != ""]
@@ -185,23 +112,16 @@ def create_data_per_atom(
 ) -> "np.ndarray":
     data_type = [("atom", "U2"), ("orbital_type", "U20"), ("mo_percentage", "f8")]
     data_per_atom = np.zeros(len(atoms.orbital_types), dtype=data_type)
-
-    for idx, (orb, var, atom) in enumerate(
-        zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list)
-    ):
+    for idx, (orb, var, atom) in enumerate(zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list)):
         data_per_atom[idx]["atom"] = atom
         data_per_atom[idx]["orbital_type"] = orb
         atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
-        data_per_atom[idx]["mo_percentage"] = (
-            var * 100 / (coefficients.norm_const_sum * atom_num)
-        )
+        data_per_atom[idx]["mo_percentage"] = var * 100 / (coefficients.norm_const_sum * atom_num)
     return data_per_atom
 
 
 def calculate_sum_of_mo_coefficient(coefficients: Coefficients) -> float:
-    return (
-        sum([a for a in coefficients.mo_coefficient_list])
-    ) / coefficients.norm_const_sum
+    return (sum([c for c in coefficients.mo_coefficient_list])) / coefficients.norm_const_sum
 
 
 def write_results(
@@ -238,24 +158,8 @@ def need_to_write_results(words: "list[str]", is_read_value: bool) -> bool:
 def main() -> None:
 
     args: "argparse.Namespace" = parse_args()
-    if not args.file:
-        sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
-    file_name: str = args.file
-    if not args.molecule:
-        sys.exit(
-            "ERROR: Molecule is not specified. Please use --mol option. (e.g. --mol Cu2O)"
-        )
-    li = re.findall("[A-Z][^A-Z]*", args.molecule)
-    print(li)
-    atoms = Atoms()
-    for elem in li:
-        letter = "".join(filter(str.isalpha, elem)) or None
-        if letter not in atoms.elements:
-            sys.exit(f"ERROR: {elem} is invalid.")
-        num = "".join(filter(str.isdigit, elem)) or 1
-        if num != 1 and num not in elem:
-            sys.exit(f"ERROR: {elem} is invalid.")
-        print(f"{letter} {num}")
+    dirac_file: str = get_dirac_filename(args)
+    atoms: Atoms = parse_molecule_input(args)
     threshold: float = args.threshold if args.threshold else 0.1
     is_read_value: bool = False
     symmetry_type: str = ""
@@ -264,7 +168,7 @@ def main() -> None:
     coefficients = Coefficients()
 
     print(f"threshold is {threshold} %\n")
-    with open(file_name) as f:
+    with open(dirac_file) as f:
         for idx, line in enumerate(f):
 
             words: "list[str]" = parse_not_empty(line)
@@ -279,9 +183,7 @@ def main() -> None:
 
                 data_per_atom = create_data_per_atom(atoms, coefficients)
 
-                coefficients.sum_of_mo_coefficient = calculate_sum_of_mo_coefficient(
-                    coefficients
-                )
+                coefficients.sum_of_mo_coefficient = calculate_sum_of_mo_coefficient(coefficients)
 
                 write_results(
                     data_per_atom,
@@ -320,27 +222,20 @@ def main() -> None:
                 alpha2: float = float(words[idx + 3])
                 beta1: float = float(words[idx + 4])
                 beta2: float = float(words[idx + 5])
-                # atom_orb_type = "atom: " + atom_type + " orb: " + orbital_type
                 atom_orb_type = symmetry_type + atom_type + orbital_type
-                # atom_orb_type = atom_type + orbital_type
-                if atom_type not in atoms.atom_types:
-                    atoms.atom_types.append(atom_type)
-                    num = 2 if atom_type == "O" else 1
-                    atoms.atom_nums.append(num)
                 if atom_orb_type not in atoms.orbital_types:
                     atoms.orbital_types.append(atom_orb_type)
                     atoms.atom_list.append(atom_type)
                     coefficients.mo_coefficient_list.append(0.0)
-                var = 0.0
-                if atom_type == "U":
-                    var = alpha1**2 + alpha2**2 + beta1**2 + beta2**2
-                elif (
-                    atom_type == "O"
-                ):  # UO2 -> the number of O = 2 -> norm_const_sum * 2
-                    var = 2 * (alpha1**2 + alpha2**2 + beta1**2 + beta2**2)
-                coefficients.norm_const_sum += var
+                coefficient = 0.0
+                if atom_type not in atoms.atom_types:
+                    sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your --molecule or -mol option.")
+                else:
+                    magnification = atoms.atom_nums[atoms.atom_types.index(atom_type)]
+                    coefficient = magnification * alpha1**2 + alpha2**2 + beta1**2 + beta2**2
+                coefficients.norm_const_sum += coefficient
                 orb_type_idx = atoms.orbital_types.index(atom_orb_type)
-                coefficients.mo_coefficient_list[orb_type_idx] += var
+                coefficients.mo_coefficient_list[orb_type_idx] += coefficient
 
             # If this condition is true, start print eigenvalues under this line.
             # So set up is_read_value flag to read values under this line.
