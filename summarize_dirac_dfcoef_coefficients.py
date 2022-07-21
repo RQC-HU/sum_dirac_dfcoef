@@ -35,20 +35,10 @@ class Coefficients:
 
 
 def parse_args() -> "argparse.Namespace":
-    parser = argparse.ArgumentParser(description="Summarize vector priors.")
+    parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
     parser.add_argument("-f", "--file", type=str, help="(required) file name of DIRAC output")
-    parser.add_argument(
-        "-mol",
-        "--molecule",
-        type=str,
-        help="(required) molecule specification. Write the molecular formula (e.g. Cu2O)",
-    )
-    parser.add_argument(
-        "-t",
-        "--threshold",
-        type=float,
-        help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution",
-    )
+    parser.add_argument("-mol", "--molecule", type=str, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O)")
+    parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution")
     return parser.parse_args()
 
 
