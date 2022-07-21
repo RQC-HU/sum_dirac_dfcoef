@@ -23,6 +23,126 @@ class Atoms:
     atom_types: "list[str]" = list()
     atom_list: "list[str]" = list()
     orbital_types: "list[str]" = list()
+    elements: "list[str]" = [
+        "H",
+        "He",
+        "Li",
+        "Be",
+        "B",
+        "C",
+        "N",
+        "O",
+        "F",
+        "Ne",
+        "Na",
+        "Mg",
+        "Al",
+        "Si",
+        "P",
+        "S",
+        "Cl",
+        "Ar",
+        "K",
+        "Ca",
+        "Sc",
+        "Ti",
+        "V",
+        "Cr",
+        "Mn",
+        "Fe",
+        "Co",
+        "Ni",
+        "Cu",
+        "Zn",
+        "Ga",
+        "Ge",
+        "As",
+        "Se",
+        "Br",
+        "Kr",
+        "Rb",
+        "Sr",
+        "Y",
+        "Zr",
+        "Nb",
+        "Mo",
+        "Tc",
+        "Ru",
+        "Rh",
+        "Pd",
+        "Ag",
+        "Cd",
+        "In",
+        "Sn",
+        "Sb",
+        "Te",
+        "I",
+        "Xe",
+        "Cs",
+        "Ba",
+        "La",
+        "Ce",
+        "Pr",
+        "Nd",
+        "Pm",
+        "Sm",
+        "Eu",
+        "Gd",
+        "Tb",
+        "Dy",
+        "Ho",
+        "Er",
+        "Tm",
+        "Yb",
+        "Lu",
+        "Hf",
+        "Ta",
+        "W",
+        "Re",
+        "Os",
+        "Ir",
+        "Pt",
+        "Au",
+        "Hg",
+        "Tl",
+        "Pb",
+        "Bi",
+        "Po",
+        "At",
+        "Rn",
+        "Fr",
+        "Ra",
+        "Ac",
+        "Th",
+        "Pa",
+        "U",
+        "Np",
+        "Pu",
+        "Am",
+        "Cm",
+        "Bk",
+        "Cf",
+        "Es",
+        "Fm",
+        "Md",
+        "No",
+        "Lr",
+        "Rf",
+        "Db",
+        "Sg",
+        "Bh",
+        "Hs",
+        "Mt",
+        "Ds",
+        "Rg",
+        "Uub",
+        "Uut",
+        "Uuq",
+        "Uup",
+        "Uuh",
+        "Uus",
+        "Uuo",
+    ]
 
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
@@ -36,8 +156,21 @@ class Atoms:
 
 def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize vector priors.")
-    parser.add_argument("-f", "--file", type=str, help="file name")
-    parser.add_argument("-inp", "--input", type=str, help="input file name")
+    parser.add_argument(
+        "-f", "--file", type=str, help="(required) file name of DIRAC output"
+    )
+    parser.add_argument(
+        "-mol",
+        "--molecule",
+        type=str,
+        help="(required) molecule specification. Write the molecular formula (e.g. Cu2O)",
+    )
+    parser.add_argument(
+        "-t",
+        "--threshold",
+        type=float,
+        help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution",
+    )
     return parser.parse_args()
 
 
@@ -104,17 +237,31 @@ def need_to_write_results(words: "list[str]", is_read_value: bool) -> bool:
 
 def main() -> None:
 
-    args = parse_args()
-    file_name: str = args.file
+    args: "argparse.Namespace" = parse_args()
     if not args.file:
-        sys.exit("File name is not given.")
-    threshold: float = 10 ** (-1)
+        sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
+    file_name: str = args.file
+    if not args.molecule:
+        sys.exit(
+            "ERROR: Molecule is not specified. Please use --mol option. (e.g. --mol Cu2O)"
+        )
+    li = re.findall("[A-Z][^A-Z]*", args.molecule)
+    print(li)
+    atoms = Atoms()
+    for elem in li:
+        letter = "".join(filter(str.isalpha, elem)) or None
+        if letter not in atoms.elements:
+            sys.exit(f"ERROR: {elem} is invalid.")
+        num = "".join(filter(str.isdigit, elem)) or 1
+        if num != 1 and num not in elem:
+            sys.exit(f"ERROR: {elem} is invalid.")
+        print(f"{letter} {num}")
+    threshold: float = args.threshold if args.threshold else 0.1
     is_read_value: bool = False
     symmetry_type: str = ""
     eigenvalue_num: int = 0
     eg_type: str = "E1g"
     coefficients = Coefficients()
-    atoms = Atoms()
 
     print(f"threshold is {threshold} %\n")
     with open(file_name) as f:
