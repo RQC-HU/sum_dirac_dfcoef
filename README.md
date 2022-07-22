@@ -61,7 +61,7 @@ A part of uo2_uo2.out (DIRAC output file, ... represents an omission)
 A part of the result (... represents an omission)
 
 ```out
-Electronic no. 17 E1g
+Electronic no. 17 E1g -5.1175267254674
 AgUs       : 0.13728512177623234        %
 AgUdxx     : 4.637169653126273          %
 AgUdyy     : 4.637169653126273          %
@@ -71,7 +71,7 @@ B3gUdyz    : 35.987808727554935         %
 Normalization constant is 0.5059238161886942
 sum of coefficient 0.9999999999999996
 
-Electronic no. 18 E1g
+Electronic no. 18 E1g -5.1107907830158
 AgUdxx     : 12.470478563230676         %
 AgUdyy     : 12.470478563230676         %
 B1gUdxy    : 49.881914269535386         %
