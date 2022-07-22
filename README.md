@@ -6,8 +6,7 @@ This program summarize the coefficients from DIRAC output file that *PRIVEC opti
 ## Requirements
 
 - [Python](python.org) (version ≧ 3.6)
-- [numpy](numpy.org)
-  - You can install numpy with pip command : `python -m pip install numpy`
+  - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
 ## Usage
 
