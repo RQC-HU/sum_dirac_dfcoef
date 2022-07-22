@@ -87,7 +87,7 @@ def get_atom_num(num_str: "str | None", elem: str) -> int:
     if num_str is None:
         return 1
     elif num_str not in elem:
-        sys.exit(f"ERROR: {num_str} is not in {elem}")
+        sys.exit(f"ERROR: {num_str} is not in {elem}. Please check the molecule specification (-mol option).")
     return int(num_str)
 
 
@@ -97,7 +97,7 @@ def space_separated_parsing(line: str) -> "list[str]":
 
 
 def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
-    """ "
+    """
     Nested functions to parse molecule input
     """
 
@@ -139,10 +139,9 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
     """
 
     def get_orbital_type() -> "tuple[str, str]":
-        word_len = len(words)
         atom_type = ""
         symmetry_type = ""
-        if word_len == 9:  # Ag pattern
+        if len(words) == 9:  # Ag pattern
             """
             (e.g)   words[2] = "Ag"
                     words[3] = "O"
@@ -150,17 +149,15 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
                     atom_type = "O"
             """
             symmetry_type = words[2]
-            idx = 3
-            atom_type = words[idx]  # name of atom (e.g. U)
-        elif word_len == 8:
+            atom_type = words[3]
+        elif len(words) == 8:
             """
             (e.g)   words[2] = "B3gO"
                     symmetry_type = "B3g"
                     atom_type = "O"
             """
-            idx = 2
-            symmetry_type = words[idx][:3]
-            atom_type = words[idx][3:]
+            symmetry_type = words[2][:3]
+            atom_type = words[2][3:]
         return symmetry_type, atom_type
 
     def add_orbital_type(atom_type: str, atom_orb_type: str) -> None:
@@ -176,6 +173,10 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
             return words[3:]
 
     def get_coefficient() -> float:
+        """
+        (e.g)
+        words = ["g400", "0.0000278056", "0.0000000000", "0.0000000000", "0.0000000000"]
+        """
         alpha1: float = float(words[1])
         alpha2: float = float(words[2])
         beta1: float = float(words[3])
@@ -199,6 +200,7 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
     Main function to get and add coefficient
     """
     symmetry_type, atom_type = get_orbital_type()
+    # Trimming simplifies the structure of the function to get the coefficients.
     words = trim_words()
     coefficient = get_coefficient()
 
