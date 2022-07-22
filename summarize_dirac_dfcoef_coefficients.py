@@ -274,9 +274,14 @@ def main() -> None:
                 mo_sym_type = words[2]
 
             elif need_to_start_reading_coefficients(words, is_reading_coefficients):
+                """
+                (e.g.)
+                words = ["*", "Electronic", "eigenvalue", "no.", "22:", "-2.8417809384721"]
+                """
                 is_reading_coefficients = True
                 electron_number = int(words[4][:-1])
-                print("Electronic no.", electron_number, mo_sym_type)
+                mo_energy = float(words[5])
+                print("Electronic no.", electron_number, mo_sym_type, mo_energy)
 
             elif need_to_write_results(words, is_reading_coefficients):
                 is_reading_coefficients = False
