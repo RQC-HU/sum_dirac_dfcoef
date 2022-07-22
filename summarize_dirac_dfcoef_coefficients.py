@@ -240,7 +240,7 @@ def write_results(
             atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
             data_per_orb_types.orbital_type.append(orb)
             data_per_orb_types.atom.append(atom)
-            data_per_orb_types.mo_percentage.append(coefficient * 100 / coefficients.norm_const_sum * atom_num)
+            data_per_orb_types.mo_percentage.append(coefficient * 100 / (coefficients.norm_const_sum * atom_num))
         return
 
     def calculate_sum_of_mo_coefficient() -> float:
