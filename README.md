@@ -99,4 +99,4 @@ optional arguments (-f and -mol is required)
 
 - -t THRESHOLD, --threshold THRESHOLD
 
-  threshold. Default: 0.1 % (e.g) --threshold=0.1 => print orbital with more than 0.1 % contribution
+  threshold. Default: 0.1 % (e.g) --threshold=0.5 => print orbital with more than 0.5 % contribution
