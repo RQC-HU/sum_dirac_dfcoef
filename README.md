@@ -82,7 +82,7 @@ Normalization constant is 0.5177168489972134
 
 ## Options
 
-optional arguments (-f and -mol is required)
+optional arguments (-f and -mol are required)
 
 - -h, --help
 
