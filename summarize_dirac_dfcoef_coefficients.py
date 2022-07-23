@@ -35,7 +35,7 @@ class Coefficients:
 class Data_per_orbital_types:
     atom: "list[str]" = list()  # (e.g.) ["U","O","O",....,"U"]
     orbital_type: "list[str]" = list()  # (e.g.) ["B1uUfxxz","B1uOs","B1uOpz",....,"B2uUfyzz"]
-    mo_percentage: "list[float]" = list()  # (e.g.) [0.1576884676852207,81.58228712019573,"O",....,"U"]
+    mo_percentage: "list[float]" = list()  # (e.g.) [0.1576884676852207,81.58228712019573, ... ]
 
     def __repr__(self) -> str:
         return f"atom: {self.atom}, orbital_type: {self.orbital_type}, mo_percentage: {self.mo_percentage}"
