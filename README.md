@@ -5,7 +5,7 @@ This program summarize the coefficients from DIRAC output file that *PRIVEC opti
 
 ## Requirements
 
-- [Python](python.org) (version ≧ 3.6)
+- [Python](https://python.org) (version ≧ 3.6)
   - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
 ## Usage
