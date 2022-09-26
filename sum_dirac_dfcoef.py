@@ -84,7 +84,7 @@ def need_to_get_mo_sym_type(words: "list[str]", is_reading_coefficients: bool) -
 
 
 def need_to_start_reading_coefficients(words: "list[str]", is_reading_coefficients: bool) -> bool:
-    if not is_reading_coefficients and len(words) == 6 and words[1] == "Electronic":
+    if not is_reading_coefficients and words[1] == "Electronic" and words[2] == "eigenvalue" and "no." in words[3]:
         return True
     return False
 
@@ -318,10 +318,11 @@ def main() -> None:
                 """
                 (e.g.)
                 words = ["*", "Electronic", "eigenvalue", "no.", "22:", "-2.8417809384721"]
+                words = ["*", "Electronic", "eigenvalue", "no.122:", "-2.8417809384721"]
                 """
                 is_reading_coefficients = True
-                electron_number = int(words[4][:-1])
-                mo_energy = float(words[5])
+                electron_number = int(words[-2][:-1].replace("no.", ""))
+                mo_energy = float(words[-1])
                 print("Electronic no.", electron_number, mo_sym_type, mo_energy)
 
             elif need_to_write_results(words, is_reading_coefficients):
