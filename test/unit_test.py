@@ -66,3 +66,4 @@ def test_uo2():
 
 if __name__ == "__main__":
     test_uo2()
+    test_ucl4()
