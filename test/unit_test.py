@@ -1,5 +1,6 @@
-import difflib
 import os
+import pytest
+import re
 import subprocess
 import sys
 
@@ -28,12 +29,23 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
         if process.returncode != 0:
             sys.exit(f"{test_command} failed with return code {process.returncode}")
 
-    ref_file = open(ref_filepath, "r")
-    out_file = open(result_filepath, "r")
+    ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
+    out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
 
-    diffItr = difflib.unified_diff(ref_file.readlines(), out_file.readlines())
-    diff = "".join(diffItr)
-    assert diff == ""
+    threshold: float = 1e-10
+    checked = len(ref_file)
+    for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+        if len(ref) < 2 or len(out) < 2:
+            checked -= 1
+            continue
+        if "%" in ref[-1]:
+            ref_value = float(ref[-2])
+            out_value = float(out[-2])
+        else:
+            ref_value = float(ref[-1])
+            out_value = float(out[-1])
+        assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
+    open(f'test.{mol}.log', "w").write(f"{checked} lines checked")
 
 
 def test_ucl4():
