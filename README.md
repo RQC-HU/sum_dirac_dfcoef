@@ -1,7 +1,11 @@
 # SUMMARIZE DIRAC DFCOEF COEFFICIENTS
 
+[![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
+
+
 This program summarize the coefficients from DIRAC output file that *PRIVEC option was used.  
 (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)
+
 
 ## Requirements
 
