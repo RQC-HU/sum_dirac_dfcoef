@@ -45,7 +45,7 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
             ref_value = float(ref[-1])
             out_value = float(out[-1])
         assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
-    open(f'test.{mol}.log', "w").write(f"{checked} lines checked")
+    open(f"test.{mol}.log", "w").write(f"{checked} lines checked")
 
 
 def test_ucl4():
