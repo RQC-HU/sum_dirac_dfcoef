@@ -7,7 +7,7 @@ import sys
 
 def run_script_and_check(ref_filename: str, result_filename: str, input_filename: str, mol: str):
 
-    script_name = "../sum_dirac_dfcoef.py"
+    script_name = "../sum_dirac_dfcoef"
     test_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(test_path)
     print(test_path, " test start...")
@@ -16,7 +16,7 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
     result_filepath = os.path.join(test_path, result_filename)
     script_filepath = os.path.join(test_path, script_name)
 
-    test_command = f"python {script_filepath} -m {mol} -f {input_filename}"
+    test_command = f"{script_filepath} -m {mol} -f {input_filename}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
