@@ -13,13 +13,13 @@ This program summarize the coefficients from DIRAC output file that *PRIVEC opti
 You can use this program with the following command!
 
 ```sh
-python sum_dirac_dfcoef.py -f OUPUT_FILE_PATH -mol MOLECULE_NAME
+python sum_dirac_dfcoef.py -f OUPUT_FILE_PATH -m MOLECULE_NAME
 ```
 
 (e.g.)
 
 ```sh
-python sum_dirac_dfcoef.py -f uo2_uo2.out -mol UO2
+python sum_dirac_dfcoef.py -f uo2_uo2.out -m UO2
 ```
 
 A part of uo2_uo2.out (DIRAC output file, ... represents an omission)
