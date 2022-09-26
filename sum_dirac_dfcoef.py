@@ -257,7 +257,7 @@ def write_results(
         if mo_percentage > threshold:
             for _ in range(atoms.atom_nums[atoms.atom_types.index(data_per_orbital_types.atom[idx])]):
                 orb_type = str(data_per_orbital_types.orbital_type[idx]).ljust(11, " ")
-                print(f"{orb_type}: {data_per_orbital_types.mo_percentage[idx]}  \t%")
+                print(f"{orb_type}: {data_per_orbital_types.mo_percentage[idx]:21.17f} %")
     print(f"Normalization constant is {coefficients.norm_const_sum}")
     print(f"sum of coefficient {coefficients.sum_of_mo_coefficient}\n")
 
