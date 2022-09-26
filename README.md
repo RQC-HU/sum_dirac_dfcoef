@@ -61,21 +61,21 @@ A part of the result (... represents an omission)
 
 ```out
 Electronic no. 17 E1g -5.1175267254674
-AgUs       : 0.13728512177623234        %
-AgUdxx     : 4.637169653126273          %
-AgUdyy     : 4.637169653126273          %
-AgUdzz     : 18.548678611340048         %
-B2gUdxz    : 35.987808727554935         %
-B3gUdyz    : 35.987808727554935         %
+AgUs       :   0.13728512177623234 %
+AgUdxx     :   4.63716965312627316 %
+AgUdyy     :   4.63716965312627316 %
+AgUdzz     :  18.54867861134004769 %
+B2gUdxz    :  35.98780872755493476 %
+B3gUdyz    :  35.98780872755493476 %
 Normalization constant is 0.5059238161886942
 sum of coefficient 0.9999999999999996
 
 Electronic no. 18 E1g -5.1107907830158
-AgUdxx     : 12.470478563230676         %
-AgUdyy     : 12.470478563230676         %
-B1gUdxy    : 49.881914269535386         %
-B2gUdxz    : 12.588217725335923         %
-B3gUdyz    : 12.588217725335923         %
+AgUdxx     :  12.47047856323067627 %
+AgUdyy     :  12.47047856323067627 %
+B1gUdxy    :  49.88191426953538610 %
+B2gUdxz    :  12.58821772533592309 %
+B3gUdyz    :  12.58821772533592309 %
 Normalization constant is 0.5177168489972134
 ...
 ```
@@ -92,7 +92,7 @@ optional arguments (-f and -mol are required)
 
   (required) file name of DIRAC output
 
-- -mol MOLECULE, --molecule MOLECULE
+- -m MOLECULE, --mol MOLECULE
 
   (required) molecule specification. Write the molecular formula (e.g. Cu2O)
 
