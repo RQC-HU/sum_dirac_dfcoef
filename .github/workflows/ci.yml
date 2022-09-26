@@ -5,6 +5,7 @@ on:
     paths:
       - "reference.**.out"
       - "**.py"
+      - "sum_dirac_dfcoef"
       - ".github/workflows/**"
 
 # Ref : https://github.com/pytest-dev/pytest/issues/7443#issue-650484842
