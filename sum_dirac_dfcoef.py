@@ -49,7 +49,7 @@ class Data_per_orbital_types:
 def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
     parser.add_argument("-f", "--file", type=str, help="(required) file name of DIRAC output")
-    parser.add_argument("-mol", "--molecule", type=str, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O)")
+    parser.add_argument("-m", "--mol", type=str, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O)")
     parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution")
     return parser.parse_args()
 
@@ -99,7 +99,7 @@ def get_atom_num(num_str: "str | None", elem: str) -> int:
     if num_str is None:
         return 1
     elif num_str not in elem:
-        sys.exit(f"ERROR: {num_str} is not in {elem}. Please check the molecule specification (-mol option).")
+        sys.exit(f"ERROR: {num_str} is not in {elem}. Please check the molecule specification (-m or --mol option).")
     return int(num_str)
 
 
@@ -139,9 +139,9 @@ def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
     Main function to parse molecule input
     """
     atoms = Atoms()
-    if not args.molecule:
-        sys.exit("ERROR: Molecule is not specified. Please use -mol option. (e.g. -mol Cu2O)")
-    split_per_atom = re.findall("[A-Z][^A-Z]*", args.molecule)
+    if not args.mol:
+        sys.exit("ERROR: Molecule is not specified. Please use -m or --mol option. (e.g. -m Cu2O)")
+    split_per_atom = re.findall("[A-Z][^A-Z]*", args.mol)
     return parse_atom_and_the_number_of_atoms(split_per_atom)
 
 
@@ -197,7 +197,7 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
 
     def check_atom_type() -> None:
         if atom_type not in atoms.atom_types:
-            sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your --molecule or -mol option.")
+            sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your -m or --mol option.")
 
     def add_coefficient(coefficient: float, atom_orb_type: str) -> None:
         magnification = atoms.atom_nums[atoms.atom_types.index(atom_type)]
