@@ -264,9 +264,28 @@ def write_results(
     return None
 
 
+def check_start_vector_print(words: "list[str]") -> bool:
+    # ****************************** Vector print ******************************
+    if len(words) < 4:
+        return False
+    elif words[1] == "Vector" and words[2] == "print":
+        return True
+    return False
+
+
+def check_end_vector_print(words: "list[str]") -> bool:
+    # ********************** Mulliken population analysis **********************
+    if len(words) < 5:
+        return False
+    elif words[1] == "Mulliken" and words[2] == "population":
+        return True
+    return False
+
+
 def main() -> None:
 
     is_reading_coefficients: bool = False
+    is_start_vector_print: bool = False
     electron_number: int = 0
     mo_sym_type: str = ""
     coefficients = Coefficients()
@@ -280,6 +299,14 @@ def main() -> None:
         for line in f:
 
             words: "list[str]" = space_separated_parsing(line)
+            if not is_start_vector_print:
+                if not check_start_vector_print(words):
+                    continue
+                else:
+                    is_start_vector_print = True
+
+            if is_start_vector_print and check_end_vector_print(words):
+                break
 
             if need_to_skip_this_line(words, is_reading_coefficients):
                 continue
