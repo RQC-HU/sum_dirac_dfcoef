@@ -23,7 +23,7 @@ You can use this program with the following command!
 (e.g.)
 
 ```sh
-sum_dirac_dfcoef -f x2c_uo2_238.out -m UO2
+./sum_dirac_dfcoef -f x2c_uo2_238.out -m UO2
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
@@ -96,9 +96,9 @@ optional arguments (-f and -mol are required)
 
   (required) file name of DIRAC output
 
-- -m MOLECULE, --mol MOLECULE
+- -m MOL, --mol MOL
 
-  (required) molecule specification. Write the molecular formula (e.g. Cu2O)
+  (required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***
 
 - -t THRESHOLD, --threshold THRESHOLD
 
