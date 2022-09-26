@@ -23,10 +23,10 @@ python sum_dirac_dfcoef.py -f OUPUT_FILE_PATH -m MOLECULE_NAME
 (e.g.)
 
 ```sh
-python sum_dirac_dfcoef.py -f uo2_uo2.out -m UO2
+python sum_dirac_dfcoef.py -f x2c_uo2_238.out -m UO2
 ```
 
-A part of uo2_uo2.out (DIRAC output file, ... represents an omission)
+A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
 
 ```out
 ...
