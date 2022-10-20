@@ -10,7 +10,7 @@ class Atoms:
     atom_types: "list[str]" = list()
     atom_list: "list[str]" = list()
     orbital_types: "list[str]" = list()
-    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Uub", "Uut", "Uuq", "Uup", "Uuh", "Uus", "Uuo"]
+    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg"]
 
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
@@ -57,7 +57,8 @@ def parse_args() -> "argparse.Namespace":
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
-    if 8 <= len(words) <= 9:
+    # # min: 4 coefficients and other words => 5 words
+    if 5 <= len(words) <= 9:
         return True
     else:
         return False
@@ -150,29 +151,40 @@ def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
 def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients) -> None:
     """
     Nested functions to get and add coefficient
+
+    words is a list of strings that is split by space.
+    words[0] is the number of MO.
+    words[1] is the L or S, Large or Small.
+    words[2:-5] are symmetry type, Atom and Orbital type.
+      Sometimes these elements cannot be separated because there is no space available <--- This is the reason why we use words[2:-5].
+    words[-4:] is the coefficient.
+
+    (e.g.)
+    sym_and_atom_and_orb_str = "B3gCldyz"
+    symmetry_type = "B3g"
+    atom_type = "Cl"
+    orbital_type = "dyz"
     """
 
-    def get_orbital_type() -> "tuple[str, str]":
-        atom_type = ""
-        symmetry_type = ""
-        if len(words) == 9:  # Ag pattern
-            """
-            (e.g)   words[2] = "Ag"
-                    words[3] = "O"
-                    symmetry_type = "Ag"
-                    atom_type = "O"
-            """
-            symmetry_type = words[2]
-            atom_type = words[3]
-        elif len(words) == 8:
-            """
-            (e.g)   words[2] = "B3gO"
-                    symmetry_type = "B3g"
-                    atom_type = "O"
-            """
-            symmetry_type = words[2][:3]
-            atom_type = words[2][3:]
-        return symmetry_type, atom_type
+    def get_types() -> "tuple[str, str, str]":
+        sym_and_atom_and_orb_str = " ".join(words[2:-4])
+        splitted_by_capital = re.findall("[A-Z][^A-Z]*", sym_and_atom_and_orb_str)
+        symmetry_type = splitted_by_capital[0].strip()
+        # atom_type must be 1 or 2 letters.
+        if splitted_by_capital[1][:2] in atoms.elements:  # 2 letters (e.g. Cu)
+            atom_type = splitted_by_capital[1][:2]
+            orbital_type = splitted_by_capital[1][2:]
+        elif splitted_by_capital[1][0] in atoms.elements:  # 1 letter (e.g. C)
+            atom_type = splitted_by_capital[1][0]
+            orbital_type = splitted_by_capital[1][1:]
+        else:
+            sys.exit(f"ERROR: {splitted_by_capital[1][:1]} is invalid atom type.")
+
+        # orbital_type does not have space or numbers.
+        orbital_type = orbital_type.lstrip("0123456789 ")
+
+        # Return symmetry_type, atom_type, orbital_type with no space.
+        return symmetry_type.strip(), atom_type.strip(), orbital_type.strip()
 
     def add_orbital_type(atom_type: str, atom_orb_type: str) -> None:
         if atom_orb_type not in atoms.orbital_types:
@@ -180,25 +192,31 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
             atoms.atom_list.append(atom_type)
             coefficients.mo_coefficient_list.append(0.0)
 
-    def trim_words() -> "list[str]":
-        if len(words) == 9:
-            return words[4:]
+    def isfloat(parameter):
+        if not parameter.isdecimal():
+            try:
+                float(parameter)
+                return True
+            except ValueError:
+                return False
         else:
-            return words[3:]
+            return False
 
     def get_coefficient() -> float:
         """
         (e.g)
         words = ["g400", "0.0000278056", "0.0000000000", "0.0000000000", "0.0000000000"]
         """
-        alpha1: float = float(words[1])
-        alpha2: float = float(words[2])
-        beta1: float = float(words[3])
-        beta2: float = float(words[4])
+        alpha1: float = float(words[-4]) if isfloat(words[-4]) else 0.0
+        alpha2: float = float(words[-3]) if isfloat(words[-3]) else 0.0
+        beta1: float = float(words[-2]) if isfloat(words[-2]) else 0.0
+        beta2: float = float(words[-1]) if isfloat(words[-1]) else 0.0
         return alpha1**2 + alpha2**2 + beta1**2 + beta2**2
 
     def check_atom_type() -> None:
         if atom_type not in atoms.atom_types:
+            print("WARNING: ", atom_type, " is not in the molecule specification. This orbital will be ignored.")
+            print(atoms.atom_types)
             sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your -m or --mol option.")
 
     def add_coefficient(coefficient: float, atom_orb_type: str) -> None:
@@ -213,16 +231,13 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
     """
     Main function to get and add coefficient
     """
-    symmetry_type, atom_type = get_orbital_type()
-    # Trimming simplifies the structure of the function to get the coefficients.
-    words = trim_words()
-    coefficient = get_coefficient()
 
-    orbital_type: str = words[0]  # orbital type (e.g. dxy)
+    symmetry_type, atom_type, orbital_type = get_types()
+    check_atom_type()
+    coefficient = get_coefficient()
     atom_orb_type = symmetry_type + atom_type + orbital_type
 
     add_orbital_type(atom_type, atom_orb_type)
-    check_atom_type()
     add_coefficient(coefficient, atom_orb_type)
 
     return None
