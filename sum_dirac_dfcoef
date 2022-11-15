@@ -148,7 +148,7 @@ def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
     return parse_atom_and_the_number_of_atoms(split_per_atom)
 
 
-def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, electron_number: int) -> None:
+def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients) -> None:
     """
     Nested functions to get and add coefficient
 
@@ -371,7 +371,7 @@ def main() -> None:
             elif is_reading_coefficients:
                 if not is_this_row_for_coefficients(words):
                     continue
-                get_and_add_coefficient(words, atoms, coefficients, electron_number)
+                get_and_add_coefficient(words, atoms, coefficients)
 
 
 if __name__ == "__main__":
