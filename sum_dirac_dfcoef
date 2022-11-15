@@ -50,14 +50,14 @@ class Data_per_orbital_types:
 
 def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
-    parser.add_argument("-f", "--file", type=str, help="(required) file name of DIRAC output")
-    parser.add_argument("-m", "--mol", type=str, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***")
+    parser.add_argument("-f", "--file", type=str, required=True, help="(required) file name of DIRAC output")
+    parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***")
     parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution")
     return parser.parse_args()
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
-    # # min: 4 coefficients and other words => 5 words
+    # min: 4 coefficients and other words => 5 words
     if 5 <= len(words) <= 9:
         return True
     else:
@@ -148,7 +148,7 @@ def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
     return parse_atom_and_the_number_of_atoms(split_per_atom)
 
 
-def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients) -> None:
+def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, electron_number: int) -> None:
     """
     Nested functions to get and add coefficient
 
@@ -167,11 +167,13 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
     """
 
     def get_types() -> "tuple[str, str, str]":
+
         sym_and_atom_and_orb_str = " ".join(words[2:-4])
         splitted_by_capital = re.findall("[A-Z][^A-Z]*", sym_and_atom_and_orb_str)
         symmetry_type = splitted_by_capital[0].strip()
         # atom_type must be 1 or 2 letters.
-        if splitted_by_capital[1][:2] in atoms.elements:  # 2 letters (e.g. Cu)
+        # check splitted_by_capital[1][:2] is not out of range
+        if len(splitted_by_capital[1]) >= 2 and splitted_by_capital[1][:2] in atoms.elements:  # 2 letters (e.g. Cu)
             atom_type = splitted_by_capital[1][:2]
             orbital_type = splitted_by_capital[1][2:]
         elif splitted_by_capital[1][0] in atoms.elements:  # 1 letter (e.g. C)
@@ -228,10 +230,27 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
         orb_type_idx = atoms.orbital_types.index(atom_orb_type)
         coefficients.mo_coefficient_list[orb_type_idx] += coefficient
 
+    def parse_words(words: "list[str]") -> "list[str]":
+        new_words = []
+        for word in words:
+            num_of_dots = word.count(".")
+            if num_of_dots == 0 or num_of_dots == 1:
+                new_words.append(word)
+            elif num_of_dots >= 2:
+                decimal_num = 10
+                dotidx = word.find(".")
+                while dotidx != -1:
+                    word2 = word[: dotidx + decimal_num + 1]
+                    new_words.append(word2)
+                    word = word[dotidx + decimal_num + 1 :]
+                    dotidx = word.find(".")
+
+        return new_words
+
     """
     Main function to get and add coefficient
     """
-
+    words = parse_words(words)
     symmetry_type, atom_type, orbital_type = get_types()
     check_atom_type()
     coefficient = get_coefficient()
@@ -352,7 +371,7 @@ def main() -> None:
             elif is_reading_coefficients:
                 if not is_this_row_for_coefficients(words):
                     continue
-                get_and_add_coefficient(words, atoms, coefficients)
+                get_and_add_coefficient(words, atoms, coefficients, electron_number)
 
 
 if __name__ == "__main__":
