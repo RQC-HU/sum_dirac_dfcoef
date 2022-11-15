@@ -31,7 +31,8 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
 
     ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
     out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
-
+    # File should have the same number of lines
+    assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
     checked = len(ref_file)
     for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
