@@ -17,7 +17,7 @@ This program summarizes the coefficients from a DIRAC output file using the *PRI
 You can use this program with the following command!
 
 ```sh
-/path/to/sum_dirac_dfcoef -f OUPUT_FILE_PATH -m MOLECULE_NAME
+/path/to/sum_dirac_dfcoef -f DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
 ```
 
 (e.g.)
