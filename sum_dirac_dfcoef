@@ -53,6 +53,8 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("-f", "--file", type=str, required=True, help="(required) file name of DIRAC output")
     parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***")
     parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution")
+    parser.add_argument("-d", "--decimal", type=int, help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15, ", default=5, choices=range(1, 16), dest="decimal")
+    parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)")
     return parser.parse_args()
 
 
@@ -266,6 +268,8 @@ def write_results(
     atoms: Atoms,
     coefficients: Coefficients,
     threshold: float,
+    decimal: int,
+    debug_mode: bool
 ) -> None:
     """
     Nested functions to write results
@@ -293,10 +297,11 @@ def write_results(
         if mo_percentage > threshold:
             for _ in range(atoms.atom_nums[atoms.atom_types.index(data_per_orbital_types.atom[idx])]):
                 orb_type = str(data_per_orbital_types.orbital_type[idx]).ljust(11, " ")
-                print(f"{orb_type}: {data_per_orbital_types.mo_percentage[idx]:21.17f} %")
-    print(f"Normalization constant is {coefficients.norm_const_sum}")
-    print(f"sum of coefficient {coefficients.sum_of_mo_coefficient}\n")
-
+                print(f"{orb_type} {data_per_orbital_types.mo_percentage[idx]:{decimal+3}.{decimal}f} %")
+    if (debug_mode):
+        print(f"Normalization constant is {coefficients.norm_const_sum}")
+        print(f"sum of coefficient {coefficients.sum_of_mo_coefficient}")
+    print()  # Add a blank line
     return None
 
 
@@ -330,8 +335,11 @@ def main() -> None:
     threshold: float = args.threshold if args.threshold else 0.1
     dirac_file: str = get_dirac_filename(args)
     atoms: Atoms = parse_molecule_input(args)
+    decimal: int = args.decimal
+    debug_mode: bool = args.debug
 
-    with open(dirac_file) as f:
+
+    with open(dirac_file, encoding="utf-8") as f:
         for line in f:
 
             words: "list[str]" = space_separated_parsing(line)
@@ -363,7 +371,7 @@ def main() -> None:
 
             elif need_to_write_results(words, is_reading_coefficients):
                 is_reading_coefficients = False
-                write_results(atoms, coefficients, threshold)
+                write_results(atoms, coefficients, threshold, decimal, debug_mode)
                 # Reset variables
                 coefficients.reset()
                 atoms.reset()
