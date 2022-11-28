@@ -12,6 +12,12 @@ This program summarizes the coefficients from a DIRAC output file using the *PRI
 - [Python](https://python.org) (version ≧ 3.6)
   - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
+## Download
+
+```sh
+git clone https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients.git
+```
+
 ## Usage
 
 You can use this program with the following command!
@@ -84,6 +90,18 @@ Normalization constant is 0.5177168489972134
 ...
 ```
 
+If you use -c or --compress option, you can get a compressed result like this.(one line per MO)
+
+This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
+
+```out
+E1g 17 -5.1175267254674 AgUs 0.137285121776232 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUdzz 18.548678611340048 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935
+E1g 18 -5.1107907830158 AgUdxx 12.470478563230676 AgUdyy 12.470478563230676 B1gUdxy 49.881914269535386 B2gUdxz 12.588217725335923 B3gUdyz 12.588217725335923
+E1g 19 -4.8038359333701 AgUs 0.134289378478735 AgUdxx 6.527712047428291 AgUdyy 6.527712047428291 AgUdzz 26.110848178313287 B2gUdxz 30.337915669150643 B3gUdyz 30.337915669150643
+...
+```
+
+
 ## Options
 
 optional arguments (-f and -mol are required)
@@ -100,6 +118,14 @@ optional arguments (-f and -mol are required)
 
   (required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***
 
+- -c, --compress
+  Compress output. Display all coefficients on one line for each MO.
+  This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
+
 - -t THRESHOLD, --threshold THRESHOLD
 
-  threshold. Default: 0.1 % (e.g) --threshold=0.5 => print orbital with more than 0.5 % contribution
+  threshold. Default: 0.1 % (e.g) --threshold=0.1 => print orbital with more than 0.1 % contribution
+
+- -d DECIMAL, --decimal DECIMAL
+Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
+- --debug               print debug output (Normalization constant, Sum of MO coefficient)
