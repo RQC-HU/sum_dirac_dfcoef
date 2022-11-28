@@ -48,7 +48,13 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
         assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
     open(f"test.{mol}.log", "w").write(f"{checked} lines checked")
 
-
+def test_Ar():  # 100% coefficients are included in the reference file
+    ref_filename = "ref.Ar.out"
+    result_filename = "result.Ar.out"
+    input_filename = "Ar_Ar.out"
+    mol = "Ar"
+    run_script_and_check(ref_filename, result_filename, input_filename, mol)
+    
 def test_ucl4():
     ref_filename = "ref.ucl4.out"
     result_filename = "result.ucl4.out"
