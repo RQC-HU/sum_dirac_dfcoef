@@ -52,9 +52,9 @@ def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
     parser.add_argument("-f", "--file", type=str, required=True, help="(required) file name of DIRAC output")
     parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***")
-    parser.add_argument("-c", "--compress", action="store_true", help="Compress output. Display all coefficients on one line for each MO.", dest="compress")
+    parser.add_argument("-c", "--compress", action="store_true", help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.", dest="compress")
     parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution")
-    parser.add_argument("-d", "--decimal", type=int, help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15, ", default=5, choices=range(1, 16), dest="decimal")
+    parser.add_argument("-d", "--decimal", type=int, help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15", default=5, choices=range(1, 16), dest="decimal")
     parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)")
     return parser.parse_args()
 
