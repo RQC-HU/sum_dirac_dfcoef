@@ -5,7 +5,20 @@ import subprocess
 import sys
 
 
-def run_script_and_check(ref_filename: str, result_filename: str, input_filename: str, mol: str):
+@pytest.mark.parametrize(
+    "ref_filename, result_filename, input_filename, mol, options",
+    # fmt: off
+    [
+        ("ref.Ar.out",            "result.Ar.out",            "Ar_Ar.out",       "Ar",   "-d 15"),
+        ("ref.compress.Ar.out",   "result.compress.Ar.out",   "Ar_Ar.out",       "Ar",   "-d 15 -c"),
+        ("ref.uo2.out",           "result.uo2.out",           "x2c_uo2_238.out", "UO2",  "-d 15"),
+        ("ref.compress.uo2.out",  "result.compress.uo2.out",  "x2c_uo2_238.out", "UO2",  "-d 15 -c"),
+        ("ref.ucl4.out",          "result.ucl4.out",          "x2c_ucl4.out",    "UCl4", "-d 15"),
+        ("ref.compress.ucl4.out", "result.compress.ucl4.out", "x2c_ucl4.out",    "UCl4", "-d 15 -c")
+    ]
+    # fmt: on
+)
+def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, mol: str, options: str):
 
     script_name = "../sum_dirac_dfcoef"
     test_path = os.path.dirname(os.path.realpath(__file__))
@@ -16,7 +29,7 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
     result_filepath = os.path.join(test_path, result_filename)
     script_filepath = os.path.join(test_path, script_name)
 
-    test_command = f"{script_filepath} -m {mol} -f {input_filename} -d 15"
+    test_command = f"{script_filepath} -m {mol} -f {input_filename} {options}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
@@ -47,30 +60,3 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
             out_value = float(out[-1])
         assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
     open(f"test.{mol}.log", "w").write(f"{checked} lines checked")
-
-def test_Ar():  # 100% coefficients are included in the reference file
-    ref_filename = "ref.Ar.out"
-    result_filename = "result.Ar.out"
-    input_filename = "Ar_Ar.out"
-    mol = "Ar"
-    run_script_and_check(ref_filename, result_filename, input_filename, mol)
-    
-def test_ucl4():
-    ref_filename = "ref.ucl4.out"
-    result_filename = "result.ucl4.out"
-    input_filename = "x2c_ucl4.out"
-    mol = "UCl4"
-    run_script_and_check(ref_filename, result_filename, input_filename, mol)
-
-
-def test_uo2():
-    ref_filename = "ref.uo2.out"
-    result_filename = "result.uo2.out"
-    input_filename = "x2c_uo2_238.out"
-    mol = "UO2"
-    run_script_and_check(ref_filename, result_filename, input_filename, mol)
-
-
-if __name__ == "__main__":
-    test_uo2()
-    test_ucl4()
