@@ -16,7 +16,7 @@ def run_script_and_check(ref_filename: str, result_filename: str, input_filename
     result_filepath = os.path.join(test_path, result_filename)
     script_filepath = os.path.join(test_path, script_name)
 
-    test_command = f"{script_filepath} -m {mol} -f {input_filename}"
+    test_command = f"{script_filepath} -m {mol} -f {input_filename} -d 15"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
