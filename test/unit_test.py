@@ -9,12 +9,12 @@ import sys
     "ref_filename, result_filename, input_filename, mol, options",
     # fmt: off
     [
-        ("ref.Ar.out",            "result.Ar.out",            "Ar_Ar.out",       "Ar",   "-d 15"),
-        ("ref.compress.Ar.out",   "result.compress.Ar.out",   "Ar_Ar.out",       "Ar",   "-d 15 -c"),
-        ("ref.uo2.out",           "result.uo2.out",           "x2c_uo2_238.out", "UO2",  "-d 15"),
-        ("ref.compress.uo2.out",  "result.compress.uo2.out",  "x2c_uo2_238.out", "UO2",  "-d 15 -c"),
-        ("ref.ucl4.out",          "result.ucl4.out",          "x2c_ucl4.out",    "UCl4", "-d 15"),
-        ("ref.compress.ucl4.out", "result.compress.ucl4.out", "x2c_ucl4.out",    "UCl4", "-d 15 -c")
+        ("ref.Ar.out"            , "result.Ar.out"            , "Ar_Ar.out"       , "Ar"   , "-d 15"),
+        ("ref.compress.Ar.out"   , "result.compress.Ar.out"   , "Ar_Ar.out"       , "Ar"   , "-d 15 -c"),
+        ("ref.uo2.out"           , "result.uo2.out"           , "x2c_uo2_238.out" , "UO2"  , "-d 15"),
+        ("ref.compress.uo2.out"  , "result.compress.uo2.out"  , "x2c_uo2_238.out" , "UO2"  , "-d 15 -c"),
+        ("ref.ucl4.out"          , "result.ucl4.out"          , "x2c_ucl4.out"    , "UCl4" , "-d 15"),
+        ("ref.compress.ucl4.out" , "result.compress.ucl4.out" , "x2c_ucl4.out"    , "UCl4" , "-d 15 -c")
     ]
     # fmt: on
 )
