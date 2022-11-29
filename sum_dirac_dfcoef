@@ -10,7 +10,9 @@ class Atoms:
     atom_types: "list[str]" = list()
     atom_list: "list[str]" = list()
     orbital_types: "list[str]" = list()
+    # fmt: off
     elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg"]
+    # fmt: on
 
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
@@ -35,17 +37,34 @@ class Coefficients:
 
 
 class Data_per_orbital_types:
-    atom: "list[str]" = list()  # (e.g.) ["U","O","O",....,"U"]
-    orbital_type: "list[str]" = list()  # (e.g.) ["B1uUfxxz","B1uOs","B1uOpz",....,"B2uUfyzz"]
-    mo_percentage: "list[float]" = list()  # (e.g.) [0.1576884676852207,81.58228712019573, ... ]
+    atom: str = ""
+    orbital_type: str = ""
+    mo_percentage: float = 0.0
+
+    def __init__(self, atom: str, orbital_type: str, mo_percentage: float) -> None:
+        self.atom = atom
+        self.orbital_type = orbital_type
+        self.mo_percentage = mo_percentage
 
     def __repr__(self) -> str:
         return f"atom: {self.atom}, orbital_type: {self.orbital_type}, mo_percentage: {self.mo_percentage}"
 
     def reset(self):
-        self.atom: "list[str]" = list()
-        self.orbital_type: "list[str]" = list()
-        self.mo_percentage: "list[float]" = list()
+        self.atom = ""
+        self.orbital_type = ""
+        self.mo_percentage = 0.0
+
+    # atom: "list[str]" = list()  # (e.g.) ["U","O","O",....,"U"]
+    # orbital_type: "list[str]" = list()  # (e.g.) ["B1uUfxxz","B1uOs","B1uOpz",....,"B2uUfyzz"]
+    # mo_percentage: "list[float]" = list()  # (e.g.) [0.1576884676852207,81.58228712019573, ... ]
+
+    # def __repr__(self) -> str:
+    #     return f"atom: {self.atom}, orbital_type: {self.orbital_type}, mo_percentage: {self.mo_percentage}"
+
+    # def reset(self):
+    #     self.atom: "list[str]" = list()
+    #     self.orbital_type: "list[str]" = list()
+    #     self.mo_percentage: "list[float]" = list()
 
 
 def parse_args() -> "argparse.Namespace":
@@ -270,13 +289,15 @@ def write_results(atoms: Atoms, coefficients: Coefficients, threshold: float, de
     Nested functions to write results
     """
 
-    def create_data_per_orbital_types(data_per_orb_types: Data_per_orbital_types) -> None:
+    def create_data_per_orbital_types():
+        data_per_orbital_types = []
         for (orb, coefficient, atom) in zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list):
             atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
-            data_per_orb_types.orbital_type.append(orb)
-            data_per_orb_types.atom.append(atom)
-            data_per_orb_types.mo_percentage.append(coefficient * 100 / (coefficients.norm_const_sum * atom_num))
-        return
+            data = Data_per_orbital_types(atom=atom, orbital_type=orb, mo_percentage=coefficient * 100 / (coefficients.norm_const_sum * atom_num))
+            if data.mo_percentage >= threshold:
+                for _ in range(atom_num):
+                    data_per_orbital_types.append(data)
+        return data_per_orbital_types
 
     def calculate_sum_of_mo_coefficient() -> float:
         return (sum([c for c in coefficients.mo_coefficient_list])) / coefficients.norm_const_sum
@@ -284,22 +305,22 @@ def write_results(atoms: Atoms, coefficients: Coefficients, threshold: float, de
     """
     Main function to write results
     """
-    data_per_orbital_types = Data_per_orbital_types()
-    data_per_orbital_types.reset()  # Initialize the data_per_orbital_types
-    create_data_per_orbital_types(data_per_orbital_types)
-    coefficients.sum_of_mo_coefficient = calculate_sum_of_mo_coefficient()
-    for idx, mo_percentage in enumerate(data_per_orbital_types.mo_percentage):
-        if mo_percentage > threshold:
-            for _ in range(atoms.atom_nums[atoms.atom_types.index(data_per_orbital_types.atom[idx])]):
-                if need_compress:
-                    orb_type = str(data_per_orbital_types.orbital_type[idx])
-                    output_str = f" {orb_type} {data_per_orbital_types.mo_percentage[idx]:.{decimal}f}"
-                    print(output_str, end="")
-                else:
-                    orb_type = str(data_per_orbital_types.orbital_type[idx]).ljust(11, " ")
-                    output_str = f"{orb_type} {data_per_orbital_types.mo_percentage[idx]:{decimal+4}.{decimal}f} %"
-                    print(output_str)
+    data_per_orbital_types = create_data_per_orbital_types()
+    data_per_orbital_types.sort(key=lambda x: x.mo_percentage, reverse=True)
+    data: Data_per_orbital_types
+    for data in data_per_orbital_types:
+        if data.mo_percentage >= threshold:
+            if need_compress:
+                orb_type = str(data.orbital_type)
+                output_str = f" {orb_type} {data.mo_percentage:.{decimal}f}"
+                print(output_str, end="")
+            else:
+                orb_type = str(data.orbital_type).ljust(11, " ")
+                output_str = f"{orb_type} {data.mo_percentage:{decimal+4}.{decimal}f} %"
+                print(output_str)
+
     if debug_mode:
+        coefficients.sum_of_mo_coefficient = calculate_sum_of_mo_coefficient()
         print(f"Normalization constant is {coefficients.norm_const_sum}")
         print(f"sum of coefficient {coefficients.sum_of_mo_coefficient}")
     print()  # Add a blank line

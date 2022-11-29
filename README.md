@@ -2,10 +2,8 @@
 
 [![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
 
-
-This program summarizes the coefficients from a DIRAC output file using the *PRIVEC and .VECPRI options.  
+This program summarizes the coefficients from a DIRAC output file using the *PRIVEC and .VECPRI options.
 (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)
-
 
 ## Requirements
 
@@ -71,22 +69,19 @@ A part of the result (... represents an omission)
 
 ```out
 Electronic no. 17 E1g -5.1175267254674
-AgUs       :   0.13728512177623234 %
-AgUdxx     :   4.63716965312627316 %
-AgUdyy     :   4.63716965312627316 %
-AgUdzz     :  18.54867861134004769 %
-B2gUdxz    :  35.98780872755493476 %
-B3gUdyz    :  35.98780872755493476 %
-Normalization constant is 0.5059238161886942
-sum of coefficient 0.9999999999999996
+B2gUdxz      35.98781 %
+B3gUdyz      35.98781 %
+AgUdzz       18.54868 %
+AgUdxx        4.63717 %
+AgUdyy        4.63717 %
+AgUs          0.13729 %
 
 Electronic no. 18 E1g -5.1107907830158
-AgUdxx     :  12.47047856323067627 %
-AgUdyy     :  12.47047856323067627 %
-B1gUdxy    :  49.88191426953538610 %
-B2gUdxz    :  12.58821772533592309 %
-B3gUdyz    :  12.58821772533592309 %
-Normalization constant is 0.5177168489972134
+B1gUdxy      49.88191 %
+B2gUdxz      12.58822 %
+B3gUdyz      12.58822 %
+AgUdxx       12.47048 %
+AgUdyy       12.47048 %
 ...
 ```
 
@@ -95,12 +90,11 @@ If you use -c or --compress option, you can get a compressed result like this.(o
 This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 ```out
-E1g 17 -5.1175267254674 AgUs 0.137285121776232 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUdzz 18.548678611340048 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935
-E1g 18 -5.1107907830158 AgUdxx 12.470478563230676 AgUdyy 12.470478563230676 B1gUdxy 49.881914269535386 B2gUdxz 12.588217725335923 B3gUdyz 12.588217725335923
-E1g 19 -4.8038359333701 AgUs 0.134289378478735 AgUdxx 6.527712047428291 AgUdyy 6.527712047428291 AgUdzz 26.110848178313287 B2gUdxz 30.337915669150643 B3gUdyz 30.337915669150643
+E1g 17 -5.1175267254674 B2gUdxz 35.98781 B3gUdyz 35.98781 AgUdzz 18.54868 AgUdxx 4.63717 AgUdyy 4.63717 AgUs 0.13729
+E1g 18 -5.1107907830158 B1gUdxy 49.88191 B2gUdxz 12.58822 B3gUdyz 12.58822 AgUdxx 12.47048 AgUdyy 12.47048
+E1g 19 -4.8038359333701 B2gUdxz 30.33792 B3gUdyz 30.33792 AgUdzz 26.11085 AgUdxx 6.52771 AgUdyy 6.52771 AgUs 0.13429
 ...
 ```
-
 
 ## Options
 
@@ -108,7 +102,7 @@ optional arguments (-f and -mol are required)
 
 - -h, --help
 
-  show this help message and exit  
+  show this help message and exit
 
 - -f FILE, --file FILE
 
@@ -116,7 +110,7 @@ optional arguments (-f and -mol are required)
 
 - -m MOL, --mol MOL
 
-  (required) molecule specification. Write the molecular formula (e.g. Cu2O). *** DON'T write the rational formula (e.g. CH3OH) ***
+  (required) molecule specification. Write the molecular formula (e.g. Cu2O). **DON'T write the rational formula (e.g. CH3OH)**
 
 - -c, --compress
   Compress output. Display all coefficients on one line for each MO.
