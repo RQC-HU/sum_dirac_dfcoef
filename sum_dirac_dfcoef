@@ -8,21 +8,22 @@ import sys
 class Atoms:
     atom_nums: "list[int]" = list()
     atom_types: "list[str]" = list()
-    atom_list: "list[str]" = list()
-    orbital_types: "list[str]" = list()
 
     def __repr__(self) -> str:
-        return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
+        return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}"
 
     def reset(self):
-        self.atom_list: "list[str]" = list()
-        self.orbital_types: "list[str]" = list()
+        self.atom_nums = list()
+        self.atom_types = list()
+        return None
 
 
 class Coefficients:
     norm_const_sum: float = 0.0
     sum_of_mo_coefficient: float = 0.0
-    mo_coefficient_list: "list[float]" = []
+    mo_coefficient_list: "list[float]" = list()
+    orbital_types: "list[str]" = list()
+    atom_list: "list[str]" = list()
 
     def __repr__(self) -> str:
         return f"norm_const_sum: {self.norm_const_sum}, sum_of_mo_coefficient: {self.sum_of_mo_coefficient}, mo_coefficient_list: {self.mo_coefficient_list}"
@@ -30,7 +31,9 @@ class Coefficients:
     def reset(self):
         self.norm_const_sum = 0.0
         self.sum_of_mo_coefficient = 0.0
-        self.mo_coefficient_list: "list[float]" = []
+        self.mo_coefficient_list: "list[float]" = list()
+        self.orbital_types: "list[str]" = list()
+        self.atom_list: "list[str]" = list()
 
 
 class Data_per_orbital_types:
@@ -105,14 +108,6 @@ def get_dirac_filename(args: "argparse.Namespace") -> str:
     return args.file
 
 
-def get_atom_num(num_str: "str | None", elem: str) -> int:
-    if num_str is None:
-        return 1
-    elif num_str not in elem:
-        sys.exit(f"ERROR: {num_str} is not in {elem}. Please check the molecule specification (-m or --mol option).")
-    return int(num_str)
-
-
 def space_separated_parsing(line: str) -> "list[str]":
     words = re.split(" +", line.rstrip("\n"))
     return [word for word in words if word != ""]
@@ -123,24 +118,30 @@ def parse_molecule_input(args: "argparse.Namespace", elements: "list[str]") -> A
     Nested functions to parse molecule input
     """
 
-    def parse_atom(input_list: "list[str]", line: str) -> str:
+    def get_atom_num(num_str: "str | None", elem: str) -> int:
+        if num_str is None:
+            return 1
+        elif num_str not in elem:
+            sys.exit(f"ERROR: {num_str} is not in {elem}. Please check the molecule specification (-m or --mol option).")
+        return int(num_str)
+
+    def parse_atom(input_list: "list[str]", line: str, atoms: Atoms) -> str:
         letter = "".join(filter(str.isalpha, line)) or None
         if letter not in elements:
             sys.exit(f"ERROR: {line} is invalid.")
         if letter in atoms.atom_types:
-            sys.exit(f"ERROR: {letter} is duplicated.\nYour input: {''.join(input_list)}")
+            sys.exit(f"ERROR: {letter} is already specified.\n Your input: {input_list}\n Please check the molecule specification (-m or --mol option).")
         return letter
 
     def parse_atom_num(line: str) -> int:
         num_str = "".join(filter(str.isdigit, line)) or None
         return get_atom_num(num_str, line)
 
-    def parse_atom_and_the_number_of_atoms(split_list: "list[str]") -> Atoms:
+    def create_atoms_data_class(split_list: "list[str]") -> Atoms:
+        atoms: Atoms = Atoms()
         for elem in split_list:
-
-            letter = parse_atom(split_list, elem)
-            atoms.atom_types.append(letter)
-
+            atom_type = parse_atom(split_list, elem, atoms)
+            atoms.atom_types.append(atom_type)
             num = parse_atom_num(elem)
             atoms.atom_nums.append(num)
         return atoms
@@ -148,11 +149,10 @@ def parse_molecule_input(args: "argparse.Namespace", elements: "list[str]") -> A
     """
     Main function to parse molecule input
     """
-    atoms = Atoms()
     if not args.mol:
         sys.exit("ERROR: Molecule is not specified. Please use -m or --mol option. (e.g. -m Cu2O)")
     split_per_atom = re.findall("[A-Z][^A-Z]*", args.mol)
-    return parse_atom_and_the_number_of_atoms(split_per_atom)
+    return create_atoms_data_class(split_per_atom)
 
 
 def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, elements: "list[str]") -> None:
@@ -196,9 +196,9 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
         return symmetry_type.strip(), atom_type.strip(), orbital_type.strip()
 
     def add_orbital_type(atom_type: str, atom_orb_type: str) -> None:
-        if atom_orb_type not in atoms.orbital_types:
-            atoms.orbital_types.append(atom_orb_type)
-            atoms.atom_list.append(atom_type)
+        if atom_orb_type not in coefficients.orbital_types:
+            coefficients.orbital_types.append(atom_orb_type)
+            coefficients.atom_list.append(atom_type)
             coefficients.mo_coefficient_list.append(0.0)
 
     def isfloat(parameter):
@@ -222,10 +222,10 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
         beta2: float = float(words[-1]) if isfloat(words[-1]) else 0.0
         return alpha1**2 + alpha2**2 + beta1**2 + beta2**2
 
-    def check_atom_type() -> None:
+    def check_atom_type(atom_type: str) -> None:
         if atom_type not in atoms.atom_types:
             print("WARNING: ", atom_type, " is not in the molecule specification. This orbital will be ignored.")
-            print(atoms.atom_types)
+            print(" ".join(atoms.atom_types))
             sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your -m or --mol option.")
 
     def add_coefficient(coefficient: float, atom_orb_type: str) -> None:
@@ -234,7 +234,7 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
         coefficient = magnification * coefficient
         coefficients.norm_const_sum += coefficient
 
-        orb_type_idx = atoms.orbital_types.index(atom_orb_type)
+        orb_type_idx = coefficients.orbital_types.index(atom_orb_type)
         coefficients.mo_coefficient_list[orb_type_idx] += coefficient
 
     def parse_words(words: "list[str]") -> "list[str]":
@@ -259,7 +259,7 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
     """
     words = parse_words(words)
     symmetry_type, atom_type, orbital_type = get_types()
-    check_atom_type()
+    check_atom_type(atom_type)
     coefficient = get_coefficient()
     atom_orb_type = symmetry_type + atom_type + orbital_type
 
@@ -276,7 +276,7 @@ def write_results(atoms: Atoms, coefficients: Coefficients, threshold: float, de
 
     def create_data_per_orbital_types():
         data_per_orbital_types = []
-        for (orb, coefficient, atom) in zip(atoms.orbital_types, coefficients.mo_coefficient_list, atoms.atom_list):
+        for (orb, coefficient, atom) in zip(coefficients.orbital_types, coefficients.mo_coefficient_list, coefficients.atom_list):
             atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
             data = Data_per_orbital_types(atom=atom, orbital_type=orb, mo_percentage=coefficient * 100 / (coefficients.norm_const_sum * atom_num))
             if data.mo_percentage >= threshold:
@@ -386,7 +386,6 @@ def main() -> None:
                 write_results(atoms, coefficients, threshold, decimal, need_compress, debug_mode)
                 # Reset variables
                 coefficients.reset()
-                atoms.reset()
 
             elif is_reading_coefficients:
                 if not is_this_row_for_coefficients(words):
