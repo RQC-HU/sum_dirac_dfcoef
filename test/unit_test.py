@@ -26,16 +26,17 @@ import sys
 )
 def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, mol: str, options: str):
 
-    script_name = "../sum_dirac_dfcoef"
+    script_name = "sum_dirac_dfcoef"
     test_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(test_path)
     print(test_path, " test start...")
 
-    ref_filepath = os.path.join(test_path, ref_filename)
-    result_filepath = os.path.join(test_path, result_filename)
-    script_filepath = os.path.join(test_path, script_name)
+    ref_filepath = os.path.join(test_path, "data", ref_filename)
+    result_filepath = os.path.join(test_path, "data", result_filename)
+    input_filepath = os.path.join(test_path, "data", input_filename)
+    script_filepath = os.path.join(test_path, "..", script_name)
 
-    test_command = f"{script_filepath} -m {mol} -i {input_filename} {options}"
+    test_command = f"{script_filepath} -m {mol} -i {input_filepath} {options}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
