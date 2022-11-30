@@ -68,20 +68,24 @@ A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
 A part of the result (... represents an omission)
 
 ```out
-Electronic no. 17 E1g -5.1175267254674
-B2gUdxz      35.98781 %
-B3gUdyz      35.98781 %
-AgUdzz       18.54868 %
-AgUdxx        4.63717 %
-AgUdyy        4.63717 %
-AgUs          0.13729 %
+Electronic no. 19 E1u -8.8824415703374
+B3uUpx       49.999172476298732 %
+B2uUpy       49.999172476298732 %
 
-Electronic no. 18 E1g -5.1107907830158
-B1gUdxy      49.88191 %
-B2gUdxz      12.58822 %
-B3gUdyz      12.58822 %
-AgUdxx       12.47048 %
-AgUdyy       12.47048 %
+Electronic no. 20 E1u -8.8607510987047
+B1uUpz       66.766609997188567 %
+B3uUpx       16.052352691541234 %
+B2uUpy       16.052352691541234 %
+B1uOs         0.547408583853977 %
+B1uOs         0.547408583853977 %
+
+Electronic no. 17 E1g -5.1175267254674
+B2gUdxz      35.987808727554935 %
+B3gUdyz      35.987808727554935 %
+AgUdzz       18.548678611340048 %
+AgUdxx        4.637169653126273 %
+AgUdyy        4.637169653126273 %
+AgUs          0.137285121776232 %
 ...
 ```
 
@@ -90,9 +94,9 @@ If you use -c or --compress option, you can get a compressed result like this.(o
 This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 ```out
-E1g 17 -5.1175267254674 B2gUdxz 35.98781 B3gUdyz 35.98781 AgUdzz 18.54868 AgUdxx 4.63717 AgUdyy 4.63717 AgUs 0.13729
-E1g 18 -5.1107907830158 B1gUdxy 49.88191 B2gUdxz 12.58822 B3gUdyz 12.58822 AgUdxx 12.47048 AgUdyy 12.47048
-E1g 19 -4.8038359333701 B2gUdxz 30.33792 B3gUdyz 30.33792 AgUdzz 26.11085 AgUdxx 6.52771 AgUdyy 6.52771 AgUs 0.13429
+E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+E1u 20 -8.8607510987047 B1uUpz 66.766609997188567 B3uUpx 16.052352691541234 B2uUpy 16.052352691541234 B1uOs 0.547408583853977 B1uOs 0.547408583853977
+E1g 17 -5.1175267254674 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935 AgUdzz 18.548678611340048 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUs 0.137285121776232
 ...
 ```
 
