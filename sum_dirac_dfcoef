@@ -12,11 +12,6 @@ class Atoms:
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}"
 
-    def reset(self):
-        self.atom_nums = list()
-        self.atom_types = list()
-        return None
-
 
 class Coefficients:
     norm_const_sum: float = 0.0
@@ -58,19 +53,19 @@ class Data_per_orbital_types:
 class Data_per_MO:
     mo_info: str = ""
     mo_energy: float = 0.0
-    data: "list[Data_per_orbital_types]" = list()
+    data_per_orbital_types: "list[Data_per_orbital_types]" = list()
     norm_constant: float = 0.0
     sum_coefficients: float = 0.0
 
-    def __init__(self, mo_info: str, mo_energy: float, data: "list[Data_per_orbital_types]", norm_constant: float, sum_coefficients: float) -> None:
+    def __init__(self, mo_info: str, mo_energy: float, data_per_orbital_types: "list[Data_per_orbital_types]", norm_constant: float, sum_coefficients: float) -> None:
         self.mo_info = mo_info
         self.mo_energy = mo_energy
-        self.data = data
+        self.data_per_orbital_types = data_per_orbital_types
         self.norm_constant = norm_constant
         self.sum_coefficients = sum_coefficients
 
     def __repr__(self) -> str:
-        return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, coefficients: {self.data}"
+        return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, coefficients: {self.data_per_orbital_types}"
 
 
 def parse_args() -> "argparse.Namespace":
@@ -102,7 +97,7 @@ def need_to_skip_this_line(words: "list[str]", is_reading_coefficients: bool) ->
         return False
 
 
-def need_to_create_results_of_a_mo(words: "list[str]", is_reading_coefficients: bool) -> bool:
+def need_to_create_results_for_current_mo(words: "list[str]", is_reading_coefficients: bool) -> bool:
     if is_reading_coefficients and len(words) == 0:
         return True
     else:
@@ -290,9 +285,9 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
     return None
 
 
-def create_results_of_a_mo(args: "argparse.Namespace", atoms: Atoms, coefficients: Coefficients) -> "tuple[list[Data_per_orbital_types], float, float]":
+def create_results_for_current_mo(args: "argparse.Namespace", atoms: Atoms, coefficients: Coefficients) -> "tuple[list[Data_per_orbital_types], float, float]":
     """
-    Nested functions to create results of a MO
+    Nested functions to create results for current MO
     """
 
     def create_data_per_orbital_types():
@@ -309,7 +304,7 @@ def create_results_of_a_mo(args: "argparse.Namespace", atoms: Atoms, coefficient
         return (sum([c for c in coefficients.mo_coefficient_list])) / coefficients.norm_const_sum
 
     """
-    Main function to create results of a MO
+    Main function to create results for current MO
     """
     data_per_orbital_types = create_data_per_orbital_types()
     data_per_orbital_types.sort(key=lambda x: x.mo_percentage, reverse=True)
@@ -348,7 +343,7 @@ def write_results(args: "argparse.Namespace", data_all_mo: "list[Data_per_MO]") 
         print(mo.mo_info, end="" if args.compress else "\n")
 
         d: Data_per_orbital_types
-        for d in mo.data:
+        for d in mo.data_per_orbital_types:
             if args.compress:
                 orb_type = str(d.orbital_type)
                 output_str = f" {orb_type} {d.mo_percentage:.{args.decimal}f}"
@@ -408,14 +403,14 @@ def main() -> None:
                 electron_number = int(words[-2][:-1].replace("no.", ""))
                 mo_energy = float(words[-1])
 
-            elif need_to_create_results_of_a_mo(words, is_reading_coefficients):
+            elif need_to_create_results_for_current_mo(words, is_reading_coefficients):
                 is_reading_coefficients = False
-                data, norm_constant, sum_coefficients = create_results_of_a_mo(args, atoms, coefficients)
+                data, norm_constant, sum_coefficients = create_results_for_current_mo(args, atoms, coefficients)
                 if args.compress:
                     info = f"{mo_sym_type} {electron_number} {mo_energy}"
                 else:
                     info = f"Electronic no. {electron_number} {mo_sym_type} {mo_energy}"
-                data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
+                data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
                 # Reset variables
                 coefficients.reset()
 
