@@ -10,9 +10,6 @@ class Atoms:
     atom_types: "list[str]" = list()
     atom_list: "list[str]" = list()
     orbital_types: "list[str]" = list()
-    # fmt: off
-    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg"]
-    # fmt: on
 
     def __repr__(self) -> str:
         return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}, atom_list: {self.atom_list}, orbital_types: {self.orbital_types}"
@@ -53,18 +50,6 @@ class Data_per_orbital_types:
         self.atom = ""
         self.orbital_type = ""
         self.mo_percentage = 0.0
-
-    # atom: "list[str]" = list()  # (e.g.) ["U","O","O",....,"U"]
-    # orbital_type: "list[str]" = list()  # (e.g.) ["B1uUfxxz","B1uOs","B1uOpz",....,"B2uUfyzz"]
-    # mo_percentage: "list[float]" = list()  # (e.g.) [0.1576884676852207,81.58228712019573, ... ]
-
-    # def __repr__(self) -> str:
-    #     return f"atom: {self.atom}, orbital_type: {self.orbital_type}, mo_percentage: {self.mo_percentage}"
-
-    # def reset(self):
-    #     self.atom: "list[str]" = list()
-    #     self.orbital_type: "list[str]" = list()
-    #     self.mo_percentage: "list[float]" = list()
 
 
 def parse_args() -> "argparse.Namespace":
@@ -133,14 +118,14 @@ def space_separated_parsing(line: str) -> "list[str]":
     return [word for word in words if word != ""]
 
 
-def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
+def parse_molecule_input(args: "argparse.Namespace", elements: "list[str]") -> Atoms:
     """
     Nested functions to parse molecule input
     """
 
     def parse_atom(input_list: "list[str]", line: str) -> str:
         letter = "".join(filter(str.isalpha, line)) or None
-        if letter not in atoms.elements:
+        if letter not in elements:
             sys.exit(f"ERROR: {line} is invalid.")
         if letter in atoms.atom_types:
             sys.exit(f"ERROR: {letter} is duplicated.\nYour input: {''.join(input_list)}")
@@ -170,7 +155,7 @@ def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
     return parse_atom_and_the_number_of_atoms(split_per_atom)
 
 
-def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients) -> None:
+def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, elements: "list[str]") -> None:
     """
     Nested functions to get and add coefficient
 
@@ -195,10 +180,10 @@ def get_and_add_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coef
         symmetry_type = splitted_by_capital[0].strip()
         # atom_type must be 1 or 2 letters.
         # check splitted_by_capital[1][:2] is not out of range
-        if len(splitted_by_capital[1]) >= 2 and splitted_by_capital[1][:2] in atoms.elements:  # 2 letters (e.g. Cu)
+        if len(splitted_by_capital[1]) >= 2 and splitted_by_capital[1][:2] in elements:  # 2 letters (e.g. Cu)
             atom_type = splitted_by_capital[1][:2]
             orbital_type = splitted_by_capital[1][2:]
-        elif splitted_by_capital[1][0] in atoms.elements:  # 1 letter (e.g. C)
+        elif splitted_by_capital[1][0] in elements:  # 1 letter (e.g. C)
             atom_type = splitted_by_capital[1][0]
             orbital_type = splitted_by_capital[1][1:]
         else:
@@ -352,15 +337,17 @@ def main() -> None:
     electron_number: int = 0
     mo_sym_type: str = ""
     coefficients = Coefficients()
+    # fmt: off
+    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg"]
+    # fmt: on
 
     args: "argparse.Namespace" = parse_args()
     threshold: float = args.threshold if args.threshold else 0.1
     dirac_file: str = get_dirac_filename(args)
-    atoms: Atoms = parse_molecule_input(args)
+    atoms: Atoms = parse_molecule_input(args, elements)
     decimal: int = args.decimal
     debug_mode: bool = args.debug
     need_compress: bool = args.compress
-
     with open(dirac_file, encoding="utf-8") as f:
         for line in f:
 
@@ -404,7 +391,7 @@ def main() -> None:
             elif is_reading_coefficients:
                 if not is_this_row_for_coefficients(words):
                     continue
-                get_and_add_coefficient(words, atoms, coefficients)
+                get_and_add_coefficient(words, atoms, coefficients, elements)
 
 
 if __name__ == "__main__":
