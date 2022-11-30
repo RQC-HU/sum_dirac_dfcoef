@@ -3,7 +3,7 @@
 [![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
 
 This program summarizes the coefficients from a DIRAC output file using the *PRIVEC and .VECPRI options.
-(c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)
+(c.f. http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html)
 
 ## Requirements
 
