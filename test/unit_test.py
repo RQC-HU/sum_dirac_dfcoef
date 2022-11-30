@@ -35,7 +35,7 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     result_filepath = os.path.join(test_path, result_filename)
     script_filepath = os.path.join(test_path, script_name)
 
-    test_command = f"{script_filepath} -m {mol} -f {input_filename} {options}"
+    test_command = f"{script_filepath} -m {mol} -i {input_filename} {options}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
