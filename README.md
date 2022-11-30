@@ -123,3 +123,4 @@ optional arguments (-f and -mol are required)
 - -d DECIMAL, --decimal DECIMAL
 Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
 - --debug               print debug output (Normalization constant, Sum of MO coefficient)
+- --no-sort             Don't sort the output by MO energy
