@@ -2,8 +2,7 @@
 
 [![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
 
-This program summarizes the coefficients from a DIRAC output file using the *PRIVEC and .VECPRI options.
-(c.f. http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html)
+This program provides a utility to summarize the contribution of each atomic orbital per molecular orbital from the [DIRAC](http://diracprogram.org/doku.php) output file using the [*PRIVEC and .VECPRI options](http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html).
 
 ## Requirements
 
@@ -21,13 +20,13 @@ git clone https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients
 You can use this program with the following command!
 
 ```sh
-/path/to/sum_dirac_dfcoef -f DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
+/path/to/sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
 ```
 
 (e.g.)
 
 ```sh
-./sum_dirac_dfcoef -f x2c_uo2_238.out -m UO2
+./sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
@@ -108,7 +107,7 @@ optional arguments (-f and -mol are required)
 
   show this help message and exit
 
-- -f FILE, --file FILE
+- -i FILE, --input FILE
 
   (required) file name of DIRAC output
 
