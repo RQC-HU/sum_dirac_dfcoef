@@ -2,7 +2,7 @@
 
 [![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
 
-This program provides a utility to summarize the contribution of each atomic orbital per molecular orbital from the [DIRAC](http://diracprogram.org/doku.php) output file using the [*PRIVEC and .VECPRI options](http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html).
+This program provides a utility to summarize the contribution of each atomic orbital per molecular orbital from the [DIRAC](http://diracprogram.org/doku.php) output file that the [*PRIVEC and .VECPRI options](http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html) are used.
 
 ## Requirements
 
