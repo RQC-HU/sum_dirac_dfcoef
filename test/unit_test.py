@@ -9,18 +9,19 @@ import sys
     "ref_filename, result_filename, input_filename, mol, options",
     # fmt: off
     [
-        ("ref.Ar.out"                    , "result.Ar.out"                    , "Ar_Ar.out"       , "Ar"   , "-d 15"),
-        ("ref.Ar.no_sort.out"            , "result.Ar.no_sort.out"            , "Ar_Ar.out"       , "Ar"   , "-d 15 --no-sort"),
-        ("ref.Ar.compress.out"           , "result.Ar.compress.out"           , "Ar_Ar.out"       , "Ar"   , "-d 15 -c"),
-        ("ref.Ar.no_sort.compress.out"   , "result.Ar.no_sort.compress.out"   , "Ar_Ar.out"       , "Ar"   , "-d 15 --no-sort -c"),
-        ("ref.uo2.out"                   , "result.uo2.out"                   , "x2c_uo2_238.out" , "UO2"  , "-d 15"),
-        ("ref.uo2.no_sort.out"           , "result.uo2.no_sort.out"           , "x2c_uo2_238.out" , "UO2"  , "-d 15 --no-sort"),
-        ("ref.uo2.compress.out"          , "result.uo2.compress.out"          , "x2c_uo2_238.out" , "UO2"  , "-d 15 -c"),
-        ("ref.uo2.no_sort.compress.out"  , "result.uo2.no_sort.compress.out"  , "x2c_uo2_238.out" , "UO2"  , "-d 15 --no-sort -c"),
-        ("ref.ucl4.out"                  , "result.ucl4.out"                  , "x2c_ucl4.out"    , "UCl4" , "-d 15"),
-        ("ref.ucl4.no_sort.out"          , "result.ucl4.no_sort.out"          , "x2c_ucl4.out"    , "UCl4" , "-d 15 --no-sort"),
-        ("ref.ucl4.compress.out"         , "result.ucl4.compress.out"         , "x2c_ucl4.out"    , "UCl4" , "-d 15 -c"),
-        ("ref.ucl4.no_sort.compress.out" , "result.ucl4.no_sort.compress.out" , "x2c_ucl4.out"    , "UCl4" , "-d 15 --no-sort -c")
+        ("ref.Ar.out"                    , "result.Ar.out"                    , "Ar_Ar.out"                      , "Ar"   , "-d 15"),
+        ("ref.Ar.no_sort.out"            , "result.Ar.no_sort.out"            , "Ar_Ar.out"                      , "Ar"   , "-d 15 --no-sort"),
+        ("ref.Ar.compress.out"           , "result.Ar.compress.out"           , "Ar_Ar.out"                      , "Ar"   , "-d 15 -c"),
+        ("ref.Ar.no_sort.compress.out"   , "result.Ar.no_sort.compress.out"   , "Ar_Ar.out"                      , "Ar"   , "-d 15 --no-sort -c"),
+        ("ref.uo2.special.out"           , "result.uo2.special.out"           , "special_exit_condition_UO2.out" , "UO2"  , "-d 15"),
+        ("ref.uo2.out"                   , "result.uo2.out"                   , "x2c_uo2_238.out"                , "UO2"  , "-d 15"),
+        ("ref.uo2.no_sort.out"           , "result.uo2.no_sort.out"           , "x2c_uo2_238.out"                , "UO2"  , "-d 15 --no-sort"),
+        ("ref.uo2.compress.out"          , "result.uo2.compress.out"          , "x2c_uo2_238.out"                , "UO2"  , "-d 15 -c"),
+        ("ref.uo2.no_sort.compress.out"  , "result.uo2.no_sort.compress.out"  , "x2c_uo2_238.out"                , "UO2"  , "-d 15 --no-sort -c"),
+        ("ref.ucl4.out"                  , "result.ucl4.out"                  , "x2c_ucl4.out"                   , "UCl4" , "-d 15"),
+        ("ref.ucl4.no_sort.out"          , "result.ucl4.no_sort.out"          , "x2c_ucl4.out"                   , "UCl4" , "-d 15 --no-sort"),
+        ("ref.ucl4.compress.out"         , "result.ucl4.compress.out"         , "x2c_ucl4.out"                   , "UCl4" , "-d 15 -c"),
+        ("ref.ucl4.no_sort.compress.out" , "result.ucl4.no_sort.compress.out" , "x2c_ucl4.out"                   , "UCl4" , "-d 15 --no-sort -c")
     ]
     # fmt: on
 )
