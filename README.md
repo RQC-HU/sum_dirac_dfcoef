@@ -90,14 +90,13 @@ AgUs          0.137285121776232 %
 
 If you use -c or --compress option, you can get a compressed result like this.(one line per MO)
 
-This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
-
 ```out
 E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
 E1u 20 -8.8607510987047 B1uUpz 66.766609997188567 B3uUpx 16.052352691541234 B2uUpy 16.052352691541234 B1uOs 0.547408583853977 B1uOs 0.547408583853977
 E1g 17 -5.1175267254674 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935 AgUdzz 18.548678611340048 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUs 0.137285121776232
 ...
 ```
+This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 ## Options
 
@@ -113,20 +112,31 @@ optional arguments (-f and -mol are required)
 
 - -m MOL, --mol MOL
 
-  (required) molecule specification. Write the molecular formula (e.g. Cu2O). **DON'T write the rational formula (e.g. CH3OH)**
+  (required) molecule specification. Write the molecular formula (e.g. Cu2O).  
+  **DON'T write the rational formula (e.g. CH3OH)**
 
 - -c, --compress
-  Compress output. Display all coefficients on one line for each MO.
+
+  Compress output. Display all coefficients on one line for each MO.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 - -t THRESHOLD, --threshold THRESHOLD
 
-  threshold. Default: 0.1 % (e.g) --threshold=0.1 => print orbital with more than 0.1 % contribution
+  threshold. Default: 0.1 %  
+  (e.g) --threshold=0.1 => print orbital with more than 0.1 % contribution
 
 - -d DECIMAL, --decimal DECIMAL
-Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
-- --debug               print debug output (Normalization constant, Sum of MO coefficient)
-- --no-sort             Don't sort the output by MO energy
+
+  Set the decimal places. Default: 5  
+  (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
+
+- --debug
+
+  print debug output (Normalization constant, Sum of MO coefficient)
+
+- --no-sort
+
+  Don't sort the output by MO energy
 
 ## LICENSE
 
