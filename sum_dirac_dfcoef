@@ -111,6 +111,8 @@ def need_to_get_mo_sym_type(words: "list[str]", start_mo_coefficients: bool) -> 
 def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and words[1] == "Electronic" and words[2] == "eigenvalue" and "no." in words[3]:
         return True
+    elif not start_mo_coefficients and words[1] == "Positronic" and words[2] == "eigenvalue" and "no." in words[3]:
+        return True
     return False
 
 
@@ -360,6 +362,7 @@ def main() -> None:
     start_mo_section: bool = False
     is_reading_coefficients: bool = False
     start_vector_print: bool = False
+    is_electronic: bool = False
     electron_number: int = 0
     mo_energy: float = 0.0
     mo_sym_type: str = ""
@@ -394,7 +397,8 @@ def main() -> None:
                         info = f"{mo_sym_type} {electron_number} {mo_energy}"
                     else:
                         info = f"Electronic no. {electron_number} {mo_sym_type} {mo_energy}"
-                    data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
+                    if is_electronic:
+                        data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
                     # Reset variables
                     coefficients.reset()
                     if args.debug:
@@ -410,6 +414,12 @@ def main() -> None:
                 """
                 start_mo_section = True
                 start_mo_coefficients = True
+                if words[1] == "Positronic":
+                    is_electronic = False
+                elif words[1] == "Electronic":
+                    is_electronic = True
+                else:
+                    raise Exception("Unknown MO type")
                 electron_number = int(words[-2][:-1].replace("no.", ""))
                 mo_energy = float(words[-1])
                 continue
