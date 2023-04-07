@@ -75,9 +75,17 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("-c", "--compress", action="store_true", help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.", dest="compress")
     parser.add_argument("-t", "--threshold", type=float, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", default=0.1, dest="threshold")
     parser.add_argument("-d", "--decimal", type=int, help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15", default=5, choices=range(1, 16), dest="decimal")
+    parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
+    parser.add_argument("-p", "--positronic-write", action="store_true", help="Print only Positronic MOs.", dest="positronic_write")
     parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)", dest="debug")
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     return parser.parse_args()
+
+
+def debug_print_wrapper(args: "argparse.Namespace", str: str):
+    # print debug message if --debug option is used
+    if args.debug:
+        print(str)
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
@@ -110,6 +118,8 @@ def need_to_get_mo_sym_type(words: "list[str]", start_mo_coefficients: bool) -> 
 
 def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and words[1] == "Electronic" and words[2] == "eigenvalue" and "no." in words[3]:
+        return True
+    elif not start_mo_coefficients and words[1] == "Positronic" and words[2] == "eigenvalue" and "no." in words[3]:
         return True
     return False
 
@@ -348,10 +358,9 @@ def write_results(args: "argparse.Namespace", data_all_mo: "list[Data_per_MO]") 
                 orb_type = str(d.orbital_type).ljust(11, " ")
                 output_str = f"{orb_type} {d.mo_percentage:{args.decimal+4}.{args.decimal}f} %"
                 print(output_str)
-        if args.debug:
-            print(f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
-            print(f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
-        print()
+        print()  # "\n"
+        debug_print_wrapper(args, f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
+        debug_print_wrapper(args, f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
 
 
 def main() -> None:
@@ -360,6 +369,7 @@ def main() -> None:
     start_mo_section: bool = False
     is_reading_coefficients: bool = False
     start_vector_print: bool = False
+    is_electronic: bool = False
     electron_number: int = 0
     mo_energy: float = 0.0
     mo_sym_type: str = ""
@@ -372,7 +382,8 @@ def main() -> None:
     dirac_file: str = get_dirac_filename(args)
     atoms: Atoms = parse_molecule_input(args, elements)
 
-    data_all_mo: "list[Data_per_MO]" = []
+    data_all_electronic_mo: "list[Data_per_MO]" = []
+    data_all_positronic_mo: "list[Data_per_MO]" = []
     with open(dirac_file, encoding="utf-8") as f:
         for line in f:
 
@@ -394,11 +405,13 @@ def main() -> None:
                         info = f"{mo_sym_type} {electron_number} {mo_energy}"
                     else:
                         info = f"Electronic no. {electron_number} {mo_sym_type} {mo_energy}"
-                    data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
+                    if is_electronic:
+                        data_all_electronic_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
+                    else:  # Positronic
+                        data_all_positronic_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
                     # Reset variables
                     coefficients.reset()
-                    if args.debug:
-                        print(f"End of reading {electron_number}th MO")
+                    debug_print_wrapper(args, f"End of reading {electron_number}th MO")
                     is_reading_coefficients = False
                 continue
 
@@ -410,6 +423,12 @@ def main() -> None:
                 """
                 start_mo_section = True
                 start_mo_coefficients = True
+                if words[1] == "Positronic":
+                    is_electronic = False
+                elif words[1] == "Electronic":
+                    is_electronic = True
+                else:
+                    raise Exception("Unknown MO type")
                 electron_number = int(words[-2][:-1].replace("no.", ""))
                 mo_energy = float(words[-1])
                 continue
@@ -424,9 +443,15 @@ def main() -> None:
                 is_reading_coefficients = True
                 get_coefficient(words, atoms, coefficients, elements)
     # End of reading file
-    if not args.no_sort:
-        data_all_mo.sort(key=lambda x: x.mo_energy)
-    write_results(args, data_all_mo)
+    if args.all_write or args.positronic_write:
+        if not args.no_sort:
+            data_all_positronic_mo.sort(key=lambda x: x.mo_energy)
+        write_results(args, data_all_positronic_mo)
+        print()  # Add a blank line
+    if args.all_write or not args.positronic_write:  # Electronic
+        if not args.no_sort:
+            data_all_electronic_mo.sort(key=lambda x: x.mo_energy)
+        write_results(args, data_all_electronic_mo)
 
 
 if __name__ == "__main__":
