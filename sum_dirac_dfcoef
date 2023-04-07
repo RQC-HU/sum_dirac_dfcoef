@@ -80,6 +80,12 @@ def parse_args() -> "argparse.Namespace":
     return parser.parse_args()
 
 
+def debug_print_wrapper(args: "argparse.Namespace", str: str):
+    # print debug message if --debug option is used
+    if args.debug:
+        print(str)
+
+
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
     # min: 4 coefficients and other words => 5 words
     if 5 <= len(words) <= 9 and words[0].isdigit():
@@ -350,10 +356,9 @@ def write_results(args: "argparse.Namespace", data_all_mo: "list[Data_per_MO]") 
                 orb_type = str(d.orbital_type).ljust(11, " ")
                 output_str = f"{orb_type} {d.mo_percentage:{args.decimal+4}.{args.decimal}f} %"
                 print(output_str)
-        if args.debug:
-            print(f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
-            print(f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
-        print()
+        print()  # "\n"
+        debug_print_wrapper(args, f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
+        debug_print_wrapper(args, f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
 
 
 def main() -> None:
@@ -401,8 +406,7 @@ def main() -> None:
                         data_all_mo.append(Data_per_MO(mo_info=info, mo_energy=mo_energy, data_per_orbital_types=data, norm_constant=norm_constant, sum_coefficients=sum_coefficients))
                     # Reset variables
                     coefficients.reset()
-                    if args.debug:
-                        print(f"End of reading {electron_number}th MO")
+                    debug_print_wrapper(args, f"End of reading {electron_number}th MO")
                     is_reading_coefficients = False
                 continue
 
