@@ -32,7 +32,7 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     print(test_path, " test start...")
 
     ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "data", result_filename)
+    result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
     script_filepath = os.path.join(test_path, "..", script_name)
 
@@ -98,7 +98,7 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     print(test_path, " test start...")
 
     ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "data", result_filename)
+    result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
     script_filepath = os.path.join(test_path, "..", script_name)
 
