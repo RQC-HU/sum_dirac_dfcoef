@@ -13,6 +13,8 @@ This program provides a utility to summarize the contribution of each atomic orb
 
 ```sh
 git clone https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients.git
+cd summarize_dirac_dfcoef_coefficients
+pip install -r requirements.txt
 ```
 
 ## Usage
