@@ -1,4 +1,4 @@
-# SUMMARIZE DIRAC DFCOEF COEFFICIENTS
+# sum_dirac_dfcoef : SUMMARIZE DIRAC DFCOEF COEFFICIENTS
 
 [![summarize_dirac_coefficients_test](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml/badge.svg)](https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/actions/workflows/ci.yml)
 
@@ -12,9 +12,7 @@ This program provides a utility to summarize the contribution of each atomic orb
 ## Download
 
 ```sh
-git clone https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients.git
-cd summarize_dirac_dfcoef_coefficients
-pip install -r requirements.txt
+pip install sum_dirac_dfcoef
 ```
 
 ## Usage
