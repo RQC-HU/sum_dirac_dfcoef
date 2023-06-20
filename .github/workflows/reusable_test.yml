@@ -1,12 +1,6 @@
-name: summarize_dirac_coefficients_test
+name: reusable_test
 
 on:
-  push:
-    paths:
-      - "reference.**.out"
-      - "**.py"
-      - "sum_dirac_dfcoef"
-      - ".github/workflows/**"
   workflow_call:
 
 # Ref : https://github.com/pytest-dev/pytest/issues/7443#issue-650484842
