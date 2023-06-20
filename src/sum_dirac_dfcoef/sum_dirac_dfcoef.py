@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import re
@@ -481,7 +481,3 @@ def main() -> None:
         if not args.no_sort:
             data_all_electronic_mo.sort(key=lambda x: x.mo_energy)
         write_results(args, data_all_electronic_mo)
-
-
-if __name__ == "__main__":
-    main()

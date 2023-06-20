@@ -5,6 +5,18 @@ import subprocess
 import sys
 
 
+# Prepare the tests, install the package
+@pytest.fixture(scope="session", autouse=True)
+def prepare_test():
+    cur_dir = os.getcwd()
+    # Change the current directory to the root directory of the package
+    test_dir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(os.path.join(test_dir, ".."))
+    subprocess.run("python3 -m pip install .", shell=True, check=True)
+    # Change the current directory to the original directory
+    os.chdir(cur_dir)
+
+
 @pytest.mark.parametrize(
     "ref_filename, result_filename, input_filename, mol, options",
     # fmt: off
@@ -25,8 +37,6 @@ import sys
     # fmt: on
 )
 def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, input_filename: str, mol: str, options: str):
-
-    script_name = "sum_dirac_dfcoef"
     test_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(test_path)
     print(test_path, " test start...")
@@ -34,9 +44,8 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     ref_filepath = os.path.join(test_path, "data", ref_filename)
     result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
-    script_filepath = os.path.join(test_path, "..", script_name)
 
-    test_command = f"{script_filepath} -m {mol} -i {input_filepath} {options}"
+    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} {options}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
@@ -91,8 +100,6 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # fmt: on
 )
 def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, mol: str, options: str):
-
-    script_name = "sum_dirac_dfcoef"
     test_path = os.path.dirname(os.path.realpath(__file__))
     os.chdir(test_path)
     print(test_path, " test start...")
@@ -100,9 +107,8 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     ref_filepath = os.path.join(test_path, "data", ref_filename)
     result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
-    script_filepath = os.path.join(test_path, "..", script_name)
 
-    test_command = f"{script_filepath} -m {mol} -i {input_filepath} {options}"
+    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} {options}"
     print(test_command)
     with open(result_filepath, "w") as file_output:
         process = subprocess.run(
