@@ -1,0 +1,69 @@
+name: sum_dirac_dfcoef-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      major_versionup:
+        description: "major version up"
+        type: boolean
+        required: false
+        default: false
+      minor_versionup:
+        description: "minor version up"
+        type: boolean
+        required: false
+        default: false
+      patch_versionup:
+        description: "patch version up"
+        type: boolean
+        required: false
+        default: true
+      custom_version:
+        description: "custom version"
+        type: string
+        required: false
+        default: ""
+env:
+  NEW_VERSION: ""
+  PACKAGE_NAME: sum_dirac_dfcoef
+jobs:
+  test:
+    uses: ./.github/workflows/reusable_test.yml
+  publish:
+    needs: test
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install hatch twine
+      - name: Update version
+        run: |
+          if [[ ${{ github.event.inputs.custom_version }} != '' ]]; then
+            python scripts/versionup.py --custom=${{ github.event.inputs.custom_version }}
+          elif ${{ github.event.inputs.major_versionup }} then
+            python scripts/versionup.py --major
+          elif ${{ github.event.inputs.minor_versionup }} then
+            python scripts/versionup.py --minor
+          elif ${{ github.event.inputs.patch_versionup }} then
+            python scripts/versionup.py --patch
+          fi
+      - name: Get the NEW_VERSION
+        run: |
+          NEW_VERSION=$(hatch version)
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+      - name: Create a NEW_VERSION branch and commit and create the pull request
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b ${{ env.NEW_VERSION }}
+          git add .
+          git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
+          git push origin ${{ env.NEW_VERSION }}
+          gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
