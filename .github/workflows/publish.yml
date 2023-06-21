@@ -9,6 +9,7 @@ jobs:
     uses: ./.github/workflows/reusable_test.yml
   publish:
     runs-on: ubuntu-22.04
+    needs: test
     # If PR is merged and the branch name starts with "release-v", then publish to PyPI
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release-v')
     steps:
