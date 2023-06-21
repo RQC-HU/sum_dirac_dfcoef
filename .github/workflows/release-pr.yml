@@ -1,4 +1,4 @@
-name: sum_dirac_dfcoef-release-pull-request
+name: create-release-pull-request
 
 on:
   workflow_dispatch:
@@ -63,7 +63,6 @@ jobs:
           git checkout -b "${{ env.BRANCH_NAME }}"
           git add .
           git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
-          git tag "${{ env.TAG_NAME }}"
           git push origin "${{ env.BRANCH_NAME }}"
           gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
         env:
