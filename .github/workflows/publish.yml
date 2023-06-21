@@ -5,10 +5,12 @@ on:
     types: [closed]
 
 jobs:
+  test:
+    uses: ./.github/workflows/reusable_test.yml
   publish:
     runs-on: ubuntu-22.04
-    # If PR is merged and branch name starts with 'refs/tags/release-v' then publish
-    if: github.event.pull_request.merged == true && startsWith(github.ref, 'refs/tags/release-v')
+    # If PR is merged and the tag name starts with 'refs/tags/v' then publish
+    if: github.event.pull_request.merged == true && startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
