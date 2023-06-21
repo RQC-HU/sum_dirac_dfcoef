@@ -151,7 +151,7 @@ def space_separated_parsing(line: str) -> "list[str]":
     return [word for word in words if word != ""]
 
 
-def parse_molecule_input(args: "argparse.Namespace", elements: "list[str]") -> Atoms:
+def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
     """
     Parse the molecule input and return the Atoms object.
 
@@ -397,7 +397,7 @@ def main() -> None:
 
     args: "argparse.Namespace" = parse_args()
     dirac_file: str = get_dirac_filename(args)
-    atoms: Atoms = parse_molecule_input(args, elements)
+    atoms: Atoms = parse_molecule_input(args)
 
     data_all_electronic_mo: "list[Data_per_MO]" = []
     data_all_positronic_mo: "list[Data_per_MO]" = []
