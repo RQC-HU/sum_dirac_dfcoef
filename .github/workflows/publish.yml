@@ -9,9 +9,8 @@ jobs:
     uses: ./.github/workflows/reusable_test.yml
   publish:
     runs-on: ubuntu-22.04
-    # If PR is merged and the branch name starts with "refs/heads/release-v", then publish to PyPI
-    # https://docs.github.com/en/actions/learn-github-actions/contexts#determining-when-to-use-contexts
-    if: github.event.pull_request.merged == true && startsWith(github.ref, 'refs/heads/release-v')
+    # If PR is merged and the branch name starts with "release-v", then publish to PyPI
+    if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release-v')
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
