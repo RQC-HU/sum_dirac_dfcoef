@@ -61,3 +61,5 @@ jobs:
           git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
           git push origin "${{ env.NEW_VERSION }}"
           gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
