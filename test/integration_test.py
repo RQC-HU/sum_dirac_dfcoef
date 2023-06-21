@@ -45,18 +45,15 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
 
-    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} {options}"
+    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} -o {result_filepath} {options}"
     print(test_command)
-    with open(result_filepath, "w") as file_output:
-        process = subprocess.run(
-            test_command,
-            shell=True,
-            stdout=file_output,
-            encoding="utf-8",
-            stderr=file_output,
-        )
-        if process.returncode != 0:
-            sys.exit(f"{test_command} failed with return code {process.returncode}")
+    process = subprocess.run(
+        test_command,
+        shell=True,
+        encoding="utf-8",
+    )
+    if process.returncode != 0:
+        sys.exit(f"{test_command} failed with return code {process.returncode}")
 
     ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
     out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
@@ -108,18 +105,15 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     result_filepath = os.path.join(test_path, "results", result_filename)
     input_filepath = os.path.join(test_path, "data", input_filename)
 
-    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} {options}"
+    test_command = f"sum_dirac_dfcoef -m {mol} -i {input_filepath} -o {result_filepath} {options}"
     print(test_command)
-    with open(result_filepath, "w") as file_output:
-        process = subprocess.run(
-            test_command,
-            shell=True,
-            stdout=file_output,
-            encoding="utf-8",
-            stderr=file_output,
-        )
-        if process.returncode != 0:
-            sys.exit(f"{test_command} failed with return code {process.returncode}")
+    process = subprocess.run(
+        test_command,
+        shell=True,
+        encoding="utf-8",
+    )
+    if process.returncode != 0:
+        sys.exit(f"{test_command} failed with return code {process.returncode}")
 
     ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
     out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
