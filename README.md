@@ -21,15 +21,15 @@ You can use this program with the following command!
 
 ```sh
 # Output to MOLECULE_NAME.out
-/path/to/sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
+sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
 # Specify output file name with -o option
-/path/to/sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME -o OUTPUT_FILE_NAME
+sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME -o OUTPUT_FILE_NAME
 ```
 
 (e.g.)
 
 ```sh
-./sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
+sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
