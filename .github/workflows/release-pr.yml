@@ -25,7 +25,7 @@ env:
 jobs:
   test:
     uses: ./.github/workflows/reusable_test.yml
-  publish:
+  release-pr:
     needs: test
     runs-on: ubuntu-22.04
     timeout-minutes: 5
@@ -52,13 +52,14 @@ jobs:
         run: |
           NEW_VERSION=$(hatch version)
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-      - name: Create a NEW_VERSION branch and commit and create the pull request
+      - name: Create Pull request with v${{ env.NEW_VERSION }} tag
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b "v${{ env.NEW_VERSION }}"
           git add .
           git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
+          git tag "v${{ env.NEW_VERSION }}"
           git push origin "v${{ env.NEW_VERSION }}"
           gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
         env:
