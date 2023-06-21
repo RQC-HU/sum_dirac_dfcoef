@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+from io import TextIOWrapper
+import os
 import re
 import sys
 
@@ -85,6 +87,7 @@ def parse_args() -> "argparse.Namespace":
     parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
     parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
     parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). ** DON'T write the rational formula (e.g. CH3OH) **")
+    parser.add_argument("-o", "--output", type=str, help="Output file name. Default: (-m or --mol option value).out (e.g) --m H2O => print to H2O.out", dest="output")
     parser.add_argument("-c", "--compress", action="store_true", help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.", dest="compress")
     parser.add_argument("-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold")
     parser.add_argument("-d", "--decimal", type=int, default=5, choices=range(1, 16), help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15", dest="decimal")
@@ -342,28 +345,38 @@ def check_end_vector_print(
     return False
 
 
-def write_results(args: "argparse.Namespace", data_all_mo: "list[Data_per_MO]") -> None:
+def get_output_path(args: "argparse.Namespace") -> str:
+    if args.output is None:
+        output_name = f"{args.mol}.out"
+        output_path = os.path.join(os.getcwd(), output_name)
+    else:
+        output_name = args.output
+        output_path = os.path.abspath(output_name)
+    return output_path
+
+
+def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: "list[Data_per_MO]") -> None:
     """
     Write results to stdout
     """
+
     for mo in data_all_mo:
         digit_int = len(str(int(mo.mo_energy)))  # number of digits of integer part
-        print(
-            f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}",
-            end="" if args.compress else "\n",
-        )
+        # File write but if args.compress is True \n is not added
+        mo_info_energy = f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}" + ("\n" if not args.compress else "")
+        file.write(mo_info_energy)
 
         d: Data_per_orbital_types
         for d in mo.data_per_orbital_types:
             if args.compress:
                 orb_type = str(d.orbital_type)
                 output_str = f" {orb_type} {d.mo_percentage:.{args.decimal}f}"
-                print(output_str, end="")
+                file.write(output_str)
             else:
                 orb_type = str(d.orbital_type).ljust(11, " ")
-                output_str = f"{orb_type} {d.mo_percentage:{args.decimal+4}.{args.decimal}f} %"
-                print(output_str)
-        print()  # "\n"
+                output_str = f"{orb_type} {d.mo_percentage:{args.decimal+4}.{args.decimal}f} %\n"
+                file.write(output_str)
+        file.write("\n")  # add empty line
         debug_print_wrapper(args, f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
         debug_print_wrapper(args, f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
 
@@ -472,12 +485,15 @@ def main() -> None:
                 is_reading_coefficients = True
                 get_coefficient(words, atoms, coefficients, elements)
     # End of reading file
+    output_path = get_output_path(args)
+    file = open(output_path, "w")
     if args.all_write or args.positronic_write:
         if not args.no_sort:
             data_all_positronic_mo.sort(key=lambda x: x.mo_energy)
-        write_results(args, data_all_positronic_mo)
-        print()  # Add a blank line
+        write_results(args, file, data_all_positronic_mo)
+        file.write("\n")  # Add a blank line
     if args.all_write or not args.positronic_write:  # Electronic
         if not args.no_sort:
             data_all_electronic_mo.sort(key=lambda x: x.mo_energy)
-        write_results(args, data_all_electronic_mo)
+        write_results(args, file, data_all_electronic_mo)
+    file.close()

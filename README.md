@@ -20,7 +20,10 @@ pip install sum_dirac_dfcoef
 You can use this program with the following command!
 
 ```sh
+# Output to MOLECULE_NAME.out
 /path/to/sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
+# Specify output file name with -o option
+/path/to/sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME -o OUTPUT_FILE_NAME
 ```
 
 (e.g.)
@@ -115,6 +118,9 @@ optional arguments (--input and --mol are required)
   (required) molecule specification. Write the molecular formula (e.g. Cu2O).  
   **DON'T write the rational formula (e.g. CH3OH)**
 
+-  -o OUTPUT, --output OUTPUT
+  Output file name. Default: (-m or --mol option value).out (e.g) --m H2O => print to H2O.out
+
 - -c, --compress
 
   Compress output. Display all coefficients on one line for each MO.  
@@ -129,6 +135,12 @@ optional arguments (--input and --mol are required)
 
   Set the decimal places. Default: 5  
   (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
+
+- -a, --all-write
+  Print all MOs(Positronic and Electronic).
+
+- -p, --positronic-write
+  Print only Positronic MOs.
 
 - --debug
 
