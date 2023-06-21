@@ -1,4 +1,4 @@
-name: sum_dirac_dfcoef-publish
+name: sum_dirac_dfcoef-release-pull-request
 
 on:
   workflow_dispatch:
@@ -18,11 +18,7 @@ on:
         type: boolean
         required: false
         default: true
-      custom_version:
-        description: "custom version"
-        type: string
-        required: false
-        default: ""
+
 env:
   NEW_VERSION: ""
   PACKAGE_NAME: sum_dirac_dfcoef
@@ -45,14 +41,12 @@ jobs:
           python -m pip install hatch twine
       - name: Update version
         run: |
-          if [[ ${{ github.event.inputs.custom_version }} != '' ]]; then
-            python scripts/versionup.py --custom=${{ github.event.inputs.custom_version }}
-          elif ${{ github.event.inputs.major_versionup }} then
-            python scripts/versionup.py --major
-          elif ${{ github.event.inputs.minor_versionup }} then
-            python scripts/versionup.py --minor
-          elif ${{ github.event.inputs.patch_versionup }} then
-            python scripts/versionup.py --patch
+          if ${{ github.event.inputs.major_versionup }}; then
+            python .github/scripts/versionup.py --major
+          elif ${{ github.event.inputs.minor_versionup }}; then
+            python .github/scripts/versionup.py --minor
+          elif ${{ github.event.inputs.patch_versionup }}; then
+            python .github/scripts/versionup.py --patch
           fi
       - name: Get the NEW_VERSION
         run: |
@@ -62,8 +56,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b ${{ env.NEW_VERSION }}
+          git checkout -b "${{ env.NEW_VERSION }}"
           git add .
           git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
-          git push origin ${{ env.NEW_VERSION }}
+          git push origin "${{ env.NEW_VERSION }}"
           gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"

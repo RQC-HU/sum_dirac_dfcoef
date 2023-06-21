@@ -8,7 +8,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--major", action="store_true", help="Major version up", dest="major")
 parser.add_argument("--minor", action="store_true", help="Minor version up", dest="minor")
 parser.add_argument("--patch", action="store_true", help="Patch version up", dest="patch")
-parser.add_argument("--custom", type=str, help="Custom version up", dest="custom")
 args = parser.parse_args()
 
 # Get current version
@@ -17,10 +16,7 @@ cur_ver_str = process.stdout.decode("utf-8").strip()
 ver_list = [int(i) for i in cur_ver_str.split('.')]  # (e.g.) [0, 0, 1]
 
 # Create new version
-if args.custom != "":  # Custom version up
-    custom_ver_str = args.custom
-    ver_list = [int(i) for i in custom_ver_str.split('.')]
-elif args.major:
+if args.major:
     # Major version up
     ver_list[0] += 1
     # Minor version reset
