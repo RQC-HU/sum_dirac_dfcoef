@@ -148,10 +148,16 @@ optional arguments (--input and --mol are required)
   (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
 
 - -a, --all-write
+
   Print all MOs(Positronic and Electronic).
 
 - -p, --positronic-write
+
   Print only Positronic MOs.
+
+- -v, --version
+
+  Print version and exit
 
 - --debug
 
