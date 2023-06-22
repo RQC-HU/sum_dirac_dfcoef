@@ -17,6 +17,8 @@ pip install sum_dirac_dfcoef
 
 ## Usage
 
+### Linux, macOS
+
 You can use this program with the following command!
 
 ```sh
@@ -30,6 +32,14 @@ sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME -o OUTPUT_FILE_NAME
 
 ```sh
 sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
+```
+
+### Windows
+
+If you want to use this program on Windows, you can use it with the following command.
+
+```sh
+python -m sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
@@ -99,6 +109,7 @@ E1u 20 -8.8607510987047 B1uUpz 66.766609997188567 B3uUpx 16.052352691541234 B2uU
 E1g 17 -5.1175267254674 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935 AgUdzz 18.548678611340048 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUs 0.137285121776232
 ...
 ```
+
 This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 ## Options
@@ -118,7 +129,7 @@ optional arguments (--input and --mol are required)
   (required) molecule specification. Write the molecular formula (e.g. Cu2O).  
   **DON'T write the rational formula (e.g. CH3OH)**
 
--  -o OUTPUT, --output OUTPUT
+- -o OUTPUT, --output OUTPUT
   Output file name. Default: (-m or --mol option value).out (e.g) --m H2O => print to H2O.out
 
 - -c, --compress
