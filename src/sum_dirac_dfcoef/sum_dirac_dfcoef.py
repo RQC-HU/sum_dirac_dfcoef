@@ -406,6 +406,7 @@ def main() -> None:
     start_vector_print: bool = False
     is_electronic: bool = False
     electron_number: int = 0
+    prev_electron_number: int = electron_number
     mo_energy: float = 0.0
     mo_sym_type: str = ""
     coefficients: Coefficients = Coefficients()
@@ -483,7 +484,11 @@ def main() -> None:
                     is_electronic = True
                 else:
                     raise Exception("Unknown MO type")
-                electron_number = int(words[-2][:-1].replace("no.", ""))
+                try:
+                    electron_number = int(words[-2][:-1].replace("no.", ""))
+                    prev_electron_number = electron_number
+                except ValueError:  # If *** is printed, we have no information about what number this MO is. Therefore, we assume that electron_number is the next number after prev_electron_number.
+                    electron_number = prev_electron_number + 1
                 mo_energy = float(words[-1])
                 continue
 
