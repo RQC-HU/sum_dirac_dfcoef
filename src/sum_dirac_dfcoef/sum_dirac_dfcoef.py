@@ -486,9 +486,9 @@ def main() -> None:
                     raise Exception("Unknown MO type")
                 try:
                     electron_number = int(words[-2][:-1].replace("no.", ""))
-                    prev_electron_number = electron_number
                 except ValueError:  # If *** is printed, we have no information about what number this MO is. Therefore, we assume that electron_number is the next number after prev_electron_number.
                     electron_number = prev_electron_number + 1
+                prev_electron_number = electron_number
                 mo_energy = float(words[-1])
                 continue
 
