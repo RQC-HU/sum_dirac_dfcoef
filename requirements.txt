@@ -1,2 +1,2 @@
-pymolecule_parser
+pydantic
 pytest

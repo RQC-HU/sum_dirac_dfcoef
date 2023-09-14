@@ -5,20 +5,55 @@ from io import TextIOWrapper
 import os
 import re
 import sys
+from typing import Annotated
 
-from pymolecule_parser import parse
+from annotated_types import MaxLen
+from pydantic import BaseModel
 
 
 class Atoms:
-    atom_nums: "list[int]" = list()
-    atom_types: "list[str]" = list()
+    total_number_of_atoms: int = 0
+    number_of_atom_types: int = 0
+    atom_info: "dict[str, int]" = dict()  # key: atom type, value: number of atoms
 
-    def __init__(self, atom_nums: "list[int]", atom_types: "list[str]") -> None:
-        self.atom_nums = atom_nums
-        self.atom_types = atom_types
+    def __init__(self, atom_info: "dict[str, int]") -> None:
+        self.total_number_of_atoms = sum(atom_info.values())
+        self.number_of_atom_types = len(atom_info)
+        self.atom_info = atom_info
 
     def __repr__(self) -> str:
-        return f"atom_nums: {self.atom_nums}, atom_types: {self.atom_types}"
+        return f"total_number_of_atoms: {self.total_number_of_atoms}, number_of_atom_types: {self.number_of_atom_types}, atom_info: {self.atom_info}"
+
+
+class AtomicOrbitals(BaseModel, validate_assignment=True):
+    prev_subshell: Annotated[str, MaxLen(max_length=1)] = "s"
+    current_subshell: Annotated[str, MaxLen(max_length=1)] = "s"
+    function_types: "set[str]" = set()
+
+    def reset(self):
+        self.prev_subshell = "s"
+        self.current_subshell = "s"
+        self.function_types.clear()
+
+
+class AOFunction(BaseModel, validate_assignment=True):
+    atom_type: str
+    orbital_type: str
+    symmetry_type: str
+    function_num: int
+    mul: int
+
+
+class SymmetryOrbital(BaseModel, validate_assignment=True):
+    # {"Ag": dict(), "B1g": dict(), ...}
+    name: str
+    function_labels: "dict[str, AOFunction]" = dict()
+
+
+class FunctionInfo(BaseModel, validate_assignment=True):
+    # {"large orbitals": SymmetryOrbital(), "small orbitals": SymmetryOrbital()}
+    name: str
+    symmetry_orbitals: SymmetryOrbital
 
 
 class Coefficients:
@@ -95,18 +130,35 @@ class PrintVersionExitAction(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         from .__about__ import __version__
+
         print(f"{__version__}")
         exit()
 
 
 def parse_args() -> "argparse.Namespace":
-    parser = argparse.ArgumentParser(description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)")
+    parser = argparse.ArgumentParser(
+        description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
+    )
     parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
-    parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). ** DON'T write the rational formula (e.g. CH3OH) **")
+    # parser.add_argument("-m", "--mol", type=str, required=True, help="(required) molecule specification. Write the molecular formula (e.g. Cu2O). ** DON'T write the rational formula (e.g. CH3OH) **")
     parser.add_argument("-o", "--output", type=str, help="Output file name. Default: (-m or --mol option value).out (e.g) --m H2O => print to H2O.out", dest="output")
-    parser.add_argument("-c", "--compress", action="store_true", help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.", dest="compress")
+    parser.add_argument(
+        "-c",
+        "--compress",
+        action="store_true",
+        help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
+        dest="compress",
+    )
     parser.add_argument("-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold")
-    parser.add_argument("-d", "--decimal", type=int, default=5, choices=range(1, 16), help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15", dest="decimal")
+    parser.add_argument(
+        "-d",
+        "--decimal",
+        type=int,
+        default=5,
+        choices=range(1, 16),
+        help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15",
+        dest="decimal",
+    )
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
     parser.add_argument("-p", "--positronic-write", action="store_true", help="Print only Positronic MOs.", dest="positronic_write")
     parser.add_argument("-v", "--version", action=PrintVersionExitAction, help="Print version and exit", dest="version")
@@ -169,17 +221,188 @@ def space_separated_parsing(line: str) -> "list[str]":
     return [word for word in words if word != ""]
 
 
-def parse_molecule_input(args: "argparse.Namespace") -> Atoms:
+def get_atoms_and_basis_sets(dirac_output: TextIOWrapper) -> Atoms:
     """
-    Parse the molecule input and return the Atoms object.
-
+    (e.g.)
+    Atoms and basis sets
+    --------------------
+    Number of atom types :    5
+    Total number of atoms:   57
+    label    atoms   charge   prim    cont     basis
+    ----------------------------------------------------------------------
+    Cm          1      96     415     415      L  - [33s29p20d13f3g|33s29p20d13f3g]
+    O4          4       8      34      34      L  - [10s6p1d|10s6p1d]
+    N4          4       7      34      34      L  - [10s6p1d|10s6p1d]
+    C          24       6      34      34      L  - [10s6p1d|10s6p1d]
+    H          24       1       9       9      L  - [6s1p|6s1p]
+    ----------------------------------------------------------------------
+                            1719    1719      L  - large components
+    ----------------------------------------------------------------------
+    total:     57     324    1719    1719
     """
 
-    molecule_dict = parse(args.mol)
-    atom_nums = list(molecule_dict.values())  # list of counts of atoms
-    atom_types = list(molecule_dict.keys())  # list of atom types
-    atoms = Atoms(atom_nums, atom_types)
-    return atoms
+    def is_start_atoms_and_basis_sets(words: "list[str]") -> bool:
+        # ref: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/abacus/herrdn.F#L2402
+        if len(words) >= 4 and words[0] == "Atoms" and words[1] == "and" and words[2] == "basis" and words[3] == "sets":
+            return True
+        return False
+
+    def is_end_atoms_and_basis_sets(words: "list[str]") -> bool:
+        # ref: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/abacus/herrdn.F#L2503-2504
+        if len(words) == 5 and words[0] == "total:" and words[1].isdigit() and words[2].isdigit() and words[3].isdigit() and words[4].isdigit():
+            return True
+        return False
+
+    def is_include_label_and_atoms(line: "list[str]") -> bool:
+        try:
+            # Test for label and atoms
+            # Expected format: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/abacus/herrdn.F#L2455-2457
+            _ = str(line[0])  # label
+            _ = int(line[1])  # atoms
+            _ = int(line[2])  # charge
+            _ = int(line[3])  # prim
+            _ = int(line[4])  # cont
+            return True
+        except (ValueError, TypeError, IndexError):
+            # This line does not contain label and atoms
+            # Expected exceptions
+            return False
+
+    def validate_atoms_and_basis_sets_data() -> None:
+        if number_of_atom_types != 0 and len(atom_info) != number_of_atom_types:
+            sys.exit(
+                "ERROR: Number of atom types is not equal to the number of atoms in the molecule specification.\n\
+    Please check your Atoms and basis sets section in DIRAC output file.\n\
+    Expected format: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/abacus/herrdn.F#L2455-2457"
+            )
+        if total_number_of_atoms != 0 and sum(atom_info.values()) != total_number_of_atoms:
+            sys.exit(
+                "ERROR: Total number of atoms is not equal to the number of atoms in the molecule specification.\n\
+    Please check your Atoms and basis sets section in DIRAC output file.\n\
+    Expected format: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/abacus/herrdn.F#L2455-2457"
+            )
+
+    number_of_atom_types = 0
+    total_number_of_atoms = 0
+    atom_info: "dict[str, int]" = dict()
+    start_atoms_and_basis_sets = False
+    for line_str in dirac_output:
+        words: "list[str]" = space_separated_parsing(line_str)
+
+        if not start_atoms_and_basis_sets:
+            start_atoms_and_basis_sets = is_start_atoms_and_basis_sets(words)
+            continue  # Skip this line_str and start reading labels and atoms
+        # Check if this line_str is the end of Atoms and basis sets section
+        elif is_end_atoms_and_basis_sets(words):
+            break  # Stop reading labels and atoms
+
+        if is_include_label_and_atoms(words):
+            label = words[0]  # label
+            atom_num = int(words[1])  # atoms
+            atom_info[label] = atom_num
+        if "Number of atom types" in line_str:
+            number_of_atom_types = int(words[-1])
+        elif "Total number of atoms" in line_str:
+            total_number_of_atoms = int(words[-1])
+
+    validate_atoms_and_basis_sets_data()
+    return Atoms(atom_info)
+
+
+def get_symmetry_orbitals(dirac_output: TextIOWrapper) -> "dict[str, dict[str, dict[str, dict[str, int]]]]":
+    def is_start_symmetry_orbitals_section(words: "list[str]") -> bool:
+        # ref: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/dirac/dirtra.F#L3654
+        if len(words) == 2 and words[0] == "Symmetry" and words[1] == "Orbitals":
+            return True
+        return False
+
+    def is_start_number_of_section(words: "list[str]") -> bool:
+        if number_of_section["start"]:
+            return False
+        elif len(words) >= 6 and words[0] == "Number" and words[1] == "of" and words[2] == "orbitals" and words[3] == "in" and words[4] == "each" and words[5] == "symmetry:":
+            return True
+        return False
+
+    def get_number_of_info(orbital_type: str, orbitals_str_list: "list[str]") -> None:
+        try:
+            orbitals = [int(i) for i in orbitals_str_list]
+            number_of_info[orbital_type] = sum(orbitals)
+        except (ValueError, TypeError, IndexError):
+            # Probably ***** is included in the line_str
+            # This is expected exception
+            pass
+
+    def is_reverse_subshell() -> bool:
+        order_of_subshell = "spdfghiklmnoqrtuvwxyz"
+        if order_of_subshell.index(ao.prev_subshell) > order_of_subshell.index(ao.current_subshell):
+            return True
+        return False
+
+    dirac_output.seek(0)  # rewind to the beginning of the file
+    start_symmetry_orbitals_section = False
+    number_of_section = {"start": False, "end": False}
+    number_of_info = {"orbitals": 0, "large orbitals": 0, "small orbitals": 0}
+    current_component_function = ""  # "large orbitals" or "small orbitals"
+    # functions_info = {"large orbitals": {"Ag": {"labels: {"C  s": {"functions": 3, "mul": 2}, "C  p": {"functions": 3, "mul": 2}, ...}, "check": False}, "B1g": {...}, ...}, "small orbitals": {...}}
+    functions_info: "dict[str, dict[str, dict[str, dict[str, int]]]]" = {"large orbitals": dict(), "small orbitals": dict()}
+    current_symmetry = ""
+    ao = AtomicOrbitals()
+    for line_str in dirac_output:
+        words: "list[str]" = space_separated_parsing(line_str)
+        if len(line_str) == 0:
+            continue
+        elif not start_symmetry_orbitals_section:
+            start_symmetry_orbitals_section = is_start_symmetry_orbitals_section(words)
+        elif not number_of_section["start"]:
+            if is_start_number_of_section(words):
+                number_of_section["start"] = True
+                get_number_of_info("orbitals", words[6:])
+        elif number_of_section["start"] and not number_of_section["end"]:
+            if "Number of" not in line_str:
+                # End of number of section
+                number_of_section["end"] = True
+                continue  # Skip this line_str and start reading large orbitals
+            elif len(words) <= 7:
+                continue
+            orbital_type = "large orbitals" if "large" in line_str else ("small orbitals" if "small" in line_str else "")
+            if orbital_type == "":
+                continue  # This is not expected but skip this line_str
+            get_number_of_info(orbital_type, words[7:])
+        elif "component functions" in line_str:
+            current_component_function = "large orbitals" if "Large" in line_str else ("small orbitals" if "Small" in line_str else "")
+        elif "Symmetry" in line_str:
+            current_symmetry = words[1]
+        elif "functions" in line_str:
+            # ref: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
+            try:
+                num_functions = int(words[0])  # ILAB(1,I)
+            except (ValueError, TypeError):
+                num_functions = -1  # Impossible number of functions to detect that we cannot get the number of functions from this line_str
+            after_functions = line_str[line_str.find("functions:") + len("functions:") :].strip()  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
+            function_label = after_functions[:7].strip()  # PLABEL(I,2)(6:12)
+            ao.current_subshell = function_label[3]  # e.g. "g" in "Cm g400"
+            if function_label in ao.function_types or is_reverse_subshell():
+                # Different atom
+                ao.function_types.clear()
+            multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
+            multiplicity = len(re.findall("[+-]", multiplicity_label)) + 1  # (e.g.) 1+2=>2, 1+2+3=>3, 1+2-3-4=>4
+            ao.function_types.add(function_label)
+            if current_symmetry not in functions_info[current_component_function]:
+                functions_info[current_component_function][current_symmetry] = dict()
+            functions_info[current_component_function][current_symmetry][function_label] = {"functions": num_functions, "mul": multiplicity}
+        # all characters in line_str are * or space
+        elif len(re.findall("[* ]", line_str)) == len(line_str):
+            break  # Stop reading symmetry orbitals
+
+    if not start_symmetry_orbitals_section:
+        raise Exception(
+            "ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program,\
+is not in the DIRAC output file.\n\
+Please check your DIRAC output file.\n\
+Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
+        )
+
+    return functions_info
 
 
 def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, elements: "list[str]") -> None:
@@ -199,7 +422,11 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
     atom_type = "Cl"
     orbital_type = "dyz"
     """
+    # ref (print ): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L388-389
+    # ref (format): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
+    # FORMAT(3X,I5,2X,A12,2X,4F14.10)
 
+    # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
     def get_types() -> "tuple[str, str, str]":
         sym_and_atom_and_orb_str = " ".join(words[2:-4])
         splitted_by_capital = re.findall("[A-Z][^A-Z]*", sym_and_atom_and_orb_str)
@@ -248,16 +475,6 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
         beta2: float = float(words[-1]) if isfloat(words[-1]) else 0.0
         return alpha1**2 + alpha2**2 + beta1**2 + beta2**2
 
-    def check_atom_type(atom_type: str) -> None:
-        if atom_type not in atoms.atom_types:
-            print(
-                "WARNING: ",
-                atom_type,
-                " is not in the molecule specification. This orbital will be ignored.",
-            )
-            print(" ".join(atoms.atom_types))
-            sys.exit(f"ERROR: atom type {atom_type} is not defined. Please check your -m or --mol option.")
-
     def add_coefficient(coefficient: float, atom_orb_type: str) -> None:
         magnification = atoms.atom_nums[atoms.atom_types.index(atom_type)]
 
@@ -291,7 +508,6 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
     """
     words = parse_words(words)
     symmetry_type, atom_type, orbital_type = get_types()
-    check_atom_type(atom_type)
     coefficient = get_coefficient()
     atom_orb_type = symmetry_type + atom_type + orbital_type
 
@@ -415,14 +631,17 @@ def main() -> None:
     # fmt: on
 
     args: "argparse.Namespace" = parse_args()
-    dirac_file: str = get_dirac_filename(args)
-    atoms: Atoms = parse_molecule_input(args)
-
+    dirac_filename: str = get_dirac_filename(args)
+    dirac_output = open(dirac_filename, encoding="utf-8")
+    atoms: Atoms = get_atoms_and_basis_sets(dirac_output)
+    print(atoms)
+    orbitals = get_symmetry_orbitals(dirac_output)
     data_all_electronic_mo: "list[Data_per_MO]" = []
     data_all_positronic_mo: "list[Data_per_MO]" = []
-    with open(dirac_file, encoding="utf-8") as f:
+    with open(dirac_filename, encoding="utf-8") as f:
         for line in f:
             words: "list[str]" = space_separated_parsing(line)
+
             if not start_vector_print:
                 if check_start_vector_print(words):
                     start_vector_print = True
@@ -432,7 +651,7 @@ def main() -> None:
                 mo_sym_type = words[2]
 
             elif need_to_skip_this_line(words):
-                # End of reading the specific MO coefficients
+                # if atoms is unbound, raise exception
                 if need_to_create_results_for_current_mo(words, is_reading_coefficients):
                     start_mo_coefficients = False
                     (

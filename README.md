@@ -6,7 +6,7 @@ This program provides a utility to summarize the contribution of each atomic orb
 
 ## Requirements
 
-- [Python](https://python.org) (version ≧ 3.6)
+- [Python](https://python.org) (version ≧ 3.7)
   - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
 ## Download
