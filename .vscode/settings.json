@@ -3,5 +3,9 @@
         "."
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    // Python line length
+    "black-formatter.args": [
+        "--line-length=180"
+    ]
 }

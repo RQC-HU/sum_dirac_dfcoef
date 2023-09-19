@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
+import bisect
+import copy
 from io import TextIOWrapper
 import os
 import re
@@ -56,22 +58,58 @@ class FunctionInfo(BaseModel, validate_assignment=True):
     symmetry_orbitals: SymmetryOrbital
 
 
-class Coefficients:
-    norm_const_sum: float = 0.0
-    sum_of_mo_coefficient: float = 0.0
-    mo_coefficient_list: "list[float]" = list()
-    orbital_types: "list[str]" = list()
-    atom_list: "list[str]" = list()
+class Coefficient(BaseModel, validate_assignment=True):
+    vector_num: int
+    function_label: str
+    # atom: str
+    coefficient: float
+    magnification: int
 
     def __repr__(self) -> str:
-        return f"norm_const_sum: {self.norm_const_sum}, sum_of_mo_coefficient: {self.sum_of_mo_coefficient}, mo_coefficient_list: {self.mo_coefficient_list}"
+        super().__repr__()
+        return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, magnification: {self.magnification}"
+
+
+class Coefficients:
+    norm_const_sum: float = 0.0
+    coef_dict: "dict[str, Coefficient]" = dict()
+    coef_list: "list[Coefficient]" = list()
+
+    def __repr__(self) -> str:
+        # return f"norm_const_sum: {self.norm_const_sum}, coef_list: {self.coef_list}"
+        return f"norm_const_sum: {self.norm_const_sum}, coef: {[coef.coefficient for coef in self.coef_list]}"
+
+    def add_coefficient(self, coef: Coefficient) -> None:
+        # self.coef_list.append(coef)
+        if coef.function_label in self.coef_dict:
+            self.coef_dict[coef.function_label].coefficient += coef.coefficient
+        else:
+            self.coef_dict[coef.function_label] = coef
+        self.norm_const_sum += coef.coefficient * coef.magnification
 
     def reset(self):
         self.norm_const_sum = 0.0
-        self.sum_of_mo_coefficient = 0.0
-        self.mo_coefficient_list: "list[float]" = list()
-        self.orbital_types: "list[str]" = list()
-        self.atom_list: "list[str]" = list()
+        self.coef_dict.clear()
+        self.coef_list.clear()
+
+
+class Data_per_MO:
+    coefficients: Coefficients
+    mo_energy: float
+    mo_info: str
+
+    def __init__(self, coefficients: Coefficients, mo_energy: float, mo_info: str) -> None:
+        self.coefficients = coefficients
+        self.mo_energy = mo_energy
+        self.mo_info = mo_info
+
+
+class VectorInfo:
+    vector_num: int
+    atom_label: str
+    function_label: str
+    subshell: str
+    coefficient: float
 
 
 class Data_per_orbital_types:
@@ -91,31 +129,6 @@ class Data_per_orbital_types:
         self.atom = ""
         self.orbital_type = ""
         self.mo_percentage = 0.0
-
-
-class Data_per_MO:
-    mo_info: str = ""
-    mo_energy: float = 0.0
-    data_per_orbital_types: "list[Data_per_orbital_types]" = list()
-    norm_constant: float = 0.0
-    sum_coefficients: float = 0.0
-
-    def __init__(
-        self,
-        mo_info: str,
-        mo_energy: float,
-        data_per_orbital_types: "list[Data_per_orbital_types]",
-        norm_constant: float,
-        sum_coefficients: float,
-    ) -> None:
-        self.mo_info = mo_info
-        self.mo_energy = mo_energy
-        self.data_per_orbital_types = data_per_orbital_types
-        self.norm_constant = norm_constant
-        self.sum_coefficients = sum_coefficients
-
-    def __repr__(self) -> str:
-        return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, coefficients: {self.data_per_orbital_types}"
 
 
 class PrintVersionExitAction(argparse.Action):
@@ -149,7 +162,9 @@ def parse_args() -> "argparse.Namespace":
         help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
         dest="compress",
     )
-    parser.add_argument("-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold")
+    parser.add_argument(
+        "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold"
+    )
     parser.add_argument(
         "-d",
         "--decimal",
@@ -372,6 +387,9 @@ def get_symmetry_orbitals(dirac_output: TextIOWrapper) -> "dict[str, dict[str, d
             current_component_function = "large orbitals" if "Large" in line_str else ("small orbitals" if "Small" in line_str else "")
         elif "Symmetry" in line_str:
             current_symmetry = words[1]
+            bra_idx = current_symmetry.find("(")
+            if bra_idx != -1:
+                current_symmetry = current_symmetry[:bra_idx]
         elif "functions" in line_str:
             # ref: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
             try:
@@ -379,8 +397,10 @@ def get_symmetry_orbitals(dirac_output: TextIOWrapper) -> "dict[str, dict[str, d
             except (ValueError, TypeError):
                 num_functions = -1  # Impossible number of functions to detect that we cannot get the number of functions from this line_str
             after_functions = line_str[line_str.find("functions:") + len("functions:") :].strip()  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
-            function_label = after_functions[:7].strip()  # PLABEL(I,2)(6:12)
-            ao.current_subshell = function_label[3]  # e.g. "g" in "Cm g400"
+            function_label = current_symmetry + after_functions[:7].strip()  # current_symmetry + PLABEL(I,2)(6:12)
+            ao.current_subshell = after_functions[3]  # e.g. "g" in "Cm g400"
+            # remove space from function_label
+            function_label = function_label.replace(" ", "")
             if function_label in ao.function_types or is_reverse_subshell():
                 # Different atom
                 ao.function_types.clear()
@@ -390,8 +410,8 @@ def get_symmetry_orbitals(dirac_output: TextIOWrapper) -> "dict[str, dict[str, d
             if current_symmetry not in functions_info[current_component_function]:
                 functions_info[current_component_function][current_symmetry] = dict()
             functions_info[current_component_function][current_symmetry][function_label] = {"functions": num_functions, "mul": multiplicity}
-        # all characters in line_str are * or space
-        elif len(re.findall("[* ]", line_str)) == len(line_str):
+        # all characters in line_str are * or space or line break
+        elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             break  # Stop reading symmetry orbitals
 
     if not start_symmetry_orbitals_section:
@@ -401,21 +421,14 @@ is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
 Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
         )
+    print(f"functions_info: {functions_info}")
 
     return functions_info
 
 
-def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients, elements: "list[str]") -> None:
+def get_coefficient(line: str, orbitals: "dict[str, dict[str, dict[str, dict[str, int]]]]") -> Coefficient:
     """
     Nested functions to get coefficient
-
-    words is a list of strings that is split by space.
-    words[0] is the number of MO.
-    words[1] is the L or S, Large or Small.
-    words[2:-5] are symmetry type, Atom and Orbital type.
-      Sometimes these elements cannot be separated because there is no space available <--- This is the reason why we use words[2:-5].
-    words[-4:] is the coefficient.
-
     (e.g.)
     sym_and_atom_and_orb_str = "B3gCldyz"
     symmetry_type = "B3g"
@@ -425,36 +438,9 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
     # ref (print ): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L388-389
     # ref (format): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
     # FORMAT(3X,I5,2X,A12,2X,4F14.10)
-
     # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
-    def get_types() -> "tuple[str, str, str]":
-        sym_and_atom_and_orb_str = " ".join(words[2:-4])
-        splitted_by_capital = re.findall("[A-Z][^A-Z]*", sym_and_atom_and_orb_str)
-        symmetry_type = splitted_by_capital[0].strip()
-        # atom_type must be 1 or 2 letters.
-        # check splitted_by_capital[1][:2] is not out of range
-        if len(splitted_by_capital[1]) >= 2 and splitted_by_capital[1][:2] in elements:  # 2 letters (e.g. Cu)
-            atom_type = splitted_by_capital[1][:2]
-            orbital_type = splitted_by_capital[1][2:]
-        elif splitted_by_capital[1][0] in elements:  # 1 letter (e.g. C)
-            atom_type = splitted_by_capital[1][0]
-            orbital_type = splitted_by_capital[1][1:]
-        else:
-            sys.exit(f"ERROR: {splitted_by_capital[1][:1]} is invalid atom type.")
 
-        # orbital_type does not have space or numbers.
-        orbital_type = orbital_type.lstrip("0123456789 ")
-
-        # Return symmetry_type, atom_type, orbital_type with no space.
-        return symmetry_type.strip(), atom_type.strip(), orbital_type.strip()
-
-    def add_orbital_type(atom_type: str, atom_orb_type: str) -> None:
-        if atom_orb_type not in coefficients.orbital_types:
-            coefficients.orbital_types.append(atom_orb_type)
-            coefficients.atom_list.append(atom_type)
-            coefficients.mo_coefficient_list.append(0.0)
-
-    def isfloat(parameter):
+    def is_float(parameter: str):
         if not parameter.isdecimal():
             try:
                 float(parameter)
@@ -464,97 +450,53 @@ def get_coefficient(words: "list[str]", atoms: Atoms, coefficients: Coefficients
         else:
             return False
 
-    def get_coefficient() -> float:
+    def parse_line(line: "str") -> Coefficient:
         """
-        (e.g)
-        words = ["g400", "0.0000278056", "0.0000000000", "0.0000000000", "0.0000000000"]
+        This function parses the line that contains the coefficient.
+
+        line write source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L440-442
+        line format source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
+        line format : FORMAT(3X,I5,2X,A12,2X,4F14.10)
         """
-        alpha1: float = float(words[-4]) if isfloat(words[-4]) else 0.0
-        alpha2: float = float(words[-3]) if isfloat(words[-3]) else 0.0
-        beta1: float = float(words[-2]) if isfloat(words[-2]) else 0.0
-        beta2: float = float(words[-1]) if isfloat(words[-1]) else 0.0
-        return alpha1**2 + alpha2**2 + beta1**2 + beta2**2
+        words = line.split()
+        # JS (I5): Serial number of the vector
+        vec_num = int(words[0])
 
-    def add_coefficient(coefficient: float, atom_orb_type: str) -> None:
-        magnification = atoms.atom_nums[atoms.atom_types.index(atom_type)]
+        #
+        # PLABEL(IPLAB(IBAS(IFRP)+JS,2),2) (A12): Information about the vector to identify the vector
+        #
+        # PLABEL source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
+        # PLABEL(NLAB,2) = CLS(IC)//' '//REP(IRP)//NAMN(ICENT)(1:3)//GTOTYP(ITYP)
+        # CLS (A1): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L45
+        # REP (A3): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/pgroup.h#L16
+        # NAMN (A3, defined as A4, but only (1:3) is used): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/nuclei.h#L25
+        # GTOTYP (A4): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/ccom.h#L8
+        current_component_function = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
+        symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
+        function_label = line[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
 
-        coefficient = magnification * coefficient
-        coefficients.norm_const_sum += coefficient
+        # COEF (4F14.10)
+        # coefficients = [line[24:38], line[38:52], line[52:66], line[66:80]]
+        coef_num = 4
+        coef_len = 14
+        coef_start_idx = 24
+        coefficient = sum(
+            [
+                pow(float(line[i : i + coef_len]), 2) if is_float(line[i : i + coef_len]) else pow(-100, 2)
+                for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
+            ]
+        )
 
-        orb_type_idx = coefficients.orbital_types.index(atom_orb_type)
-        coefficients.mo_coefficient_list[orb_type_idx] += coefficient
+        magnification = orbitals[current_component_function][symmetry_label][function_label]["mul"]
 
-    def parse_words(words: "list[str]") -> "list[str]":
-        new_words = []
-        # Parses multiple numbers that are sometimes connected without separating them with spaces
-        # In DIRAC version <22.0 the number of decimal places is fixed at 10 (decimal_num = 10)
-        for word in words:
-            num_of_dots = word.count(".")
-            if num_of_dots == 0 or num_of_dots == 1:
-                new_words.append(word)
-            elif num_of_dots >= 2:
-                decimal_num = 10
-                dotidx = word.find(".")
-                while dotidx != -1:
-                    word2 = word[: dotidx + decimal_num + 1]
-                    new_words.append(word2)
-                    word = word[dotidx + decimal_num + 1 :]
-                    dotidx = word.find(".")
-
-        return new_words
+        return Coefficient(vector_num=vec_num, function_label=function_label, coefficient=coefficient, magnification=magnification)
 
     """
     Main function to get coefficient
     """
-    words = parse_words(words)
-    symmetry_type, atom_type, orbital_type = get_types()
-    coefficient = get_coefficient()
-    atom_orb_type = symmetry_type + atom_type + orbital_type
+    coef: Coefficient = parse_line(line)
 
-    add_orbital_type(atom_type, atom_orb_type)
-    add_coefficient(coefficient, atom_orb_type)
-
-    return None
-
-
-def create_results_for_current_mo(args: "argparse.Namespace", atoms: Atoms, coefficients: Coefficients) -> "tuple[list[Data_per_orbital_types], float, float]":
-    """
-    Nested functions to create results for current MO
-    """
-
-    def create_data_per_orbital_types():
-        data_per_orbital_types: "list[Data_per_orbital_types]" = []
-        for orb, coefficient, atom in zip(
-            coefficients.orbital_types,
-            coefficients.mo_coefficient_list,
-            coefficients.atom_list,
-        ):
-            atom_num = atoms.atom_nums[atoms.atom_types.index(atom)]
-            data = Data_per_orbital_types(
-                atom=atom,
-                orbital_type=orb,
-                mo_percentage=coefficient * 100 / (coefficients.norm_const_sum * atom_num),
-            )
-            if data.mo_percentage >= args.threshold:
-                for _ in range(atom_num):
-                    data_per_orbital_types.append(data)
-        return data_per_orbital_types
-
-    def calculate_sum_of_mo_coefficient() -> float:
-        return (sum([c for c in coefficients.mo_coefficient_list])) / coefficients.norm_const_sum
-
-    """
-    Main function to create results for current MO
-    """
-    data_per_orbital_types = create_data_per_orbital_types()
-    data_per_orbital_types.sort(key=lambda x: x.mo_percentage, reverse=True)
-    normalization_constant = 0.0
-    sum_of_coefficient = 0.0
-    if args.debug:
-        normalization_constant = coefficients.norm_const_sum
-        sum_of_coefficient = calculate_sum_of_mo_coefficient()
-
-    return data_per_orbital_types, normalization_constant, sum_of_coefficient
+    return coef
 
 
 def check_start_vector_print(words: "list[str]") -> bool:
@@ -581,12 +523,49 @@ def check_end_vector_print(
 
 def get_output_path(args: "argparse.Namespace") -> str:
     if args.output is None:
-        output_name = f"{args.mol}.out"
+        output_name = "sum_dirac_dfcoef.out"
         output_path = os.path.join(os.getcwd(), output_name)
     else:
         output_name = args.output
         output_path = os.path.abspath(output_name)
     return output_path
+
+
+def create_results_for_current_mo(
+    args: "argparse.Namespace", coefficients: Coefficients, electron_number: int, mo_energy: float, mo_sym_type: str, is_electronic: bool
+) -> "Data_per_MO":
+    """
+    Create results for current MO
+    """
+
+    def coef_sort_and_remove(args: "argparse.Namespace", coefficients: Coefficients) -> Coefficients:
+        """
+        Sort coefficients and remove elements below threshold
+        """
+
+        def remove_elements_below_threshold(args: "argparse.Namespace", coefficients: Coefficients) -> Coefficients:
+            """
+            Remove elements below threshold
+            """
+            idx = bisect.bisect_left([c.coefficient / coefficients.norm_const_sum for c in coefficients.coef_list], args.threshold)
+            coefficients.coef_list = coefficients.coef_list[idx:] if idx < len(coefficients.coef_list) else []
+            return coefficients
+
+        coefficients.coef_list = [v for v in coefficients.coef_dict.values()]
+        if not args.no_sort:
+            coefficients.coef_list.sort(key=lambda x: x.coefficient)  # ascending order
+        coefficients = remove_elements_below_threshold(args, coefficients)
+        coefficients.coef_list.reverse()  # descending order
+        return coefficients
+
+    coefficients = coef_sort_and_remove(args, coefficients)
+    info: str
+    if is_electronic:
+        info = f"{mo_sym_type} {electron_number}" if args.compress else f"Electronic no. {electron_number} {mo_sym_type}"
+    else:  # Positronic
+        info = f"{mo_sym_type} {electron_number}" if args.compress else f"Positronic no. {electron_number} {mo_sym_type}"
+
+    return Data_per_MO(mo_info=info, mo_energy=mo_energy, coefficients=copy.deepcopy(coefficients))
 
 
 def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: "list[Data_per_MO]") -> None:
@@ -600,19 +579,21 @@ def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: 
         mo_info_energy = f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}" + ("\n" if not args.compress else "")
         file.write(mo_info_energy)
 
-        d: Data_per_orbital_types
-        for d in mo.data_per_orbital_types:
+        if not args.no_sort:
+            mo.coefficients.coef_list.sort(key=lambda x: x.coefficient, reverse=True)
+        # print(f"mo.coefficients.coef_list: {mo.coefficients.coef_list}")
+        for c in mo.coefficients.coef_list:
+            percentage = c.coefficient / mo.coefficients.norm_const_sum * 100
+            output_str: str
             if args.compress:
-                orb_type = str(d.orbital_type)
-                output_str = f" {orb_type} {d.mo_percentage:.{args.decimal}f}"
-                file.write(output_str)
+                output_str = f" {c.function_label} {percentage:.{args.decimal}f}"
             else:
-                orb_type = str(d.orbital_type).ljust(11, " ")
-                output_str = f"{orb_type} {d.mo_percentage:{args.decimal+4}.{args.decimal}f} %\n"
+                output_str = f"{c.function_label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
+            for idx in range(c.magnification):
+                # print(f"{idx}, {output_str}")
                 file.write(output_str)
         file.write("\n")  # add empty line
-        debug_print_wrapper(args, f"Normalization constant is {mo.norm_constant:.{args.decimal}f}")
-        debug_print_wrapper(args, f"sum of coefficient {mo.sum_coefficients:.{args.decimal}f}")
+        debug_print_wrapper(args, f"sum of coefficient {mo.coefficients.norm_const_sum:.{args.decimal}f}")
 
 
 def main() -> None:
@@ -626,9 +607,6 @@ def main() -> None:
     mo_energy: float = 0.0
     mo_sym_type: str = ""
     coefficients: Coefficients = Coefficients()
-    # fmt: off
-    elements: "list[str]" = ["H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th", "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg"]
-    # fmt: on
 
     args: "argparse.Namespace" = parse_args()
     dirac_filename: str = get_dirac_filename(args)
@@ -654,35 +632,11 @@ def main() -> None:
                 # if atoms is unbound, raise exception
                 if need_to_create_results_for_current_mo(words, is_reading_coefficients):
                     start_mo_coefficients = False
-                    (
-                        data,
-                        norm_constant,
-                        sum_coefficients,
-                    ) = create_results_for_current_mo(args, atoms, coefficients)
-                    if args.compress:
-                        info = f"{mo_sym_type} {electron_number}"
-                    else:
-                        info = f"Electronic no. {electron_number} {mo_sym_type}"
+                    data = create_results_for_current_mo(args, coefficients, electron_number, mo_energy, mo_sym_type, is_electronic)
                     if is_electronic:
-                        data_all_electronic_mo.append(
-                            Data_per_MO(
-                                mo_info=info,
-                                mo_energy=mo_energy,
-                                data_per_orbital_types=data,
-                                norm_constant=norm_constant,
-                                sum_coefficients=sum_coefficients,
-                            )
-                        )
+                        data_all_electronic_mo.append(data)
                     else:  # Positronic
-                        data_all_positronic_mo.append(
-                            Data_per_MO(
-                                mo_info=info,
-                                mo_energy=mo_energy,
-                                data_per_orbital_types=data,
-                                norm_constant=norm_constant,
-                                sum_coefficients=sum_coefficients,
-                            )
-                        )
+                        data_all_positronic_mo.append(data)
                     # Reset variables
                     coefficients.reset()
                     debug_print_wrapper(args, f"End of reading {electron_number}th MO")
@@ -705,7 +659,9 @@ def main() -> None:
                     raise Exception("Unknown MO type")
                 try:
                     electron_number = int(words[-2][:-1].replace("no.", ""))
-                except ValueError:  # If *** is printed, we have no information about what number this MO is. Therefore, we assume that electron_number is the next number after prev_electron_number.
+                except ValueError:
+                    # If *** is printed, we have no information about what number this MO is.
+                    # Therefore, we assume that electron_number is the next number after prev_electron_number.
                     electron_number = prev_electron_number + 1
                 prev_electron_number = electron_number
                 mo_energy = float(words[-1])
@@ -725,7 +681,8 @@ def main() -> None:
                 if not is_this_row_for_coefficients(words):
                     continue
                 is_reading_coefficients = True
-                get_coefficient(words, atoms, coefficients, elements)
+                coef = get_coefficient(line, orbitals)
+                coefficients.add_coefficient(coef)
     # End of reading file
     output_path = get_output_path(args)
     file = open(output_path, "w")
