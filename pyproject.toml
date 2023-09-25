@@ -26,6 +26,7 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
+  "pydantic",
   "pymolecule-parser",
 ]
 
