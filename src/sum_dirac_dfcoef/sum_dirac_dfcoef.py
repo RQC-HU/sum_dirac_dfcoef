@@ -51,6 +51,8 @@ class Coefficients:
     norm_const_sum: float = 0.0
     coef_dict: "dict[str, Coefficient]" = dict()
     coef_list: "list[Coefficient]" = list()
+    mo_energy: float = 0.0
+    mo_info: str = ""
 
     def __repr__(self) -> str:
         # return f"norm_const_sum: {self.norm_const_sum}, coef_list: {self.coef_list}"
@@ -66,6 +68,8 @@ class Coefficients:
 
     def reset(self):
         self.norm_const_sum = 0.0
+        self.mo_energy = 0.0
+        self.mo_info = ""
         self.coef_dict.clear()
         self.coef_list.clear()
 
@@ -257,44 +261,49 @@ def get_output_path(args: "argparse.Namespace") -> str:
     return output_path
 
 
-def create_results_for_current_mo(
-    args: "argparse.Namespace", coefficients: Coefficients, electron_number: int, mo_energy: float, mo_sym_type: str, is_electronic: bool
-) -> "Data_per_MO":
+def create_results_for_current_mo(args: "argparse.Namespace", coefficients: Coefficients) -> Coefficients:
     """
     Create results for current MO
     """
 
-    def coef_sort_and_remove(args: "argparse.Namespace", coefficients: Coefficients) -> Coefficients:
+    def coef_sort_and_remove(coefficients: Coefficients) -> Coefficients:
         """
         Sort coefficients and remove elements below threshold
         """
 
-        def remove_elements_below_threshold(args: "argparse.Namespace", coefficients: Coefficients) -> Coefficients:
+        def remove_elements_below_threshold() -> Coefficients:
             """
             Remove elements below threshold
             """
-            idx = bisect.bisect_left([c.coefficient / coefficients.norm_const_sum for c in coefficients.coef_list], args.threshold)
+
+            coefficients.coef_list.sort(key=lambda x: x.coefficient)  # ascending order
+            idx = bisect.bisect_left([c.coefficient / coefficients.norm_const_sum * 100 for c in coefficients.coef_list], args.threshold)
             coefficients.coef_list = coefficients.coef_list[idx:] if idx < len(coefficients.coef_list) else []
+            coefficients.coef_list.sort(key=lambda x: (-x.coefficient, x.vector_num))  # descending order
             return coefficients
 
         coefficients.coef_list = [v for v in coefficients.coef_dict.values()]
-        if not args.no_sort:
-            coefficients.coef_list.sort(key=lambda x: x.coefficient)  # ascending order
-        coefficients = remove_elements_below_threshold(args, coefficients)
-        coefficients.coef_list.reverse()  # descending order
+        coefficients = remove_elements_below_threshold()
         return coefficients
 
-    coefficients = coef_sort_and_remove(args, coefficients)
-    info: str
-    if is_electronic:
-        info = f"{mo_sym_type} {electron_number}" if args.compress else f"Electronic no. {electron_number} {mo_sym_type}"
-    else:  # Positronic
-        info = f"{mo_sym_type} {electron_number}" if args.compress else f"Positronic no. {electron_number} {mo_sym_type}"
-
-    return Data_per_MO(mo_info=info, mo_energy=mo_energy, coefficients=copy.deepcopy(coefficients))
+    return copy.deepcopy(coef_sort_and_remove(coefficients))
 
 
-def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: "list[Data_per_MO]") -> None:
+def should_write_positronic_results_to_file(args: "argparse.Namespace") -> bool:
+    if args.all_write or args.positronic_write:
+        return True
+    else:
+        return False
+
+
+def should_write_electronic_results_to_file(args: "argparse.Namespace") -> bool:
+    if args.all_write or not args.positronic_write:
+        return True
+    else:
+        return False
+
+
+def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: "list[Coefficients]") -> None:
     """
     Write results to stdout
     """
@@ -305,21 +314,17 @@ def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: 
         mo_info_energy = f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}" + ("\n" if not args.compress else "")
         file.write(mo_info_energy)
 
-        if not args.no_sort:
-            mo.coefficients.coef_list.sort(key=lambda x: x.coefficient, reverse=True)
-        # print(f"mo.coefficients.coef_list: {mo.coefficients.coef_list}")
-        for c in mo.coefficients.coef_list:
-            percentage = c.coefficient / mo.coefficients.norm_const_sum * 100
+        for c in mo.coef_list:
+            percentage = c.coefficient / mo.norm_const_sum * 100
             output_str: str
             if args.compress:
                 output_str = f" {c.function_label} {percentage:.{args.decimal}f}"
             else:
                 output_str = f"{c.function_label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
-            for idx in range(c.magnification):
-                # print(f"{idx}, {output_str}")
+            for _ in range(c.magnification):
                 file.write(output_str)
         file.write("\n")  # add empty line
-        debug_print(args, f"sum of coefficient {mo.coefficients.norm_const_sum:.{args.decimal}f}")
+        debug_print(args, f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
 
 
 def main() -> None:
@@ -340,8 +345,8 @@ def main() -> None:
     atoms = get_atoms_and_basis_sets(dirac_output)
     print(atoms)
     orbitals = get_functions_info(dirac_output)
-    data_all_electronic_mo: "list[Data_per_MO]" = []
-    data_all_positronic_mo: "list[Data_per_MO]" = []
+    data_all_electronic_mo: "list[Coefficients]" = []
+    data_all_positronic_mo: "list[Coefficients]" = []
     with open(dirac_filename, encoding="utf-8") as f:
         for line in f:
             words: "list[str]" = space_separated_parsing(line)
@@ -355,19 +360,15 @@ def main() -> None:
                 mo_sym_type = words[2]
 
             elif need_to_skip_this_line(words):
-                # if atoms is unbound, raise exception
                 if need_to_create_results_for_current_mo(words, is_reading_coefficients):
                     start_mo_coefficients = False
-                    data = create_results_for_current_mo(args, coefficients, electron_number, mo_energy, mo_sym_type, is_electronic)
+                    data = create_results_for_current_mo(args, coefficients)
                     if is_electronic:
                         data_all_electronic_mo.append(data)
                     else:  # Positronic
                         data_all_positronic_mo.append(data)
-                    # Reset variables
-                    coefficients.reset()
                     debug_print(args, f"End of reading {electron_number}th MO")
                     is_reading_coefficients = False
-                continue
 
             elif need_to_start_mo_section(words, start_mo_coefficients):
                 """
@@ -391,7 +392,15 @@ def main() -> None:
                     electron_number = prev_electron_number + 1
                 prev_electron_number = electron_number
                 mo_energy = float(words[-1])
-                continue
+                mo_info = (
+                    f"{mo_sym_type} {electron_number}"
+                    if args.compress
+                    else (f"Electronic no. {electron_number} {mo_sym_type}" if is_electronic else f"Positronic no. {electron_number} {mo_sym_type}")
+                )
+                # Here is the start point of reading coefficients of the current MO
+                coefficients.reset()  # reset coefficients because we need to delete coefficients of the previous MO
+                coefficients.mo_energy = mo_energy
+                coefficients.mo_info = mo_info
 
             elif check_end_vector_print(
                 words,
@@ -400,6 +409,7 @@ def main() -> None:
                 start_mo_coefficients,
                 is_reading_coefficients,
             ):
+                # End of reading coefficients
                 break
 
             # Read coefficients or the end of coefficients section
@@ -410,14 +420,15 @@ def main() -> None:
                 coef = get_coefficient(line, orbitals)
                 coefficients.add_coefficient(coef)
     # End of reading file
-    output_path = get_output_path(args)
-    file = open(output_path, "w")
-    if args.all_write or args.positronic_write:
+    file = open(get_output_path(args), "w")
+    if should_write_positronic_results_to_file(args):  # Positronic
+        # Write positronic results to the file
         if not args.no_sort:
             data_all_positronic_mo.sort(key=lambda x: x.mo_energy)
         write_results(args, file, data_all_positronic_mo)
         file.write("\n")  # Add a blank line
-    if args.all_write or not args.positronic_write:  # Electronic
+    if should_write_electronic_results_to_file(args):  # Electronic
+        # Write electronic results to the file
         if not args.no_sort:
             data_all_electronic_mo.sort(key=lambda x: x.mo_energy)
         write_results(args, file, data_all_electronic_mo)

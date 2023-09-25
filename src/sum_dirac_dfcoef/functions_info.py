@@ -28,14 +28,27 @@ class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDi
     #     "Ag": {
     #         "Cl": {
     #             "s": {
-    #                 1: {"start_idx": 1, "functions": 3, "mul": 2},
-    #                 2: {"start_idx": 4, "functions": 3, "mul": 2},
-    #                 3: {"start_idx": 7, "functions": 3, "mul": 2},
+    #                 1: {"functions": 3, "mul": 2},
+    #                 3: {"functions": 3, "mul": 2},
     #             }
     #         }
     #     }
     # }
     pass
+
+
+class Function:
+    def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, start_idx: int, num_functions: int, multiplicity: int) -> None:
+        self.component_func = component_func  # "large orbitals" or "small orbitals"
+        self.symmetry = symmetry  # e.g. "Ag"
+        self.atom = atom  # e.g. "Cl"
+        self.gto_type = gto_type  # e.g. "dxz"
+        self.start_idx = start_idx  # e.g. 1
+        self.num_functions = num_functions  # e.g. 3
+        self.multiplicity = multiplicity  # e.g. 2
+
+    def get_identifier(self) -> str:
+        return f"{self.component_func} {self.symmetry} {self.atom} {self.gto_type}"
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
@@ -61,11 +74,61 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             # This is expected exception
             pass
 
-    def is_reverse_subshell() -> bool:
-        order_of_subshell = "spdfghiklmnoqrtuvwxyz"
-        if order_of_subshell.index(ao.prev_subshell) > order_of_subshell.index(ao.current_subshell):
-            return True
-        return False
+    def read_func_info(words: "list[str]", line_str: str) -> Function:
+        def is_reverse_subshell() -> bool:
+            order_of_subshell = "spdfghiklmnoqrtuvwxyz"
+            if order_of_subshell.index(ao.prev_subshell) > order_of_subshell.index(ao.current_subshell):
+                return True
+            return False
+
+        def get_start_idx() -> int:
+            try:
+                # Get the last element of the OrderedDict element with the keys of args
+                key = list(functions_info[component_func][symmetry][atom][gto_type].keys())[-1]
+                last_elem = functions_info[component_func][symmetry][atom][gto_type][key]
+                start_idx = last_elem["start_idx"] + last_elem["mul"]
+                return start_idx
+            except KeyError:
+                # If the key does not exist, it means that this is the first element, so that the start_idx is 1
+                return 1
+
+        def read_plabel(plabel: str) -> tuple[str, str]:
+            atom = plabel[:2].strip()  # e.g. "Cm" in "Cm g400"
+            gto_type = plabel[3:7].strip()  # e.g. "g400" in "Cm g400"
+            return atom, gto_type
+
+        """Read function information from the external variables line_str and words, which are in the scope of get_functions_info() function.
+
+        Returns:
+            Function: Function information
+        """
+
+        nonlocal ao
+
+        # ref: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
+        try:
+            num_functions = int(words[0])  # ILAB(1,I) (e.g.) 3
+        except ValueError as e:
+            # Perhaps words[0] == "******"
+            raise ValueError from e  # num_functions must be integer, so raise ValueError and exit this program
+        after_functions = line_str[line_str.find("functions:") + len("functions:") :].strip()  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) "Cm g400 1+2+3+4
+        plabel = after_functions[:7]  # PLABEL(I,2)(6:12) (e.g.) "Cm g400"
+        multiplicity_label = after_functions[7:]  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
+
+        atom, gto_type = read_plabel(plabel)
+
+        ao.current_subshell = plabel[3]  # e.g. "g" in "Cm g400"
+        function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
+        if function_label in ao.function_types or is_reverse_subshell():
+            # Different atom
+            ao.reset()
+        ao.function_types.add(function_label)
+
+        multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
+        multiplicity = len(re.findall("[+-]", multiplicity_label)) + 1  # (e.g.) 1+2=>2, 1+2+3=>3, 1+2-3-4=>4
+
+        start_idx = get_start_idx()
+        return Function(component_func, symmetry, atom, gto_type, start_idx, num_functions, multiplicity)
 
     dirac_output.seek(0)  # rewind to the beginning of the file
     start_symmetry_orbitals_section = False
@@ -105,51 +168,26 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             symmetry = words[1]  # e.g. "Ag"
             bra_idx = symmetry.find("(")
             if bra_idx != -1:
-                symmetry = symmetry[:bra_idx]
+                symmetry = symmetry[:bra_idx]  # e.g. "Ag" in "Ag(1)"
         elif "functions" in line_str:
-            # ref: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
-            try:
-                num_functions = int(words[0])  # ILAB(1,I) (e.g.) 3
-            except ValueError as e:
-                # Perhaps words[0] == "******"
-                raise ValueError from e  # num_functions must be integer
-            after_functions = line_str[line_str.find("functions:") + len("functions:") :].strip()  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
-            ao.current_subshell = after_functions[3]  # e.g. "g" in "Cm g400"
-            gto_type = after_functions[3:7].strip()  # e.g. "g400" in "Cm g400"
-            atom = after_functions[0:2].strip()  # e.g. "Cm" in "Cm g400"
-            function_label = symmetry + after_functions[:7].strip().replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
-            if function_label in ao.function_types or is_reverse_subshell():
-                # Different atom
-                ao.reset()
-            multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
-            multiplicity = len(re.findall("[+-]", multiplicity_label)) + 1  # (e.g.) 1+2=>2, 1+2+3=>3, 1+2-3-4=>4
-            ao.function_types.add(function_label)
-            if symmetry not in functions_info[component_func]:
-                functions_info[component_func][symmetry] = OrderedDict()
-            if atom not in functions_info[component_func][symmetry]:
-                functions_info[component_func][symmetry][atom] = OrderedDict()
-            if gto_type not in functions_info[component_func][symmetry][atom]:
-                functions_info[component_func][symmetry][atom][gto_type] = OrderedDict()
-            cnt = len(functions_info[component_func][symmetry][atom][gto_type]) + 1
-            start_idx = (
-                1
-                if len(functions_info[component_func][symmetry][atom][gto_type]) == 0
-                else functions_info[component_func][symmetry][atom][gto_type][cnt - 1]["start_idx"] + functions_info[component_func][symmetry][atom][gto_type][cnt - 1]["mul"]
+            func = read_func_info(words, line_str)
+            # Create an empty dictionary if the key does not exist
+            functions_info[component_func].setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict()).setdefault(func.gto_type, OrderedDict())
+            # Add function information
+            functions_info[component_func][symmetry][func.atom][func.gto_type][func.start_idx] = OrderedDict(
+                {"start_idx": func.start_idx, "functions": func.num_functions, "mul": func.multiplicity}
             )
-            functions_info[component_func][symmetry][atom][gto_type][cnt] = OrderedDict({"start_idx": start_idx, "functions": num_functions, "mul": multiplicity})
-            # functions_info[component_func][symmetry][function_label] = {"functions": num_functions, "mul": multiplicity}
         # all characters in line_str are * or space or line break
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             break  # Stop reading symmetry orbitals
 
     if not start_symmetry_orbitals_section:
         raise Exception(
-            "ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program,\
+            "ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program, \
 is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
 Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
         )
-    print(f"functions_info: {functions_info}")
     json.dump(functions_info, open("functions_info.json", "w"), indent=4)
 
     return functions_info
