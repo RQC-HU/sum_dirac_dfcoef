@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from .args import parse_args
 from .atoms import get_atoms_and_basis_sets
 from .utils import debug_print, space_separated_parsing
-from .functions_info import FunctionsInfo, get_functions_info
+from .functions_info import AtomInfo, FunctionsInfo, get_functions_info
 
 
 class AOFunction(BaseModel, validate_assignment=True):
@@ -38,14 +38,14 @@ class FunctionInfo(BaseModel, validate_assignment=True):
 class Coefficient(BaseModel, validate_assignment=True):
     vector_num: int
     function_label: str
-    # atom: str
+    need_identifier: bool
     coefficient: float
-    magnification: int
+    start_idx: int
+    multiplication: int
 
     def __repr__(self) -> str:
         super().__repr__()
-        return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, magnification: {self.magnification}"
-        # return f"vector_num: {self.vector_num}, function_label: {self.function_label}, start_idx: {self.start_idx}, coefficient: {self.coefficient}, magnification: {self.magnification}"
+        return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, start_idx: {self.start_idx}, multiplication: {self.multiplication}"
 
 
 class Coefficients:
@@ -65,7 +65,7 @@ class Coefficients:
             self.coef_dict[coef.function_label].coefficient += coef.coefficient
         else:
             self.coef_dict[coef.function_label] = coef
-        self.norm_const_sum += coef.coefficient * coef.magnification
+        self.norm_const_sum += coef.coefficient * coef.multiplication
 
     def reset(self):
         self.norm_const_sum = 0.0
@@ -117,7 +117,7 @@ def get_dirac_filename(args: "argparse.Namespace") -> str:
     return args.file
 
 
-def get_coefficient(line: str, orbitals: FunctionsInfo) -> Coefficient:
+def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
     """
     Nested functions to get coefficient
     (e.g.)
@@ -165,7 +165,6 @@ def get_coefficient(line: str, orbitals: FunctionsInfo) -> Coefficient:
         component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
         symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
         atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
-        gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
         function_label = line[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
 
         # COEF (4F14.10)
@@ -180,10 +179,13 @@ def get_coefficient(line: str, orbitals: FunctionsInfo) -> Coefficient:
             ]
         )
 
-        # TODO: 1 is not always correct
-        magnification = int(orbitals[component_func][symmetry_label][atom_label][1][gto_type]["mul"])
+        need_identifier = True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx].mul > 1 else False
+        key_idx = orbitals[component_func][symmetry_label][atom_label][idx].start_idx
+        multiplication = int(orbitals[component_func][symmetry_label][atom_label][key_idx].mul)
 
-        return Coefficient(vector_num=vec_num, function_label=function_label, coefficient=coefficient, magnification=magnification)
+        return Coefficient(
+            vector_num=vec_num, function_label=function_label, need_identifier=need_identifier, coefficient=coefficient, start_idx=key_idx, multiplication=multiplication
+        )
 
     """
     Main function to get coefficient
@@ -279,13 +281,14 @@ def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: 
         file.write(mo_info_energy)
 
         for c in mo.coef_list:
-            percentage = c.coefficient / mo.norm_const_sum * 100
-            output_str: str
-            if args.compress:
-                output_str = f" {c.function_label} {percentage:.{args.decimal}f}"
-            else:
-                output_str = f"{c.function_label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
-            for _ in range(c.magnification):
+            for idx in range(c.multiplication):
+                percentage = c.coefficient / mo.norm_const_sum * 100
+                label = f"{c.function_label}({c.start_idx + idx})" if c.need_identifier else c.function_label
+                output_str: str
+                if args.compress:
+                    output_str = f" {label} {percentage:.{args.decimal}f}"
+                else:
+                    output_str = f"{label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
                 file.write(output_str)
         file.write("\n")  # add empty line
         debug_print(args, f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
@@ -301,20 +304,17 @@ def main() -> None:
     prev_electron_number: int = electron_number
     mo_energy: float = 0.0
     mo_sym_type: str = ""
-    # current_function: dict = {"label": "", "count": 0, "remaining": 0}
-    current_atom_info = dict()
+    start_idx: int = 1
     coefficients: Coefficients = Coefficients()
 
     args: "argparse.Namespace" = parse_args()
     dirac_filename: str = get_dirac_filename(args)
     dirac_output = open(dirac_filename, encoding="utf-8")
-    atoms = get_atoms_and_basis_sets(dirac_output)
-    print(atoms)
-    original_orbitals = get_functions_info(dirac_output)
-    orbitals = copy.deepcopy(original_orbitals)
+    orbitals = get_functions_info(dirac_output)
     data_all_electronic_mo: "list[Coefficients]" = []
     data_all_positronic_mo: "list[Coefficients]" = []
-    next_start_idx: dict[str, int] = dict()
+    used_atom_info: dict[str, AtomInfo] = dict()
+    current_atom_info = AtomInfo()
     with open(dirac_filename, encoding="utf-8") as f:
         for line in f:
             words: "list[str]" = space_separated_parsing(line)
@@ -369,6 +369,7 @@ def main() -> None:
                 coefficients.reset()  # reset coefficients because we need to delete coefficients of the previous MO
                 coefficients.mo_energy = mo_energy
                 coefficients.mo_info = mo_info
+                used_atom_info.clear()  # reset used_atom_info because we need to delete used_atom_info of the previous MO
 
             elif check_end_vector_print(
                 words,
@@ -385,45 +386,33 @@ def main() -> None:
                 if not is_this_row_for_coefficients(words):
                     continue
                 is_reading_coefficients = True
-                function = line[10] + line[12:22].strip().replace(" ", "")  # CLS + REP + NAMN + GTOTYP (e.g. "LAgCms")
                 component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
-                symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
+                symmetry_label = line[12:15].strip()  # REP (e.g. "Ag "), symmetry_label="Ag"
                 atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
                 gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
-                current_atom_info = orbitals[component_func][symmetry_label][atom_label][1]
-                
-                if current_function["label"] != function:
-                    if current_function["remaining"] != 0:
-                        # If current_function["remaining"] != 0, it means that the number of functions of the previous function is not correct.
-                        # Therefore, we raise an exception.
-                        raise Exception(
-                            f"Number of functions of {current_function['label']} is {current_function['count']}, but {current_function['remaining']} functions are remaining."
-                        )
-                    component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
-                    symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
-                    atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
-                    gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
-                    current_function["label"] = function
-                    print(f"orbital: dummy, next_start_idx: {next_start_idx}, function: {function}")
-                    if next_start_idx.get(function) is None:
+                function_without_gto_type = component_func + symmetry_label + atom_label
+
+                if current_atom_info.count_remaining_functions() == 0:
+                    # First, we need to read information about the current atom.
+                    if function_without_gto_type not in used_atom_info:
+                        # It is the first time to read information about the current atom.
                         start_idx = 1
                     else:
-                        start_idx = next_start_idx[function]
-                    orbital = orbitals[component_func][symmetry_label][atom_label][start_idx][gto_type]
-                    print(f"orbital: {orbital}, next_start_idx: {next_start_idx}, function: {function}")
-                    next_start_idx[function] = orbital["start_idx"] + orbital["mul"]
-                    # TODO: 1 is not always correct
-                    remaining = int(orbitals[component_func][symmetry_label][atom_label][start_idx][gto_type]["functions"])
-                    print(f"component_func: {component_func}, symmetry_label: {symmetry_label}, atom_label: {atom_label}, gto_type: {gto_type}, remaining: {remaining}")
-                    current_function["remaining"] = remaining
-                elif current_function["remaining"] == 0:
-                    # If current_function["remaining"] == 0 and current_function["label"] == function,
-                    # it means that the number of functions of the previous function is not correct.
-                    # Therefore, we raise an exception.
-                    raise Exception(f"Number of functions of {current_function['label']} is {current_function['count']}, but excess functions are remaining.")
-                coefficients.add_coefficient(get_coefficient(line, orbitals))
-                current_function["remaining"] -= 1  # decrement remaining functions of current function
+                        # It is not the first time to read information about the current atom.
+                        # So we need to read information about the previous atom from used_atom_info.
+                        # current start_idx = previous start_idx + previous mul
+                        start_idx = used_atom_info[function_without_gto_type].start_idx + used_atom_info[function_without_gto_type].mul
+                    # We can get information about the current atom from orbitals with start_idx.
+                    current_atom_info = copy.deepcopy(orbitals[component_func][symmetry_label][atom_label][start_idx])
+                    # Update used_atom_info with current_atom_info
+                    used_atom_info[function_without_gto_type] = copy.deepcopy(current_atom_info)
+
+                current_atom_info.decrement_function(gto_type)
+                coef = get_coefficient(line, orbitals, start_idx)
+                coefficients.add_coefficient(coef)
+
     # End of reading file
+    # Write results to the file
     file = open(get_output_path(args), "w")
     if should_write_positronic_results_to_file(args):  # Positronic
         # Write positronic results to the file

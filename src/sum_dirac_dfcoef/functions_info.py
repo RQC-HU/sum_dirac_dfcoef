@@ -23,19 +23,37 @@ class Function:
         return f"{self.component_func} {self.symmetry} {self.atom} {self.gto_type}"
 
 
-class AtomInfo():
+class AtomInfo:
+    start_idx: int
     mul: int
     functions: OrderedDict[str, int]
 
-    def __init__(self, mul: int) -> None:
-        self.mul = mul
+    def __init__(self, start_idx: int = 0, multiplicity: int = 0) -> None:
+        self.start_idx = start_idx
+        self.mul = multiplicity
         self.functions = OrderedDict()
 
-    def add_function(self, function: Function) -> None:
-        self.functions[function.gto_type] = function.num_functions
+    def __repr__(self) -> str:
+        return f"start_idx: {self.start_idx}, mul: {self.mul}, functions: {self.functions}"
+
+    def add_function(self, gto_type: str, num_functions: int) -> None:
+        self.functions[gto_type] = num_functions
+
+    def decrement_function(self, gto_type: str) -> None:
+        try:
+            self.functions[gto_type] -= 1
+        except KeyError:
+            raise KeyError(f"{gto_type} is not in current_atom_info: {self.functions.keys()}")
+
+    def count_remaining_functions(self) -> int:
+        return sum(self.functions.values())
+
+    def get_remaining_functions(self) -> OrderedDict[str, int]:
+        return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
+
 
 class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]):
-    # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, OrderedDict[str, OrderedDict[str, int]]]]]]
+    # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]
     # "large orbitals": {
     #     "Ag": {
     #         "Cl": {
@@ -61,14 +79,13 @@ class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDi
     # }
     pass
 
+
 class AtomInfoEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, AtomInfo):
-            return {
-                'mul': obj.mul,
-                'functions': dict(obj.functions)
-            }
+            return {"start_idx": obj.start_idx, "mul": obj.mul, "functions": obj.functions}
         return super().default(obj)
+
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def is_start_symmetry_orbitals_section(words: "list[str]") -> bool:
@@ -97,9 +114,9 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         def get_start_idx() -> int:
             try:
                 # Get the last element of the OrderedDict element with the keys of args
-                start_idx = list(functions_info[component_func][symmetry][atom].keys())[-1]
-                last_elem = functions_info[component_func][symmetry][atom][start_idx]
-                start_idx = start_idx + last_elem.mul
+                last_elem_idx = list(functions_info[component_func][symmetry][atom].keys())[-1]
+                last_elem = functions_info[component_func][symmetry][atom][last_elem_idx]
+                start_idx = last_elem_idx + last_elem.mul
                 return start_idx
             except KeyError:
                 # If the start_idx does not exist, it means that this is the first element, so that the start_idx is 1
@@ -133,10 +150,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
 
         # Set the current subshell and gto_type
         ao.current_ao.set(atom, subshell, gto_type)
-        # if len(ao.function_types) == 0:
-        #     # First function
-        #     print("first function")
-        #     ao.prev_ao = copy.deepcopy(ao.current_ao)
 
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
         if is_different_atom(ao, function_label):
@@ -145,7 +158,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             ao.start_idx = get_start_idx()
             ao.current_ao.set(atom, subshell, gto_type)
             ao.prev_ao = copy.deepcopy(ao.current_ao)
-            
 
         print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
         ao.function_types.add(function_label)
@@ -201,9 +213,8 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             functions_info[component_func].setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
             # Add function information
             if func.start_idx not in functions_info[component_func][symmetry][func.atom].keys():
-                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.multiplicity)
-            # functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
-            functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func)
+                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.start_idx, func.multiplicity)
+            functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
         # all characters in line_str are * or space or line break
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             break  # Stop reading symmetry orbitals
