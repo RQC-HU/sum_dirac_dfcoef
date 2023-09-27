@@ -10,7 +10,7 @@ import sys
 from pydantic import BaseModel
 
 from .args import parse_args
-from .atoms_and_basis_sets import get_atoms_and_basis_sets
+from .atoms import get_atoms_and_basis_sets
 from .utils import debug_print, space_separated_parsing
 from .functions_info import FunctionsInfo, get_functions_info
 
@@ -45,6 +45,7 @@ class Coefficient(BaseModel, validate_assignment=True):
     def __repr__(self) -> str:
         super().__repr__()
         return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, magnification: {self.magnification}"
+        # return f"vector_num: {self.vector_num}, function_label: {self.function_label}, start_idx: {self.start_idx}, coefficient: {self.coefficient}, magnification: {self.magnification}"
 
 
 class Coefficients:
@@ -72,44 +73,6 @@ class Coefficients:
         self.mo_info = ""
         self.coef_dict.clear()
         self.coef_list.clear()
-
-
-class Data_per_MO:
-    coefficients: Coefficients
-    mo_energy: float
-    mo_info: str
-
-    def __init__(self, coefficients: Coefficients, mo_energy: float, mo_info: str) -> None:
-        self.coefficients = coefficients
-        self.mo_energy = mo_energy
-        self.mo_info = mo_info
-
-
-class VectorInfo:
-    vector_num: int
-    atom_label: str
-    function_label: str
-    subshell: str
-    coefficient: float
-
-
-class Data_per_orbital_types:
-    atom: str = ""
-    orbital_type: str = ""
-    mo_percentage: float = 0.0
-
-    def __init__(self, atom: str, orbital_type: str, mo_percentage: float) -> None:
-        self.atom = atom
-        self.orbital_type = orbital_type
-        self.mo_percentage = mo_percentage
-
-    def __repr__(self) -> str:
-        return f"atom: {self.atom}, orbital_type: {self.orbital_type}, mo_percentage: {self.mo_percentage}"
-
-    def reset(self):
-        self.atom = ""
-        self.orbital_type = ""
-        self.mo_percentage = 0.0
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
@@ -217,7 +180,8 @@ def get_coefficient(line: str, orbitals: FunctionsInfo) -> Coefficient:
             ]
         )
 
-        magnification = int(orbitals[component_func][symmetry_label][atom_label][gto_type][1]["mul"])
+        # TODO: 1 is not always correct
+        magnification = int(orbitals[component_func][symmetry_label][atom_label][1][gto_type]["mul"])
 
         return Coefficient(vector_num=vec_num, function_label=function_label, coefficient=coefficient, magnification=magnification)
 
@@ -337,6 +301,8 @@ def main() -> None:
     prev_electron_number: int = electron_number
     mo_energy: float = 0.0
     mo_sym_type: str = ""
+    # current_function: dict = {"label": "", "count": 0, "remaining": 0}
+    current_atom_info = dict()
     coefficients: Coefficients = Coefficients()
 
     args: "argparse.Namespace" = parse_args()
@@ -344,9 +310,11 @@ def main() -> None:
     dirac_output = open(dirac_filename, encoding="utf-8")
     atoms = get_atoms_and_basis_sets(dirac_output)
     print(atoms)
-    orbitals = get_functions_info(dirac_output)
+    original_orbitals = get_functions_info(dirac_output)
+    orbitals = copy.deepcopy(original_orbitals)
     data_all_electronic_mo: "list[Coefficients]" = []
     data_all_positronic_mo: "list[Coefficients]" = []
+    next_start_idx: dict[str, int] = dict()
     with open(dirac_filename, encoding="utf-8") as f:
         for line in f:
             words: "list[str]" = space_separated_parsing(line)
@@ -417,8 +385,44 @@ def main() -> None:
                 if not is_this_row_for_coefficients(words):
                     continue
                 is_reading_coefficients = True
-                coef = get_coefficient(line, orbitals)
-                coefficients.add_coefficient(coef)
+                function = line[10] + line[12:22].strip().replace(" ", "")  # CLS + REP + NAMN + GTOTYP (e.g. "LAgCms")
+                component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
+                symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
+                atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
+                gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
+                current_atom_info = orbitals[component_func][symmetry_label][atom_label][1]
+                
+                if current_function["label"] != function:
+                    if current_function["remaining"] != 0:
+                        # If current_function["remaining"] != 0, it means that the number of functions of the previous function is not correct.
+                        # Therefore, we raise an exception.
+                        raise Exception(
+                            f"Number of functions of {current_function['label']} is {current_function['count']}, but {current_function['remaining']} functions are remaining."
+                        )
+                    component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
+                    symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
+                    atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
+                    gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
+                    current_function["label"] = function
+                    print(f"orbital: dummy, next_start_idx: {next_start_idx}, function: {function}")
+                    if next_start_idx.get(function) is None:
+                        start_idx = 1
+                    else:
+                        start_idx = next_start_idx[function]
+                    orbital = orbitals[component_func][symmetry_label][atom_label][start_idx][gto_type]
+                    print(f"orbital: {orbital}, next_start_idx: {next_start_idx}, function: {function}")
+                    next_start_idx[function] = orbital["start_idx"] + orbital["mul"]
+                    # TODO: 1 is not always correct
+                    remaining = int(orbitals[component_func][symmetry_label][atom_label][start_idx][gto_type]["functions"])
+                    print(f"component_func: {component_func}, symmetry_label: {symmetry_label}, atom_label: {atom_label}, gto_type: {gto_type}, remaining: {remaining}")
+                    current_function["remaining"] = remaining
+                elif current_function["remaining"] == 0:
+                    # If current_function["remaining"] == 0 and current_function["label"] == function,
+                    # it means that the number of functions of the previous function is not correct.
+                    # Therefore, we raise an exception.
+                    raise Exception(f"Number of functions of {current_function['label']} is {current_function['count']}, but excess functions are remaining.")
+                coefficients.add_coefficient(get_coefficient(line, orbitals))
+                current_function["remaining"] -= 1  # decrement remaining functions of current function
     # End of reading file
     file = open(get_output_path(args), "w")
     if should_write_positronic_results_to_file(args):  # Positronic

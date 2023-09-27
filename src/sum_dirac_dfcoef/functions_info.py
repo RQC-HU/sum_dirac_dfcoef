@@ -1,40 +1,12 @@
 from collections import OrderedDict
+import copy
 import json
 from io import TextIOWrapper
-from typing import Annotated
 import re
-
-from annotated_types import MaxLen
-from pydantic import BaseModel
 
 
 from .utils import space_separated_parsing
-
-
-class AtomicOrbitals(BaseModel, validate_assignment=True):
-    prev_subshell: Annotated[str, MaxLen(max_length=1)] = "s"
-    current_subshell: Annotated[str, MaxLen(max_length=1)] = "s"
-    function_types: "set[str]" = set()
-
-    def reset(self):
-        self.prev_subshell = "s"
-        self.current_subshell = "s"
-        self.function_types.clear()
-
-
-class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, OrderedDict[str, int]]]]]]):
-    # functions_info: OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, OrderedDict[str, int]]]]]]
-    # "large orbitals": {
-    #     "Ag": {
-    #         "Cl": {
-    #             "s": {
-    #                 1: {"functions": 3, "mul": 2},
-    #                 3: {"functions": 3, "mul": 2},
-    #             }
-    #         }
-    #     }
-    # }
-    pass
+from .atoms import AtomicOrbitals, is_different_atom
 
 
 class Function:
@@ -50,6 +22,53 @@ class Function:
     def get_identifier(self) -> str:
         return f"{self.component_func} {self.symmetry} {self.atom} {self.gto_type}"
 
+
+class AtomInfo():
+    mul: int
+    functions: OrderedDict[str, int]
+
+    def __init__(self, mul: int) -> None:
+        self.mul = mul
+        self.functions = OrderedDict()
+
+    def add_function(self, function: Function) -> None:
+        self.functions[function.gto_type] = function.num_functions
+
+class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]):
+    # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, OrderedDict[str, OrderedDict[str, int]]]]]]
+    # "large orbitals": {
+    #     "Ag": {
+    #         "Cl": {
+    #            "1": {
+    #                 AtomInfo: {
+    #                     mul: 2,
+    #                     functions: {
+    #                         "s": 3,
+    #                         "p": 3,
+    #                 }
+    #            },
+    #            "3": {
+    #                 AtomInfo: {
+    #                     mul: 2,
+    #                     functions: {
+    #                         "s": 3,
+    #                         "p": 3,
+    #                     }
+    #                 },...
+    #             }
+    #         }
+    #     }
+    # }
+    pass
+
+class AtomInfoEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, AtomInfo):
+            return {
+                'mul': obj.mul,
+                'functions': dict(obj.functions)
+            }
+        return super().default(obj)
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def is_start_symmetry_orbitals_section(words: "list[str]") -> bool:
@@ -75,27 +94,22 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             pass
 
     def read_func_info(words: "list[str]", line_str: str) -> Function:
-        def is_reverse_subshell() -> bool:
-            order_of_subshell = "spdfghiklmnoqrtuvwxyz"
-            if order_of_subshell.index(ao.prev_subshell) > order_of_subshell.index(ao.current_subshell):
-                return True
-            return False
-
         def get_start_idx() -> int:
             try:
                 # Get the last element of the OrderedDict element with the keys of args
-                key = list(functions_info[component_func][symmetry][atom][gto_type].keys())[-1]
-                last_elem = functions_info[component_func][symmetry][atom][gto_type][key]
-                start_idx = last_elem["start_idx"] + last_elem["mul"]
+                start_idx = list(functions_info[component_func][symmetry][atom].keys())[-1]
+                last_elem = functions_info[component_func][symmetry][atom][start_idx]
+                start_idx = start_idx + last_elem.mul
                 return start_idx
             except KeyError:
-                # If the key does not exist, it means that this is the first element, so that the start_idx is 1
+                # If the start_idx does not exist, it means that this is the first element, so that the start_idx is 1
                 return 1
 
-        def read_plabel(plabel: str) -> tuple[str, str]:
+        def read_plabel(plabel: str) -> tuple[str, str, str]:
             atom = plabel[:2].strip()  # e.g. "Cm" in "Cm g400"
+            subshell = plabel[3].strip()  # e.g. "g" in "Cm g400"
             gto_type = plabel[3:7].strip()  # e.g. "g400" in "Cm g400"
-            return atom, gto_type
+            return atom, subshell, gto_type
 
         """Read function information from the external variables line_str and words, which are in the scope of get_functions_info() function.
 
@@ -115,20 +129,32 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         plabel = after_functions[:7]  # PLABEL(I,2)(6:12) (e.g.) "Cm g400"
         multiplicity_label = after_functions[7:]  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
 
-        atom, gto_type = read_plabel(plabel)
+        atom, subshell, gto_type = read_plabel(plabel)
 
-        ao.current_subshell = plabel[3]  # e.g. "g" in "Cm g400"
+        # Set the current subshell and gto_type
+        ao.current_ao.set(atom, subshell, gto_type)
+        # if len(ao.function_types) == 0:
+        #     # First function
+        #     print("first function")
+        #     ao.prev_ao = copy.deepcopy(ao.current_ao)
+
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
-        if function_label in ao.function_types or is_reverse_subshell():
+        if is_different_atom(ao, function_label):
             # Different atom
             ao.reset()
+            ao.start_idx = get_start_idx()
+            ao.current_ao.set(atom, subshell, gto_type)
+            ao.prev_ao = copy.deepcopy(ao.current_ao)
+            
+
+        print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
         ao.function_types.add(function_label)
 
         multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
         multiplicity = len(re.findall("[+-]", multiplicity_label)) + 1  # (e.g.) 1+2=>2, 1+2+3=>3, 1+2-3-4=>4
 
-        start_idx = get_start_idx()
-        return Function(component_func, symmetry, atom, gto_type, start_idx, num_functions, multiplicity)
+        # start_idx = get_start_idx()
+        return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
 
     dirac_output.seek(0)  # rewind to the beginning of the file
     start_symmetry_orbitals_section = False
@@ -172,11 +198,12 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         elif "functions" in line_str:
             func = read_func_info(words, line_str)
             # Create an empty dictionary if the key does not exist
-            functions_info[component_func].setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict()).setdefault(func.gto_type, OrderedDict())
+            functions_info[component_func].setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
             # Add function information
-            functions_info[component_func][symmetry][func.atom][func.gto_type][func.start_idx] = OrderedDict(
-                {"start_idx": func.start_idx, "functions": func.num_functions, "mul": func.multiplicity}
-            )
+            if func.start_idx not in functions_info[component_func][symmetry][func.atom].keys():
+                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.multiplicity)
+            # functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
+            functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func)
         # all characters in line_str are * or space or line break
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             break  # Stop reading symmetry orbitals
@@ -188,6 +215,6 @@ is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
 Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
         )
-    json.dump(functions_info, open("functions_info.json", "w"), indent=4)
+    json.dump(functions_info, open("functions_info.json", "w"), indent=4, cls=AtomInfoEncoder)
 
     return functions_info
