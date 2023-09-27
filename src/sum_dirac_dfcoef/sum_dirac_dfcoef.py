@@ -9,8 +9,7 @@ import sys
 
 from pydantic import BaseModel
 
-from .args import parse_args
-from .atoms import get_atoms_and_basis_sets
+from .args import args
 from .utils import debug_print, space_separated_parsing
 from .functions_info import AtomInfo, FunctionsInfo, get_functions_info
 
@@ -291,7 +290,7 @@ def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: 
                     output_str = f"{label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
                 file.write(output_str)
         file.write("\n")  # add empty line
-        debug_print(args, f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
+        debug_print(f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
 
 
 def main() -> None:
@@ -307,7 +306,6 @@ def main() -> None:
     start_idx: int = 1
     coefficients: Coefficients = Coefficients()
 
-    args: "argparse.Namespace" = parse_args()
     dirac_filename: str = get_dirac_filename(args)
     dirac_output = open(dirac_filename, encoding="utf-8")
     orbitals = get_functions_info(dirac_output)
@@ -335,7 +333,7 @@ def main() -> None:
                         data_all_electronic_mo.append(data)
                     else:  # Positronic
                         data_all_positronic_mo.append(data)
-                    debug_print(args, f"End of reading {electron_number}th MO")
+                    debug_print(f"End of reading {electron_number}th MO")
                     is_reading_coefficients = False
 
             elif need_to_start_mo_section(words, start_mo_coefficients):

@@ -51,3 +51,6 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     # If -v or --version option is used, print version and exit
     return parser.parse_args()
+
+
+args = parse_args()

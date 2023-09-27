@@ -5,7 +5,7 @@ from io import TextIOWrapper
 import re
 
 
-from .utils import space_separated_parsing
+from .utils import debug_print, space_separated_parsing
 from .atoms import AtomicOrbitals, is_different_atom
 
 
@@ -159,7 +159,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             ao.current_ao.set(atom, subshell, gto_type)
             ao.prev_ao = copy.deepcopy(ao.current_ao)
 
-        print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
+        debug_print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
         ao.function_types.add(function_label)
 
         multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
