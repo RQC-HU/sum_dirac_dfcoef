@@ -1,3 +1,6 @@
+from typing import Set
+
+
 from pydantic import BaseModel, validator
 
 
@@ -30,7 +33,7 @@ class AtomicOrbitals(BaseModel, validate_assignment=True):
     prev_ao: AtomicOrbital = AtomicOrbital()
     current_ao: AtomicOrbital = AtomicOrbital()
     start_idx: int = 1
-    function_types: "set[str]" = set()
+    function_types: Set[str] = set()
 
     def reset(self):
         self.prev_ao.reset()

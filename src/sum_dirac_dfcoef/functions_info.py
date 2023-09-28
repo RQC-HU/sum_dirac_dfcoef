@@ -3,7 +3,7 @@ import copy
 import json
 from io import TextIOWrapper
 import re
-
+from typing import OrderedDict as ODict
 
 from .utils import debug_print, space_separated_parsing
 from .atoms import AtomicOrbitals, is_different_atom
@@ -26,7 +26,7 @@ class Function:
 class AtomInfo:
     start_idx: int
     mul: int
-    functions: OrderedDict[str, int]
+    functions: ODict[str, int]
 
     def __init__(self, start_idx: int = 0, multiplicity: int = 0) -> None:
         self.start_idx = start_idx
@@ -48,11 +48,11 @@ class AtomInfo:
     def count_remaining_functions(self) -> int:
         return sum(self.functions.values())
 
-    def get_remaining_functions(self) -> OrderedDict[str, int]:
+    def get_remaining_functions(self) -> "OrderedDict[str, int]":
         return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
 
 
-class FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]):
+class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]
     # "large orbitals": {
     #     "Ag": {
@@ -122,7 +122,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 # If the start_idx does not exist, it means that this is the first element, so that the start_idx is 1
                 return 1
 
-        def read_plabel(plabel: str) -> tuple[str, str, str]:
+        def read_plabel(plabel: str) -> "tuple[str, str, str]":
             atom = plabel[:2].strip()  # e.g. "Cm" in "Cm g400"
             subshell = plabel[3].strip()  # e.g. "g" in "Cm g400"
             gto_type = plabel[3:7].strip()  # e.g. "g400" in "Cm g400"

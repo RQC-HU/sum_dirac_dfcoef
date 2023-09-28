@@ -6,6 +6,7 @@ import copy
 from io import TextIOWrapper
 import os
 import sys
+from typing import Dict
 
 from pydantic import BaseModel
 
@@ -25,7 +26,7 @@ class AOFunction(BaseModel, validate_assignment=True):
 class SymmetryOrbital(BaseModel, validate_assignment=True):
     # {"Ag": dict(), "B1g": dict(), ...}
     name: str
-    function_labels: "dict[str, AOFunction]" = dict()
+    function_labels: Dict[str, AOFunction] = dict()
 
 
 class FunctionInfo(BaseModel, validate_assignment=True):
@@ -49,7 +50,7 @@ class Coefficient(BaseModel, validate_assignment=True):
 
 class Coefficients:
     norm_const_sum: float = 0.0
-    coef_dict: "dict[str, Coefficient]" = dict()
+    coef_dict: Dict[str, Coefficient] = dict()
     coef_list: "list[Coefficient]" = list()
     mo_energy: float = 0.0
     mo_info: str = ""
