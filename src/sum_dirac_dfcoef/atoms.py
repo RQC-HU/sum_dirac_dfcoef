@@ -1,14 +1,19 @@
-from typing import Annotated
-
-
-from annotated_types import MaxLen
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 
 class AtomicOrbital(BaseModel, validate_assignment=True):
     atom: str = ""
-    subshell: Annotated[str, MaxLen(max_length=1)] = "s"
+    subshell: str = "s"
     gto_type: str = "s"
+
+    @validator("subshell")
+    def validate_subshell(cls, v: str) -> str:
+        order_of_subshell = "spdfghiklmnoqrtuvwxyz"
+        if v not in order_of_subshell:
+            raise ValueError(f"subshell must be one of '{order_of_subshell}', but got '{v}'")
+        if len(v) != 1:
+            raise ValueError("subshell must be one character")
+        return v
 
     def reset(self):
         self.atom = ""
