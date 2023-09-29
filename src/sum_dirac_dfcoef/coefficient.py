@@ -1,6 +1,6 @@
-from typing import Dict
-
 from pydantic import BaseModel
+
+from .functions_info import FunctionsInfo
 
 
 class Coefficient(BaseModel, validate_assignment=True):
@@ -16,28 +16,79 @@ class Coefficient(BaseModel, validate_assignment=True):
         return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, start_idx: {self.start_idx}, multiplication: {self.multiplication}"
 
 
-class Coefficients:
-    norm_const_sum: float = 0.0
-    coef_dict: Dict[str, Coefficient] = dict()
-    coef_list: "list[Coefficient]" = list()
-    mo_energy: float = 0.0
-    mo_info: str = ""
+def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
+    """
+    Nested functions to get coefficient
+    (e.g.)
+    sym_and_atom_and_orb_str = "B3gCldyz"
+    symmetry_type = "B3g"
+    atom_type = "Cl"
+    orbital_type = "dyz"
+    """
+    # ref (print ): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L388-389
+    # ref (format): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
+    # FORMAT(3X,I5,2X,A12,2X,4F14.10)
+    # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
 
-    def __repr__(self) -> str:
-        # return f"norm_const_sum: {self.norm_const_sum}, coef_list: {self.coef_list}"
-        return f"norm_const_sum: {self.norm_const_sum}, coef: {[coef.coefficient for coef in self.coef_list]}"
-
-    def add_coefficient(self, coef: Coefficient) -> None:
-        # self.coef_list.append(coef)
-        if coef.function_label in self.coef_dict:
-            self.coef_dict[coef.function_label].coefficient += coef.coefficient
+    def is_float(parameter: str):
+        if not parameter.isdecimal():
+            try:
+                float(parameter)
+                return True
+            except ValueError:
+                return False
         else:
-            self.coef_dict[coef.function_label] = coef
-        self.norm_const_sum += coef.coefficient * coef.multiplication
+            return False
 
-    def reset(self):
-        self.norm_const_sum = 0.0
-        self.mo_energy = 0.0
-        self.mo_info = ""
-        self.coef_dict.clear()
-        self.coef_list.clear()
+    def parse_line(line: "str") -> Coefficient:
+        """
+        This function parses the line that contains the coefficient.
+
+        line write source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L440-442
+        line format source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
+        line format : FORMAT(3X,I5,2X,A12,2X,4F14.10)
+        """
+        words = line.split()
+        # JS (I5): Serial number of the vector
+        vec_num = int(words[0])
+
+        #
+        # PLABEL(IPLAB(IBAS(IFRP)+JS,2),2) (A12): Information about the vector to identify the vector
+        #
+        # PLABEL source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
+        # PLABEL(NLAB,2) = CLS(IC)//' '//REP(IRP)//NAMN(ICENT)(1:3)//GTOTYP(ITYP)
+        # CLS (A1): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L45
+        # REP (A3): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/pgroup.h#L16
+        # NAMN (A3, defined as A4, but only (1:3) is used): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/nuclei.h#L25
+        # GTOTYP (A4): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/ccom.h#L8
+        component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
+        symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
+        atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
+        function_label = line[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
+
+        # COEF (4F14.10)
+        # coefficients = [line[24:38], line[38:52], line[52:66], line[66:80]]
+        coef_num = 4
+        coef_len = 14
+        coef_start_idx = 24
+        coefficient = sum(
+            [
+                pow(float(line[i : i + coef_len]), 2) if is_float(line[i : i + coef_len]) else pow(-100, 2)
+                for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
+            ]
+        )
+
+        need_identifier = True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx].mul > 1 else False
+        key_idx = orbitals[component_func][symmetry_label][atom_label][idx].start_idx
+        multiplication = int(orbitals[component_func][symmetry_label][atom_label][key_idx].mul)
+
+        return Coefficient(
+            vector_num=vec_num, function_label=function_label, need_identifier=need_identifier, coefficient=coefficient, start_idx=key_idx, multiplication=multiplication
+        )
+
+    """
+    Main function to get coefficient
+    """
+    coef = parse_line(line)
+
+    return coef
