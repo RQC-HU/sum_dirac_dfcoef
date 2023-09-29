@@ -80,33 +80,33 @@ A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
 A part of the result (... represents an omission)
 
 ```out
-Electronic no. 19 E1u -8.8824415703374
-B3uUpx       49.999172476298732 %
-B2uUpy       49.999172476298732 %
+Electronic no. 19 E1u -8.88244
+B3uUpx        49.99917 %
+B2uUpy        49.99917 %
 
-Electronic no. 20 E1u -8.8607510987047
-B1uUpz       66.766609997188567 %
-B3uUpx       16.052352691541234 %
-B2uUpy       16.052352691541234 %
-B1uOs         0.547408583853977 %
-B1uOs         0.547408583853977 %
+Electronic no. 20 E1u -8.86075
+B1uUpz        66.76661 %
+B3uUpx        16.05235 %
+B2uUpy        16.05235 %
+B1uOs(1)       0.54741 %
+B1uOs(2)       0.54741 %
 
-Electronic no. 17 E1g -5.1175267254674
-B2gUdxz      35.987808727554935 %
-B3gUdyz      35.987808727554935 %
-AgUdzz       18.548678611340048 %
-AgUdxx        4.637169653126273 %
-AgUdyy        4.637169653126273 %
-AgUs          0.137285121776232 %
+Electronic no. 17 E1g -5.11753
+B2gUdxz       35.98781 %
+B3gUdyz       35.98781 %
+AgUdzz        18.54868 %
+AgUdxx         4.63717 %
+AgUdyy         4.63717 %
+AgUs           0.13729 %
 ...
 ```
 
 If you use -c or --compress option, you can get a compressed result like this.(one line per MO)
 
 ```out
-E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
-E1u 20 -8.8607510987047 B1uUpz 66.766609997188567 B3uUpx 16.052352691541234 B2uUpy 16.052352691541234 B1uOs 0.547408583853977 B1uOs 0.547408583853977
-E1g 17 -5.1175267254674 B2gUdxz 35.987808727554935 B3gUdyz 35.987808727554935 AgUdzz 18.548678611340048 AgUdxx 4.637169653126273 AgUdyy 4.637169653126273 AgUs 0.137285121776232
+E1u 19 -8.88244 B3uUpx 49.99917 B2uUpy 49.99917
+E1u 20 -8.86075 B1uUpz 66.76661 B3uUpx 16.05235 B2uUpy 16.05235 B1uOs(1) 0.54741 B1uOs(2) 0.54741
+E1g 17 -5.11753 B2gUdxz 35.98781 B3gUdyz 35.98781 AgUdzz 18.54868 AgUdxx 4.63717 AgUdyy 4.63717 AgUs 0.13729
 ...
 ```
 
@@ -124,13 +124,9 @@ optional arguments (--input and --mol are required)
 
   (required) file name of DIRAC output
 
-- -m MOL, --mol MOL
-
-  (required) molecule specification. Write the molecular formula (e.g. Cu2O).  
-  **DON'T write the rational formula (e.g. CH3OH)**
-
 - -o OUTPUT, --output OUTPUT
-  Output file name. Default: (-m or --mol option value).out (e.g) --m H2O => print to H2O.out
+
+  Output file name. Default: sum_dirac_dfcoef.out
 
 - -c, --compress
 
