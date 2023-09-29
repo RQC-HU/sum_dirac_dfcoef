@@ -288,7 +288,7 @@ def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: 
                 if args.compress:
                     output_str = f" {label} {percentage:.{args.decimal}f}"
                 else:
-                    output_str = f"{label} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
+                    output_str = f"{label:<12} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
                 file.write(output_str)
         file.write("\n")  # add empty line
         debug_print(f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
