@@ -1,7 +1,41 @@
-from typing import Set
+from collections import OrderedDict
+from typing import Set, OrderedDict as ODict
 
 
 from pydantic import BaseModel, validator
+
+
+class AtomInfo:
+    start_idx: int
+    label: str
+    mul: int
+    functions: ODict[str, int]
+
+    def __init__(self, start_idx: int = 0, label: str = "", multiplicity: int = 0) -> None:
+        self.start_idx = start_idx
+        self.label = label
+        self.mul = multiplicity
+        self.functions = OrderedDict()
+
+    def __repr__(self) -> str:
+        return f"start_idx: {self.start_idx}, mul: {self.mul}, functions: {self.functions}"
+
+    def add_function(self, gto_type: str, num_functions: int) -> None:
+        self.functions[gto_type] = num_functions
+
+    def decrement_function(self, gto_type: str) -> None:
+        try:
+            self.functions[gto_type] -= 1
+            if self.functions[gto_type] < 0:
+                raise ValueError(f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}")
+        except KeyError:
+            raise KeyError(f"{gto_type} is not in current_atom_info: {self.functions.keys()}")
+
+    def count_remaining_functions(self) -> int:
+        return sum(self.functions.values())
+
+    def get_remaining_functions(self) -> "ODict[str, int]":
+        return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
 
 
 class AtomicOrbital(BaseModel, validate_assignment=True):
@@ -61,3 +95,6 @@ def is_different_atom(ao: AtomicOrbitals, function_label: str) -> bool:
         # Different atom
         return True
     return False  # Same atom
+
+
+ao = AtomicOrbitals()

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
 from .functions_info import FunctionsInfo
+from .utils import space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):
@@ -16,7 +17,7 @@ class Coefficient(BaseModel, validate_assignment=True):
         return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, start_idx: {self.start_idx}, multiplication: {self.multiplication}"
 
 
-def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
+def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
     """
     Nested functions to get coefficient
     (e.g.)
@@ -40,7 +41,7 @@ def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient
         else:
             return False
 
-    def parse_line(line: "str") -> Coefficient:
+    def parse_line() -> Coefficient:
         """
         This function parses the line that contains the coefficient.
 
@@ -48,7 +49,7 @@ def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient
         line format source: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
         line format : FORMAT(3X,I5,2X,A12,2X,4F14.10)
         """
-        words = line.split()
+        words = space_separated_parsing(line_str)
         # JS (I5): Serial number of the vector
         vec_num = int(words[0])
 
@@ -61,19 +62,19 @@ def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient
         # REP (A3): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/pgroup.h#L16
         # NAMN (A3, defined as A4, but only (1:3) is used): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/nuclei.h#L25
         # GTOTYP (A4): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/ccom.h#L8
-        component_func = "large orbitals" if line[10] == "L" else ("small orbitals" if line[10] == "S" else "")  # CLS
-        symmetry_label = line[12:15].strip()  # REP (e.g. "Ag ")
-        atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
-        function_label = line[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
+        component_func = "large" if line_str[10] == "L" else ("small" if line_str[10] == "S" else "")  # CLS
+        symmetry_label = line_str[12:15].strip()  # REP (e.g. "Ag ")
+        atom_label = line_str[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
+        function_label = line_str[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
 
         # COEF (4F14.10)
-        # coefficients = [line[24:38], line[38:52], line[52:66], line[66:80]]
+        # coefficients = [line_str[24:38], line_str[38:52], line_str[52:66], line_str[66:80]]
         coef_num = 4
         coef_len = 14
         coef_start_idx = 24
         coefficient = sum(
             [
-                pow(float(line[i : i + coef_len]), 2) if is_float(line[i : i + coef_len]) else pow(-100, 2)
+                pow(float(line_str[i : i + coef_len]), 2) if is_float(line_str[i : i + coef_len]) else pow(-100, 2)
                 for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
             ]
         )
@@ -89,6 +90,6 @@ def get_coefficient(line: str, orbitals: FunctionsInfo, idx: int) -> Coefficient
     """
     Main function to get coefficient
     """
-    coef = parse_line(line)
+    coef = parse_line()
 
     return coef
