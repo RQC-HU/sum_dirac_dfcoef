@@ -15,26 +15,6 @@ from .utils import debug_print, space_separated_parsing
 from .functions_info import AtomInfo, FunctionsInfo, get_functions_info
 
 
-class AOFunction(BaseModel, validate_assignment=True):
-    atom_type: str
-    orbital_type: str
-    symmetry_type: str
-    function_num: int
-    mul: int
-
-
-class SymmetryOrbital(BaseModel, validate_assignment=True):
-    # {"Ag": dict(), "B1g": dict(), ...}
-    name: str
-    function_labels: Dict[str, AOFunction] = dict()
-
-
-class FunctionInfo(BaseModel, validate_assignment=True):
-    # {"large orbitals": SymmetryOrbital(), "small orbitals": SymmetryOrbital()}
-    name: str
-    symmetry_orbitals: SymmetryOrbital
-
-
 class Coefficient(BaseModel, validate_assignment=True):
     vector_num: int
     function_label: str
