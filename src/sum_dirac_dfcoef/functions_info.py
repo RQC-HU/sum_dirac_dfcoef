@@ -25,11 +25,13 @@ class Function:
 
 class AtomInfo:
     start_idx: int
+    label: str
     mul: int
     functions: ODict[str, int]
 
-    def __init__(self, start_idx: int = 0, multiplicity: int = 0) -> None:
+    def __init__(self, start_idx: int = 0, label: str = "", multiplicity: int = 0) -> None:
         self.start_idx = start_idx
+        self.label = label
         self.mul = multiplicity
         self.functions = OrderedDict()
 
@@ -42,6 +44,8 @@ class AtomInfo:
     def decrement_function(self, gto_type: str) -> None:
         try:
             self.functions[gto_type] -= 1
+            if self.functions[gto_type] < 0:
+                raise ValueError(f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}")
         except KeyError:
             raise KeyError(f"{gto_type} is not in current_atom_info: {self.functions.keys()}")
 
@@ -213,7 +217,8 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             functions_info[component_func].setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
             # Add function information
             if func.start_idx not in functions_info[component_func][symmetry][func.atom].keys():
-                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.start_idx, func.multiplicity)
+                label = symmetry + func.atom
+                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.start_idx, label, func.multiplicity)
             functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
         # all characters in line_str are * or space or line break
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:

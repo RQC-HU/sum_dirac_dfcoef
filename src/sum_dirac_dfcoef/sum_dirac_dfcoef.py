@@ -389,9 +389,9 @@ def main() -> None:
                 symmetry_label = line[12:15].strip()  # REP (e.g. "Ag "), symmetry_label="Ag"
                 atom_label = line[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
                 gto_type = line[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
-                function_without_gto_type = component_func + symmetry_label + atom_label
+                function_without_gto_type = symmetry_label + atom_label
 
-                if current_atom_info.count_remaining_functions() == 0:
+                if current_atom_info.count_remaining_functions() == 0 or function_without_gto_type != current_atom_info.label:
                     # First, we need to read information about the current atom.
                     if function_without_gto_type not in used_atom_info:
                         # It is the first time to read information about the current atom.
