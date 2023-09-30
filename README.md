@@ -114,7 +114,7 @@ This options is useful when you want to use the result in a spreadsheet like Mic
 
 ## Options
 
-optional arguments (--input and --mol are required)
+optional arguments (--input is required)
 
 - -h, --help
 
