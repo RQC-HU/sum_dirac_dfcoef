@@ -224,20 +224,21 @@ def main() -> None:
                 # First, we need to read information about the current atom.
                 if label not in used_atom_info:
                     # It is the first time to read information about the current atom.
-                    start_idx = 1
+                    cur_atom_start_idx = 1
                 else:
                     # It is not the first time to read information about the current atom.
                     # So we need to read information about the previous atom from used_atom_info.
                     # current start_idx = previous start_idx + previous mul
-                    start_idx = used_atom_info[label].start_idx + used_atom_info[label].mul
+                    cur_atom_start_idx = used_atom_info[label].start_idx + used_atom_info[label].mul
                 # Validate start_idx
-                if start_idx not in functions_info[component_func][symmetry_label][atom_label]:
-                    raise Exception(f"start_idx={start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]")
+                if cur_atom_start_idx not in functions_info[component_func][symmetry_label][atom_label]:
+                    raise Exception(f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]")
                 # We can get information about the current atom from functions_info with start_idx.
-                current_atom_info = copy.deepcopy(functions_info[component_func][symmetry_label][atom_label][start_idx])
+                current_atom_info = copy.deepcopy(functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
                 # Update used_atom_info with current_atom_info
                 used_atom_info[label] = copy.deepcopy(current_atom_info)
 
+            start_idx = current_atom_info.start_idx
             current_atom_info.decrement_function(gto_type)
             data_mo.add_coefficient(get_coefficient(line_str, functions_info, start_idx))
 
