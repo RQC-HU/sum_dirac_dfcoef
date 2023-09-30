@@ -4,6 +4,8 @@ from typing import Set, OrderedDict as ODict
 
 from pydantic import BaseModel, validator
 
+from .subshell import subshell_order
+
 
 class AtomInfo:
     start_idx: int
@@ -45,9 +47,8 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
 
     @validator("subshell")
     def validate_subshell(cls, v: str) -> str:
-        order_of_subshell = "spdfghiklmnoqrtuvwxyz"
-        if v not in order_of_subshell:
-            raise ValueError(f"subshell must be one of '{order_of_subshell}', but got '{v}'")
+        if v not in subshell_order.subshell_order:
+            raise ValueError(f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'")
         if len(v) != 1:
             raise ValueError("subshell must be one character")
         return v
@@ -78,10 +79,20 @@ class AtomicOrbitals(BaseModel, validate_assignment=True):
 
 def is_different_atom(ao: AtomicOrbitals, function_label: str) -> bool:
     def is_reverse_subshell() -> bool:
-        order_of_subshell = "spdfghiklmnoqrtuvwxyz"
-        if order_of_subshell.index(ao.prev_ao.subshell) > order_of_subshell.index(ao.current_ao.subshell):
+        prev_subshell_idx = subshell_order.subshell_order.index(ao.prev_ao.subshell)
+        current_subshell_idx = subshell_order.subshell_order.index(ao.current_ao.subshell)
+        if prev_subshell_idx > current_subshell_idx:
             return True
-        return False
+        elif prev_subshell_idx < current_subshell_idx:
+            return False
+        else:  # Same subshell
+            subshell_idx = subshell_order.subshell_order.index(ao.prev_ao.subshell)
+            prev_gto_idx = subshell_order.gto_label_order[subshell_idx].index(ao.prev_ao.gto_type)
+            current_gto_idx = subshell_order.gto_label_order[subshell_idx].index(ao.current_ao.gto_type)
+            if prev_gto_idx > current_gto_idx:  # reverse subshell. e.g. ao.prev_ato.gto_type = "pz", ao.current_ao.gto_type = "px"
+                return True
+            else:
+                return False
 
     if ao.prev_ao.atom != ao.current_ao.atom:
         return True
