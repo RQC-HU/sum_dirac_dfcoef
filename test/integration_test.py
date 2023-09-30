@@ -133,8 +133,13 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
         if "%" in ref[-1]:
             ref_value = float(ref[-2])
             out_value = float(out[-2])
+            ref_list_str = " ".join(ref[:-2])
+            out_list_str = " ".join(out[:-2])
         else:
             ref_value = float(ref[-1])
             out_value = float(out[-1])
+            ref_list_str = " ".join(ref[:-1])
+            out_list_str = " ".join(out[:-1])
+        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
         assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
     open(f"test.{input_filename}.log", "w").write(f"{checked} lines checked")
