@@ -133,6 +133,7 @@ def main() -> None:
     start_mo_section: bool = False
     is_reading_coefficients: bool = False
     start_vector_print: bool = False
+    is_electronic: bool = False
     mo_sym_type: str = ""
 
     dirac_filename: str = get_dirac_filename(args)
