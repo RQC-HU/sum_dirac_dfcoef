@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import copy
 from io import TextIOWrapper
 import os
@@ -51,7 +50,7 @@ def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) ->
     return False
 
 
-def get_dirac_filename(args: "argparse.Namespace") -> str:
+def get_dirac_filename() -> str:
     if not args.file:
         sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
     return args.file
@@ -79,7 +78,7 @@ def check_end_vector_print(
     return False
 
 
-def get_output_path(args: "argparse.Namespace") -> str:
+def get_output_path() -> str:
     if args.output is None:
         output_name = "sum_dirac_dfcoef.out"
         output_path = os.path.join(os.getcwd(), output_name)
@@ -89,21 +88,21 @@ def get_output_path(args: "argparse.Namespace") -> str:
     return output_path
 
 
-def should_write_positronic_results_to_file(args: "argparse.Namespace") -> bool:
+def should_write_positronic_results_to_file() -> bool:
     if args.all_write or args.positronic_write:
         return True
     else:
         return False
 
 
-def should_write_electronic_results_to_file(args: "argparse.Namespace") -> bool:
+def should_write_electronic_results_to_file() -> bool:
     if args.all_write or not args.positronic_write:
         return True
     else:
         return False
 
 
-def write_results(args: "argparse.Namespace", file: TextIOWrapper, data_all_mo: "list[Data_MO]") -> None:
+def write_results(file: TextIOWrapper, data_all_mo: "list[Data_MO]") -> None:
     """
     Write results to stdout
     """
@@ -136,7 +135,7 @@ def main() -> None:
     is_electronic: bool = False
     mo_sym_type: str = ""
 
-    dirac_filename: str = get_dirac_filename(args)
+    dirac_filename: str = get_dirac_filename()
     dirac_output = open(dirac_filename, encoding="utf-8")
     functions_info = get_functions_info(dirac_output)
     data_mo = Data_MO()
@@ -245,15 +244,15 @@ def main() -> None:
 
     # End of reading file
     # Write results to the file
-    file = open(get_output_path(args), "w")
+    file = open(get_output_path(), "w")
     if not args.no_sort:
         data_all_mo.electronic.sort(key=lambda x: x.mo_energy)
         data_all_mo.positronic.sort(key=lambda x: x.mo_energy)
-    if should_write_positronic_results_to_file(args):  # Positronic
+    if should_write_positronic_results_to_file():  # Positronic
         # Write positronic results to the file
-        write_results(args, file, data_all_mo.positronic)
+        write_results(file, data_all_mo.positronic)
         file.write("\n")  # Add a blank line
-    if should_write_electronic_results_to_file(args):  # Electronic
+    if should_write_electronic_results_to_file():  # Electronic
         # Write electronic results to the file
-        write_results(args, file, data_all_mo.electronic)
+        write_results(file, data_all_mo.electronic)
     file.close()
