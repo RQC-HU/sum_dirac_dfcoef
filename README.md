@@ -9,7 +9,7 @@ This program provides a utility to summarize the contribution of each atomic orb
 - [Python](https://python.org) (version ≧ 3.7)
   - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
-## Download
+## Install
 
 ```sh
 pip install sum_dirac_dfcoef
@@ -165,7 +165,7 @@ optional arguments (--input and --mol are required)
 
 ## LICENSE
 
-- MIT LICENSE
+- LGPL v2.1
 
 ## Author
 
