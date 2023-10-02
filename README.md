@@ -22,16 +22,16 @@ pip install sum_dirac_dfcoef
 You can use this program with the following command!
 
 ```sh
-# Output to MOLECULE_NAME.out
-sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
+# Output to sum_dirac_dfcoef.out
+sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH
 # Specify output file name with -o option
-sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME -o OUTPUT_FILE_NAME
+sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -o OUTPUT_FILE_NAME
 ```
 
 (e.g.)
 
 ```sh
-sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
+sum_dirac_dfcoef -i x2c_uo2_238.out
 ```
 
 ### Windows
@@ -39,7 +39,7 @@ sum_dirac_dfcoef -i x2c_uo2_238.out -m UO2
 If you want to use this program on Windows, you can use it with the following command.
 
 ```sh
-python -m sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH -m MOLECULE_NAME
+python -m sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
