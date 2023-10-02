@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import copy
-import json
 from io import TextIOWrapper
 import re
 from typing import OrderedDict as ODict
@@ -49,13 +48,6 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     #     }
     # }
     pass
-
-
-class AtomInfoEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, AtomInfo):
-            return {"start_idx": obj.start_idx, "mul": obj.mul, "functions": obj.functions}
-        return super().default(obj)
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
@@ -214,6 +206,5 @@ is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
 Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
         )
-    json.dump(functions_info, open("functions_info.json", "w"), indent=4, cls=AtomInfoEncoder)
 
     return functions_info
