@@ -80,11 +80,10 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coeffic
         )
 
         need_identifier = True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx].mul > 1 else False
-        key_idx = orbitals[component_func][symmetry_label][atom_label][idx].start_idx
-        multiplication = int(orbitals[component_func][symmetry_label][atom_label][key_idx].mul)
+        multiplication = int(orbitals[component_func][symmetry_label][atom_label][idx].mul)
 
         return Coefficient(
-            vector_num=vec_num, function_label=function_label, need_identifier=need_identifier, coefficient=coefficient, start_idx=key_idx, multiplication=multiplication
+            vector_num=vec_num, function_label=function_label, need_identifier=need_identifier, coefficient=coefficient, start_idx=idx, multiplication=multiplication
         )
 
     """

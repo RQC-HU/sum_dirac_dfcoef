@@ -238,9 +238,8 @@ def main() -> None:
                 # Update used_atom_info with current_atom_info
                 used_atom_info[label] = copy.deepcopy(current_atom_info)
 
-            start_idx = current_atom_info.start_idx
             current_atom_info.decrement_function(gto_type)
-            data_mo.add_coefficient(get_coefficient(line_str, functions_info, start_idx))
+            data_mo.add_coefficient(get_coefficient(line_str, functions_info, current_atom_info.start_idx))
 
     # End of reading file
     # Write results to the file
