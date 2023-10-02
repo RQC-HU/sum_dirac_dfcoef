@@ -13,14 +13,14 @@ class Data_MO:
     mo_info: str = ""
 
     def __repr__(self) -> str:
-        # return f"norm_const_sum: {self.norm_const_sum}, coef_list: {self.coef_list}"
-        return f"norm_const_sum: {self.norm_const_sum}, coef: {[coef.coefficient for coef in self.coef_list]}"
+        return f"norm_const_sum: {self.norm_const_sum}, coef_dict: {self.coef_dict}"
 
     def add_coefficient(self, coef: Coefficient) -> None:
-        if coef.function_label in self.coef_dict:
-            self.coef_dict[coef.function_label].coefficient += coef.coefficient
+        key = coef.function_label + str(coef.start_idx)
+        if key in self.coef_dict:
+            self.coef_dict[key].coefficient += coef.coefficient
         else:
-            self.coef_dict[coef.function_label] = coef
+            self.coef_dict[key] = coef
         self.norm_const_sum += coef.coefficient * coef.multiplication
 
     def reset(self):
