@@ -167,6 +167,10 @@ optional arguments (--input is required)
 
 - LGPL v2.1
 
+## Maintainer
+
+- Minori Abe
+
 ## Author
 
 - Kohei Noda
