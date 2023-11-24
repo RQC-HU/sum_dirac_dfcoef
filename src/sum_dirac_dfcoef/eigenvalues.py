@@ -28,6 +28,23 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             return True
         return False
 
+    def is_eigenvalue_type_written(words: "list[str]") -> bool:
+        # closed shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1043
+        # open shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1053
+        # virtual eigenvalues: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1064
+        if "*" == words[0] and "Closed" == words[1] and "shell," == words[2]:
+            return True
+        elif "*" == words[0] and "Open" == words[1] and "shell" == words[2]:
+            return True
+        elif "*" == words[0] and "Virtual" == words[1] and "eigenvalues," == words[2]:
+            return True
+        return False
+
+    def get_current_eigenvalue_type(words: "list[str]") -> str:
+        # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual"
+        current_eigenvalue_type = words[1].lower()
+        return current_eigenvalue_type
+
     def get_symmetry_type_standard(words: "list[str]") -> str:
         current_symmetry_type = words[3]
         return current_symmetry_type
@@ -60,7 +77,7 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             scf_cycle = True
             continue
 
-        if scf_cycle and not eigenvalues_header :
+        if scf_cycle and not eigenvalues_header:
             if "Eigenvalues" == words[0]:
                 eigenvalues_header = True
             continue
@@ -82,12 +99,8 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
         elif print_type == "supersymmetry" and "* Block" in line:
             current_symmetry_type = get_symmetry_type_supersym(words)
             eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
-        elif "*" == words[0] and "Closed" in words[1] and "shell" in words[2]:
-            current_eigenvalue_type = "closed"
-        elif "*" == words[0] and "open" in words[1] and "shell" in words[2]:
-            current_eigenvalue_type = "open"
-        elif "*" == words[0] and "Virtual" in words[1] and "eigenvalues" in words[2]:
-            current_eigenvalue_type = "virtual"
+        elif is_eigenvalue_type_written(words):
+            current_eigenvalue_type = get_current_eigenvalue_type(words)
         elif is_end_of_read(line):
             break
         else:
