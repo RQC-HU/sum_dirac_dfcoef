@@ -2,7 +2,7 @@ import re
 from io import TextIOWrapper
 from typing import Dict
 
-from .utils import debug_print, space_separated_parsing
+from .utils import space_separated_parsing
 
 
 # type definition eigenvalues
@@ -23,6 +23,11 @@ class Eigenvalues(Dict[str, Dict[str, int]]):
 
 
 def get_eigenvalues(dirac_output: TextIOWrapper):
+    def is_end_of_read(line) -> bool:
+        if "Occupation" in line or "HOMO - LUMO" in line:
+            return True
+        return False
+
     scf_cycle = False
     find_eigenvalues = False
     print_type = ""  # 'standard' or 'supersymmetry'
@@ -44,8 +49,10 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             find_eigenvalues = True
             continue
 
-        if find_eigenvalues and print_type == "":
-            if "---" in line or len(words) == 0:
+        if print_type == "":
+            if not find_eigenvalues:
+                continue
+            elif "---" in line:
                 continue
             # * Fermion symmetry
             elif "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
@@ -57,34 +64,45 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             else:
                 print_type = "supersymmetry"
                 # read '* Occupation in fermion symmetry ',FREP(IFSYM)
+                idx = words.index("in")
+                current_symmetry_type = words[idx + 1][: len(words[idx + 1]) - 1]
+                if current_symmetry_type not in eigenvalues:
+                    eigenvalues[current_symmetry_type] = {'closed': 0, 'open': 0, 'virtual': 0}
                 continue
 
-        if print_type == "standard":
-            if "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
-                current_symmetry_type = words[3]
+        if print_type == "standard" and "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
+            current_symmetry_type = words[3]
+            eigenvalues[current_symmetry_type] = {'closed': 0, 'open': 0, 'virtual': 0}
+        elif print_type == "supersymmetry" and "* Block" in line:
+            # FORMAT '(/A,I4,4A,I2,...)'
+            # DATA "* Block",ISUB,' in ',FREP(IFSYM),":  ",...
+            # ISUB might be **** because ISUB > 9999 or ISUB < -999
+            # Therefore, find 'in' word list and get FREP(IFSYM) from the word list
+            # FREP(IFSYM) is the symmetry type
+            idx = words.index("in")
+            current_symmetry_type = words[idx + 1][: len(words[idx + 1]) - 1]
+            if current_symmetry_type not in eigenvalues:
                 eigenvalues[current_symmetry_type] = {'closed': 0, 'open': 0, 'virtual': 0}
-            elif "*" == words[0] and "Closed" in words[1] and "shell" in words[2]:
-                current_eigenvalue_type = "closed"
-            elif "open" in words[1] and "shell" in words[2]:
-                current_eigenvalue_type = "open"
-            elif "Virtual" in words[1] and "eigenvalues" in words[2]:
-                current_eigenvalue_type = "virtual"
-            elif current_eigenvalue_type == "":
-                # Skip
-                continue
-            elif "HOMO - LUMO" in line:
-                break
-            else:
-                start_idx = 0
-                while True:
-                    # e.g. -775.202926514  ( 2) => 2
-                    regex = r"\([ ]*[0-9]+\)"
-                    match = re.search(regex, line[start_idx:])
-                    if match is None:
-                        break
-                    num = int(match.group()[1 : len(match.group()) - 1])
-                    eigenvalues[current_symmetry_type][current_eigenvalue_type] += num
-                    start_idx += match.end()
+        elif "*" == words[0] and "Closed" in words[1] and "shell" in words[2]:
+            current_eigenvalue_type = "closed"
+        elif "*" == words[0] and "open" in words[1] and "shell" in words[2]:
+            current_eigenvalue_type = "open"
+        elif "*" == words[0] and "Virtual" in words[1] and "eigenvalues" in words[2]:
+            current_eigenvalue_type = "virtual"
+        elif is_end_of_read(line):
+            break
+        elif current_eigenvalue_type == "":
+            continue
+        else:
+            start_idx = 0
+            while True:
+                # e.g. -775.202926514  ( 2) => 2
+                regex = r"\([ ]*[0-9]+\)"
+                match = re.search(regex, line[start_idx:])
+                if match is None:
+                    break
+                num = int(match.group()[1 : len(match.group()) - 1])
+                eigenvalues[current_symmetry_type][current_eigenvalue_type] += num
+                start_idx += match.end()
 
-        # elif print_type == "supersymmetry":
     print(f"eigenvalues: {eigenvalues}")
