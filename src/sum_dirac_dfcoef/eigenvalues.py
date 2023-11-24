@@ -44,7 +44,7 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
         return current_symmetry_type
 
     scf_cycle = False
-    find_eigenvalues = False
+    eigenvalues_header = False
     print_type = ""  # 'standard' or 'supersymmetry'
     eigenvalues = Eigenvalues()
     current_eigenvalue_type = ""  # 'closed' or 'open' or 'virtual'
@@ -60,12 +60,12 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             scf_cycle = True
             continue
 
-        if scf_cycle and not find_eigenvalues and "Eigenvalues" == words[0]:
-            find_eigenvalues = True
+        if scf_cycle and not eigenvalues_header and "Eigenvalues" == words[0]:
+            eigenvalues_header = True
             continue
 
         if print_type == "":  # search print type (standard or supersymmetry)
-            if not find_eigenvalues:
+            if not eigenvalues_header:
                 pass
             elif "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
                 print_type = "standard"
