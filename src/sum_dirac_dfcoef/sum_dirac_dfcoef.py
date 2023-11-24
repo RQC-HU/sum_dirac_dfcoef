@@ -9,6 +9,7 @@ from .args import args
 from .atoms import AtomInfo
 from .coefficient import get_coefficient
 from .data import Data_All_MO, Data_MO
+from .eigenvalues import get_eigenvalues
 from .functions_info import get_functions_info
 from .utils import debug_print, space_separated_parsing
 
@@ -136,7 +137,10 @@ def main() -> None:
 
     dirac_filename: str = get_dirac_filename()
     dirac_output = open(dirac_filename, encoding="utf-8")
+    dirac_output.seek(0)  # rewind to the beginning of the file
     functions_info = get_functions_info(dirac_output)
+    get_eigenvalues(dirac_output)
+    dirac_output.seek(0)  # rewind to the beginning of the file
     data_mo = Data_MO()
     data_all_mo = Data_All_MO()
     used_atom_info: dict[str, AtomInfo] = dict()
