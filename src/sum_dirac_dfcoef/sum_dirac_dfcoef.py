@@ -9,7 +9,7 @@ from .args import args
 from .atoms import AtomInfo
 from .coefficient import get_coefficient
 from .data import Data_All_MO, Data_MO
-from .eigenvalues import get_eigenvalues
+from .eigenvalues import Eigenvalues, get_eigenvalues
 from .functions_info import get_functions_info
 from .utils import debug_print, space_separated_parsing
 
@@ -139,8 +139,16 @@ def main() -> None:
     dirac_output = open(dirac_filename, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
     functions_info = get_functions_info(dirac_output)
-    get_eigenvalues(dirac_output)
-    dirac_output.seek(0)  # rewind to the beginning of the file
+    eigenvalues: Eigenvalues = get_eigenvalues(dirac_output)
+    with open(get_output_path(), "w", encoding="utf-8") as file:
+        line = ""
+        for symmetry_type, d in eigenvalues.items():
+            line += f"{symmetry_type} "
+            for eigenvalue_type, num in d.items():
+                line += f"{eigenvalue_type} {num} "
+        line += "\n"
+        file.write(line)
+
     data_mo = Data_MO()
     data_all_mo = Data_All_MO()
     used_atom_info: dict[str, AtomInfo] = dict()
@@ -246,7 +254,7 @@ def main() -> None:
 
     # End of reading file
     # Write results to the file
-    file = open(get_output_path(), "w")
+    file = open(get_output_path(), "a", encoding="utf-8")
     if not args.no_sort:
         data_all_mo.electronic.sort(key=lambda x: x.mo_energy)
         data_all_mo.positronic.sort(key=lambda x: x.mo_energy)

@@ -22,7 +22,7 @@ class Eigenvalues(Dict[str, Dict[str, int]]):
     pass
 
 
-def get_eigenvalues(dirac_output: TextIOWrapper):
+def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
     def is_end_of_read(line) -> bool:
         if "Occupation" in line or "HOMO - LUMO" in line:
             return True
@@ -116,3 +116,4 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
                 start_idx += match.end()
 
     print(f"eigenvalues: {eigenvalues}")
+    return eigenvalues
