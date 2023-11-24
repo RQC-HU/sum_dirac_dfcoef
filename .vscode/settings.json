@@ -5,6 +5,12 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     // Python line length
+    "flake8.args": [
+        "--max-line-length=180",
+        // whitespace before ':'Flake8(E203)
+        // "E203" ignored because of black
+        "--ignore=E203",
+    ],
     "black-formatter.args": [
         "--line-length=180"
     ]
