@@ -1,10 +1,10 @@
-from collections import OrderedDict
 import copy
-from io import TextIOWrapper
 import re
+from collections import OrderedDict
+from io import TextIOWrapper
 from typing import OrderedDict as ODict
 
-from .atoms import ao, is_different_atom, AtomInfo
+from .atoms import AtomInfo, ao, is_different_atom
 from .utils import debug_print, space_separated_parsing
 
 

@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 
 import copy
-from io import TextIOWrapper
 import os
 import sys
-
+from io import TextIOWrapper
 
 from .args import args
 from .atoms import AtomInfo
 from .coefficient import get_coefficient
-from .data import Data_MO, Data_All_MO
-from .utils import debug_print, space_separated_parsing
+from .data import Data_All_MO, Data_MO
 from .functions_info import get_functions_info
+from .utils import debug_print, space_separated_parsing
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:
