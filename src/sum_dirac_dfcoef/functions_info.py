@@ -164,7 +164,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
 
         return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
 
-    dirac_output.seek(0)  # rewind to the beginning of the file
     start_symmetry_orbitals_section = False
     number_of_section = {"start": False, "end": False}
     number_of_info: ODict[str, int] = OrderedDict()
