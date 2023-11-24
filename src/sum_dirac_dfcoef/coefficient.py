@@ -14,7 +14,11 @@ class Coefficient(BaseModel, validate_assignment=True):
 
     def __repr__(self) -> str:
         super().__repr__()
-        return f"vector_num: {self.vector_num}, function_label: {self.function_label}, coefficient: {self.coefficient}, start_idx: {self.start_idx}, multiplication: {self.multiplication}"
+        return f"vector_num: {self.vector_num}, \
+function_label: {self.function_label}, \
+coefficient: {self.coefficient}, \
+start_idx: {self.start_idx}, \
+multiplication: {self.multiplication}"
 
 
 def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
