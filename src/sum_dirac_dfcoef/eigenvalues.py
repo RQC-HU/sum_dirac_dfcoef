@@ -60,14 +60,13 @@ def get_eigenvalues(dirac_output: TextIOWrapper):
             scf_cycle = True
             continue
 
-        if scf_cycle and not eigenvalues_header and "Eigenvalues" == words[0]:
-            eigenvalues_header = True
+        if scf_cycle and not eigenvalues_header :
+            if "Eigenvalues" == words[0]:
+                eigenvalues_header = True
             continue
 
         if print_type == "":  # search print type (standard or supersymmetry)
-            if not eigenvalues_header:
-                pass
-            elif "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
+            if "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
                 print_type = "standard"
                 current_symmetry_type = get_symmetry_type_standard(words)
                 eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
