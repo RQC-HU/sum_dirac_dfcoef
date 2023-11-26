@@ -11,3 +11,13 @@ def debug_print(str: str):
     # print debug message if --debug option is used
     if args.debug:
         print(str)
+
+def is_float(parameter: str):
+    if not parameter.isdecimal():
+        try:
+            float(parameter)
+            return True
+        except ValueError:
+            return False
+    else:
+        return False

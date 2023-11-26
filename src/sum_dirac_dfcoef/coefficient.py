@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from .functions_info import FunctionsInfo
-from .utils import space_separated_parsing
+from .utils import is_float, space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):
@@ -34,16 +34,6 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coeffic
     # ref (format): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirout.F#L453
     # FORMAT(3X,I5,2X,A12,2X,4F14.10)
     # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L168-169
-
-    def is_float(parameter: str):
-        if not parameter.isdecimal():
-            try:
-                float(parameter)
-                return True
-            except ValueError:
-                return False
-        else:
-            return False
 
     def parse_line() -> Coefficient:
         """
