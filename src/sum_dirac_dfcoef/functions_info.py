@@ -1,10 +1,10 @@
-from collections import OrderedDict
 import copy
-from io import TextIOWrapper
 import re
+from collections import OrderedDict
+from io import TextIOWrapper
 from typing import OrderedDict as ODict
 
-from .atoms import ao, is_different_atom, AtomInfo
+from .atoms import AtomInfo, ao, is_different_atom
 from .utils import debug_print, space_separated_parsing
 
 
@@ -164,7 +164,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
 
         return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
 
-    dirac_output.seek(0)  # rewind to the beginning of the file
     start_symmetry_orbitals_section = False
     number_of_section = {"start": False, "end": False}
     number_of_info: ODict[str, int] = OrderedDict()

@@ -1,6 +1,6 @@
 from collections import OrderedDict
-from typing import Set, OrderedDict as ODict
-
+from typing import OrderedDict as ODict
+from typing import Set
 
 from pydantic import BaseModel, validator
 

@@ -66,6 +66,11 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     threshold: float = 1e-10
     checked = len(ref_file)
     for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+        # 1st line has header information about eigenvalues
+        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        if line_idx == 0:
+            assert ref == out
+            continue
         # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
         # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
         assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
@@ -129,6 +134,11 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     threshold: float = 1e-10
     checked = len(ref_file)
     for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+        # 1st line has header information about eigenvalues
+        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        if line_idx == 0:
+            assert ref == out
+            continue
         if len(ref) < 2 or len(out) < 2:
             checked -= 1
             continue
