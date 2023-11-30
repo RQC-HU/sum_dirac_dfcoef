@@ -7,24 +7,6 @@ from typing import List
 import pytest
 
 
-# Prepare the tests, install the package
-@pytest.fixture(scope="session", autouse=True)
-def prepare_test():
-    cur_dir = os.getcwd()
-    # Change the current directory to the root directory of the package
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(os.path.join(test_dir, ".."))
-    subprocess.run("python3 -m pip install .", shell=True, check=True)
-    p = subprocess.run(
-        "sum_dirac_dfcoef -i ./test/data/Ar_Ar.out", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )  # It raises an error if the package is not installed correctly
-    if p.returncode != 0:
-        msg = f"Test preparation failed\nexit code: {p.returncode}\ncommand: {p.args}\nstdout: {p.stdout.decode()}\nstderr: {p.stderr.decode()}"
-        raise RuntimeError(msg)
-    # Change the current directory to the original directory
-    os.chdir(cur_dir)
-
-
 @pytest.mark.parametrize(
     "ref_filename, result_filename, input_filename, options",
     # fmt: off
