@@ -17,6 +17,8 @@
     ],
     "ruff.lint.args": [
         "--line-length=180",
-        "--ignore=FBT001"
+        // FBT001: boolean-type-hint-positional-argument https://docs.astral.sh/ruff/rules/boolean-type-hint-positional-argument/
+        // T201: print https://docs.astral.sh/ruff/rules/print/
+        "--ignore=FBT001,T201"
     ]
 }
