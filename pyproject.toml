@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = 'This is a utility to summarize the contribution of each atomic orbital per molecular orbital from the DIRAC output file that the *PRIVEC and .VECPRI options are used.'
 readme = "README.md"
 requires-python = ">=3.7"
-license = "MIT"
+license = "LGPL-2.1-or-later"
 keywords = []
 authors = [
   { name = "Kohei Noda", email = "kohei-noda@hiroshima-u.ac.jp" },
@@ -68,7 +68,6 @@ dependencies = [
   "ruff>=0.0.243",
 ]
 [tool.hatch.envs.lint.scripts]
-typing = "mypy --install-types --non-interactive {args:src/pymolecule_parser tests}"
 style = [
   "ruff {args:.}",
   "black --check --diff {args:.}",
@@ -80,7 +79,7 @@ fmt = [
 ]
 all = [
   "style",
-  "typing",
+  "fmt",
 ]
 
 [tool.black]
@@ -133,9 +132,6 @@ unfixable = [
   "F401",
 ]
 
-[tool.ruff.isort]
-known-first-party = ["pymolecule_parser"]
-
 [tool.ruff.flake8-tidy-imports]
 ban-relative-imports = "all"
 
@@ -144,16 +140,12 @@ ban-relative-imports = "all"
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
 [tool.coverage.run]
-source_pkgs = ["pymolecule_parser", "tests"]
+source_pkgs = ["tests"]
 branch = true
 parallel = true
-omit = [
-  "src/pymolecule_parser/__about__.py",
-]
 
 [tool.coverage.paths]
-pymolecule_parser = ["src/pymolecule_parser", "*/pymolecule-parser/src/pymolecule_parser"]
-tests = ["tests", "*/pymolecule-parser/tests"]
+tests = ["tests"]
 
 [tool.coverage.report]
 exclude_lines = [
