@@ -3,6 +3,7 @@
 import copy
 import sys
 from pathlib import Path
+from typing import List
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.atoms import AtomInfo
@@ -14,7 +15,7 @@ from sum_dirac_dfcoef.functions_info import get_functions_info
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
-def is_this_row_for_coefficients(words: "list[str]") -> bool:
+def is_this_row_for_coefficients(words: List[str]) -> bool:
     # min: 4 coefficients and other words => 5 words
     if 5 <= len(words) <= 9 and words[0].isdigit():
         return True
@@ -22,27 +23,27 @@ def is_this_row_for_coefficients(words: "list[str]") -> bool:
         return False
 
 
-def need_to_skip_this_line(words: "list[str]") -> bool:
+def need_to_skip_this_line(words: List[str]) -> bool:
     if len(words) <= 1:
         return True
     else:
         return False
 
 
-def need_to_create_results_for_current_mo(words: "list[str]", is_reading_coefficients: bool) -> bool:
+def need_to_create_results_for_current_mo(words: List[str], is_reading_coefficients: bool) -> bool:
     if is_reading_coefficients and len(words) <= 1:
         return True
     else:
         return False
 
 
-def need_to_get_mo_sym_type(words: "list[str]", start_mo_coefficients: bool) -> bool:
+def need_to_get_mo_sym_type(words: List[str], start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and len(words) == 3 and words[0] == "Fermion" and words[1] == "ircop":
         return True
     return False
 
 
-def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) -> bool:
+def need_to_start_mo_section(words: List[str], start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and words[1] == "Electronic" and words[2] == "eigenvalue" and "no." in words[3]:
         return True
     elif not start_mo_coefficients and words[1] == "Positronic" and words[2] == "eigenvalue" and "no." in words[3]:
@@ -59,7 +60,7 @@ def get_dirac_filepath() -> Path:
     return path
 
 
-def check_start_vector_print(words: "list[str]") -> bool:
+def check_start_vector_print(words: List[str]) -> bool:
     # ****************************** Vector print ******************************
     if len(words) < 4:
         return False
@@ -69,7 +70,7 @@ def check_start_vector_print(words: "list[str]") -> bool:
 
 
 def check_end_vector_print(
-    words: "list[str]",
+    words: List[str],
     start_vector_print: bool,
     start_mo_section: bool,
     start_mo_coefficients: bool,
@@ -117,7 +118,7 @@ def main() -> None:
     current_atom_info = AtomInfo()
     dirac_output.seek(0)  # rewind to the beginning of the file
     for line_str in dirac_output:
-        words: "list[str]" = space_separated_parsing(line_str)
+        words: List[str] = space_separated_parsing(line_str)
 
         if not start_vector_print:
             if check_start_vector_print(words):

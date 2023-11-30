@@ -1,6 +1,6 @@
 import re
 from io import TextIOWrapper
-from typing import Dict
+from typing import Dict, List
 
 from sum_dirac_dfcoef.utils import space_separated_parsing
 
@@ -28,7 +28,7 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
             return True
         return False
 
-    def is_eigenvalue_type_written(words: "list[str]") -> bool:
+    def is_eigenvalue_type_written(words: List[str]) -> bool:
         # closed shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1043
         # open shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1053
         # virtual eigenvalues: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1064
@@ -40,16 +40,16 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
             return True
         return False
 
-    def get_current_eigenvalue_type(words: "list[str]") -> str:
+    def get_current_eigenvalue_type(words: List[str]) -> str:
         # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual"
         current_eigenvalue_type = words[1].lower()
         return current_eigenvalue_type
 
-    def get_symmetry_type_standard(words: "list[str]") -> str:
+    def get_symmetry_type_standard(words: List[str]) -> str:
         current_symmetry_type = words[3]
         return current_symmetry_type
 
-    def get_symmetry_type_supersym(words: "list[str]") -> str:
+    def get_symmetry_type_supersym(words: List[str]) -> str:
         # https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1097-1105
         # FORMAT '(/A,I4,4A,I2,...)'
         # DATA "* Block",ISUB,' in ',FREP(IFSYM),":  ",...
@@ -68,7 +68,7 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
     current_symmetry_type = ""  # 'E1g' or 'E1u' or "E1" ...
 
     for line in dirac_output:
-        words: "list[str]" = space_separated_parsing(line)
+        words: List[str] = space_separated_parsing(line)
 
         if len(words) == 0:
             continue

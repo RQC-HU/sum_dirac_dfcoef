@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.data import DataMO
@@ -21,7 +22,7 @@ class OutputFileWriter:
             line += "\n"
             f.write(line)
 
-    def write_mo_data(self, mo_data: "list[DataMO]", add_blank_line: bool) -> None:
+    def write_mo_data(self, mo_data: List[DataMO], add_blank_line: bool) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
             for mo in mo_data:
                 digit_int = len(str(int(mo.mo_energy)))  # number of digits of integer part

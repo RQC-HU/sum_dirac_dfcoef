@@ -1,4 +1,7 @@
-def space_separated_parsing(line: str) -> "list[str]":
+from typing import List
+
+
+def space_separated_parsing(line: str) -> List[str]:
     import re
 
     words = re.split(" +", line.rstrip("\n"))
@@ -11,6 +14,7 @@ def debug_print(message: str):
     # print debug message if --debug option is used
     if args.debug:
         print(message)
+
 
 def is_float(parameter: str):
     if not parameter.isdecimal():
