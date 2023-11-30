@@ -19,6 +19,7 @@
         "--line-length=180",
         // FBT001: boolean-type-hint-positional-argument https://docs.astral.sh/ruff/rules/boolean-type-hint-positional-argument/
         // T201: print https://docs.astral.sh/ruff/rules/print/
-        "--ignore=FBT001,T201"
+        // PLR2004: magic-value-comparison https://docs.astral.sh/ruff/rules/magic-value-comparison/
+        "--ignore=FBT001,T201,PLR2004"
     ]
 }
