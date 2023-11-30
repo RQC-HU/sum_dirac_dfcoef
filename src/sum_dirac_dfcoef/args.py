@@ -12,7 +12,7 @@ class PrintVersionExitAction(argparse.Action):
         )
 
     def __call__(self, parser, namespace, values, option_string=None):
-        from .__about__ import __version__
+        from sum_dirac_dfcoef.__about__ import __version__
 
         print(f"{__version__}")
         exit()

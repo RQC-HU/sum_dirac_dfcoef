@@ -2,7 +2,7 @@ import re
 from io import TextIOWrapper
 from typing import Dict
 
-from .utils import space_separated_parsing
+from sum_dirac_dfcoef.utils import space_separated_parsing
 
 
 # type definition eigenvalues

@@ -4,8 +4,8 @@ from collections import OrderedDict
 from io import TextIOWrapper
 from typing import OrderedDict as ODict
 
-from .atoms import AtomInfo, ao, is_different_atom
-from .utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.atoms import AtomInfo, ao, is_different_atom
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class Function:

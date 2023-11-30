@@ -4,7 +4,7 @@ from typing import Set
 
 from pydantic import BaseModel, validator
 
-from .subshell import subshell_order
+from sum_dirac_dfcoef.subshell import subshell_order
 
 
 class AtomInfo:

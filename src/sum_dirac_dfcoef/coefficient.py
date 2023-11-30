@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
-from .functions_info import FunctionsInfo
-from .utils import is_float, space_separated_parsing
+from sum_dirac_dfcoef.functions_info import FunctionsInfo
+from sum_dirac_dfcoef.utils import is_float, space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):

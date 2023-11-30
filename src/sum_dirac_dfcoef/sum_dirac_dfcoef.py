@@ -4,14 +4,14 @@ import copy
 import sys
 from pathlib import Path
 
-from .args import args
-from .atoms import AtomInfo
-from .coefficient import get_coefficient
-from .data import Data_All_MO, Data_MO
-from .eigenvalues import get_eigenvalues
-from .file_writer import output_file_writer
-from .functions_info import get_functions_info
-from .utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.args import args
+from sum_dirac_dfcoef.atoms import AtomInfo
+from sum_dirac_dfcoef.coefficient import get_coefficient
+from sum_dirac_dfcoef.data import Data_All_MO, Data_MO
+from sum_dirac_dfcoef.eigenvalues import get_eigenvalues
+from sum_dirac_dfcoef.file_writer import output_file_writer
+from sum_dirac_dfcoef.functions_info import get_functions_info
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 def is_this_row_for_coefficients(words: "list[str]") -> bool:

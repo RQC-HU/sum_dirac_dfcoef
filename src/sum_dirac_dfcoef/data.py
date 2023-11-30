@@ -1,7 +1,7 @@
 from typing import Dict
 
-from .args import args
-from .coefficient import Coefficient
+from sum_dirac_dfcoef.args import args
+from sum_dirac_dfcoef.coefficient import Coefficient
 
 
 class Data_MO:

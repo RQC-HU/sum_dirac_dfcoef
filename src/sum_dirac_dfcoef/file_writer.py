@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from .args import args
-from .data import Data_MO
-from .eigenvalues import Eigenvalues
-from .utils import debug_print
+from sum_dirac_dfcoef.args import args
+from sum_dirac_dfcoef.data import Data_MO
+from sum_dirac_dfcoef.eigenvalues import Eigenvalues
+from sum_dirac_dfcoef.utils import debug_print
 
 
 class OutputFileWriter:

@@ -6,7 +6,7 @@ def space_separated_parsing(line: str) -> "list[str]":
 
 
 def debug_print(message: str):
-    from .args import args
+    from sum_dirac_dfcoef.args import args
 
     # print debug message if --debug option is used
     if args.debug:
