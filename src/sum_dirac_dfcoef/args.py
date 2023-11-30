@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 
 class PrintVersionExitAction(argparse.Action):
@@ -15,7 +16,7 @@ class PrintVersionExitAction(argparse.Action):
         from sum_dirac_dfcoef.__about__ import __version__
 
         print(f"{__version__}")
-        exit()
+        sys.exit()
 
 
 def parse_args() -> "argparse.Namespace":
