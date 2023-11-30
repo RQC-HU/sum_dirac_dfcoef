@@ -62,10 +62,10 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
 
     scf_cycle = False
     eigenvalues_header = False
-    print_type = ""  # 'standard' or 'supersymmetry'
+    print_type = ""  # "standard" or "supersymmetry"
     eigenvalues = Eigenvalues()
-    current_eigenvalue_type = ""  # 'closed' or 'open' or 'virtual'
-    current_symmetry_type = ""  # 'E1g' or 'E1u' or "E1" ...
+    current_eigenvalue_type = ""  # "closed" or "open" or "virtual"
+    current_symmetry_type = ""  # "E1g" or "E1u" or "E1" ...
 
     for line in dirac_output:
         words: List[str] = space_separated_parsing(line)
@@ -86,19 +86,19 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
             if "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
                 print_type = "standard"
                 current_symmetry_type = get_symmetry_type_standard(words)
-                eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
+                eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
             elif "* Block" in line:
                 print_type = "supersymmetry"
                 current_symmetry_type = get_symmetry_type_supersym(words)
-                eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
+                eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
             continue
 
         if print_type == "standard" and "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
             current_symmetry_type = get_symmetry_type_standard(words)
-            eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
+            eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
         elif print_type == "supersymmetry" and "* Block" in line:
             current_symmetry_type = get_symmetry_type_supersym(words)
-            eigenvalues.setdefault(current_symmetry_type, {'closed': 0, 'open': 0, 'virtual': 0})
+            eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
         elif is_eigenvalue_type_written(words):
             current_eigenvalue_type = get_current_eigenvalue_type(words)
         elif is_end_of_read(line):
