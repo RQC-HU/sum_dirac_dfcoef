@@ -1,8 +1,9 @@
 import os
-import pytest
 import re
 import subprocess
 import sys
+
+import pytest
 
 
 # Prepare the tests, install the package
@@ -13,7 +14,9 @@ def prepare_test():
     test_dir = os.path.dirname(os.path.realpath(__file__))
     os.chdir(os.path.join(test_dir, ".."))
     subprocess.run("python3 -m pip install .", shell=True, check=True)
-    p = subprocess.run("sum_dirac_dfcoef -i ./test/data/Ar_Ar.out", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # It raises an error if the package is not installed correctly
+    p = subprocess.run(
+        "sum_dirac_dfcoef -i ./test/data/Ar_Ar.out", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )  # It raises an error if the package is not installed correctly
     if p.returncode != 0:
         msg = f"Test preparation failed\nexit code: {p.returncode}\ncommand: {p.args}\nstdout: {p.stdout.decode()}\nstderr: {p.stderr.decode()}"
         raise RuntimeError(msg)
