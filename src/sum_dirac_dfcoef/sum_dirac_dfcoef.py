@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 
 import copy
-import os
 import sys
-from io import TextIOWrapper
+from pathlib import Path
 
 from .args import args
 from .atoms import AtomInfo
 from .coefficient import get_coefficient
 from .data import Data_All_MO, Data_MO
 from .eigenvalues import Eigenvalues, get_eigenvalues
+from .file_writer import output_file_writer
 from .functions_info import get_functions_info
 from .utils import debug_print, space_separated_parsing
 
@@ -50,10 +50,13 @@ def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) ->
     return False
 
 
-def get_dirac_filename() -> str:
+def get_dirac_filepath() -> Path:
     if not args.file:
         sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
-    return args.file
+    elif not Path(args.file).exists():
+        sys.exit(f"ERROR: DIRAC output file is not found. file={args.file}")
+    path = Path(args.file)
+    return path
 
 
 def check_start_vector_print(words: "list[str]") -> bool:
@@ -78,16 +81,6 @@ def check_end_vector_print(
     return False
 
 
-def get_output_path() -> str:
-    if args.output is None:
-        output_name = "sum_dirac_dfcoef.out"
-        output_path = os.path.join(os.getcwd(), output_name)
-    else:
-        output_name = args.output
-        output_path = os.path.abspath(output_name)
-    return output_path
-
-
 def should_write_positronic_results_to_file() -> bool:
     if args.all_write or args.positronic_write:
         return True
@@ -102,31 +95,6 @@ def should_write_electronic_results_to_file() -> bool:
         return False
 
 
-def write_results(file: TextIOWrapper, data_all_mo: "list[Data_MO]") -> None:
-    """
-    Write results to stdout
-    """
-
-    for mo in data_all_mo:
-        digit_int = len(str(int(mo.mo_energy)))  # number of digits of integer part
-        # File write but if args.compress is True \n is not added
-        mo_info_energy = f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}" + ("\n" if not args.compress else "")
-        file.write(mo_info_energy)
-
-        for c in mo.coef_list:
-            for idx in range(c.multiplication):
-                percentage = c.coefficient / mo.norm_const_sum * 100
-                label = f"{c.function_label}({c.start_idx + idx})" if c.need_identifier else c.function_label
-                output_str: str
-                if args.compress:
-                    output_str = f" {label} {percentage:.{args.decimal}f}"
-                else:
-                    output_str = f"{label:<12} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
-                file.write(output_str)
-        file.write("\n")  # add empty line
-        debug_print(f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
-
-
 def main() -> None:
     start_mo_coefficients: bool = False
     start_mo_section: bool = False
@@ -135,19 +103,13 @@ def main() -> None:
     is_electronic: bool = False
     mo_sym_type: str = ""
 
-    dirac_filename: str = get_dirac_filename()
-    dirac_output = open(dirac_filename, encoding="utf-8")
+    dirac_filepath = get_dirac_filepath()
+    dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
     functions_info = get_functions_info(dirac_output)
     eigenvalues: Eigenvalues = get_eigenvalues(dirac_output)
-    with open(get_output_path(), "w", encoding="utf-8") as file:
-        line = ""
-        for symmetry_type, d in eigenvalues.items():
-            line += f"{symmetry_type} "
-            for eigenvalue_type, num in d.items():
-                line += f"{eigenvalue_type} {num} "
-        line += "\n"
-        file.write(line)
+    output_file_writer.create_blank_file()
+    output_file_writer.write_eigenvalues(eigenvalues)
 
     data_mo = Data_MO()
     data_all_mo = Data_All_MO()
@@ -254,15 +216,12 @@ def main() -> None:
 
     # End of reading file
     # Write results to the file
-    file = open(get_output_path(), "a", encoding="utf-8")
     if not args.no_sort:
         data_all_mo.electronic.sort(key=lambda x: x.mo_energy)
         data_all_mo.positronic.sort(key=lambda x: x.mo_energy)
     if should_write_positronic_results_to_file():  # Positronic
         # Write positronic results to the file
-        write_results(file, data_all_mo.positronic)
-        file.write("\n")  # Add a blank line
+        output_file_writer.write_mo_data(data_all_mo.positronic, add_blank_line=True)
     if should_write_electronic_results_to_file():  # Electronic
         # Write electronic results to the file
-        write_results(file, data_all_mo.electronic)
-    file.close()
+        output_file_writer.write_mo_data(data_all_mo.electronic, add_blank_line=False)
