@@ -3,13 +3,13 @@ import sys
 
 
 class PrintVersionExitAction(argparse.Action):
-    def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help_=None):
+    def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):  # noqa: A002
         super().__init__(
             option_strings=option_strings,
             dest=dest,
             default=default,
             nargs=0,
-            help=help_,
+            help=help,
         )
 
     def __call__(self):
