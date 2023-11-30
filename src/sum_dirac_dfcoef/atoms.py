@@ -48,7 +48,7 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
     gto_type: str = "s"
 
     @validator("subshell")
-    def validate_subshell(cls, v: str) -> str:
+    def validate_subshell(cls, v: str) -> str:  # noqa: N805 (pydantic method)
         if v not in subshell_order.subshell_order:
             msg = f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'"
             raise ValueError(msg)
