@@ -62,7 +62,7 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
         self.subshell = "s"
         self.gto_type = "s"
 
-    def set(self, atom: str, subshell: str, gto_type: str):
+    def update(self, atom: str, subshell: str, gto_type: str):
         self.atom = atom
         self.subshell = subshell
         self.gto_type = gto_type

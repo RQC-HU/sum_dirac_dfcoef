@@ -149,7 +149,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
         multiplicity = parse_multiplicity_label(multiplicity_label)  # (e.g.) 4 (1+2+3+4)
         # Set the current subshell and gto_type
-        ao.current_ao.set(atom, subshell, gto_type)
+        ao.current_ao.update(atom, subshell, gto_type)
 
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
         if is_different_atom(ao, function_label):
@@ -157,7 +157,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             ao.reset()
             ao.start_idx = get_start_idx()
             # ao was reset, so set the current subshell and gto_type again
-            ao.current_ao.set(atom, subshell, gto_type)
+            ao.current_ao.update(atom, subshell, gto_type)
             ao.prev_ao = copy.deepcopy(ao.current_ao)
 
         debug_print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
