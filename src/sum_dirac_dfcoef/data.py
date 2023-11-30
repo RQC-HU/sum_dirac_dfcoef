@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import ClassVar, Dict
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.coefficient import Coefficient
@@ -6,8 +6,8 @@ from sum_dirac_dfcoef.coefficient import Coefficient
 
 class DataMO:
     norm_const_sum: float = 0.0
-    coef_dict: Dict[str, Coefficient] = {}
-    coef_list: "list[Coefficient]" = []
+    coef_dict: ClassVar[Dict[str, Coefficient]] = {}
+    coef_list: ClassVar[list[Coefficient]] = []
     electron_num: int = 0
     mo_energy: float = 0.0
     mo_info: str = ""
@@ -37,8 +37,8 @@ class DataMO:
 
 
 class DataAllMO:
-    electronic: "list[DataMO]" = []
-    positronic: "list[DataMO]" = []
+    electronic: ClassVar[list[DataMO]] = []
+    positronic: ClassVar[list[DataMO]] = []
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"

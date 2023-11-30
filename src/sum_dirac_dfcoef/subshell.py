@@ -1,6 +1,9 @@
+from typing import ClassVar
+
+
 class Subshell:
     subshell_order = "spdfghiklmnoqrtuvwxyz"
-    gto_label_order: "list[list[str]]" = []
+    gto_label_order: ClassVar[list[list[str]]] = []
 
     def lmnval(self, idx: int, nfun: int, istep: "list[int]", mval: "list[int]", nval: "list[int]") -> "tuple[list[int], list[int], list[int]]":
         # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/abacus/hergam.F#L218-236
