@@ -2,10 +2,11 @@ import copy
 import re
 from collections import OrderedDict
 from io import TextIOWrapper
+from typing import List, Tuple
 from typing import OrderedDict as ODict
 
-from .atoms import AtomInfo, ao, is_different_atom
-from .utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.atoms import AtomInfo, ao, is_different_atom
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class Function:
@@ -51,20 +52,20 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
-    def is_start_symmetry_orbitals_section(words: "list[str]") -> bool:
+    def is_start_symmetry_orbitals_section(words: List[str]) -> bool:
         # ref: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/dirac/dirtra.F#L3654
         if len(words) == 2 and words[0] == "Symmetry" and words[1] == "Orbitals":
             return True
         return False
 
-    def is_start_number_of_section(words: "list[str]") -> bool:
+    def is_start_number_of_section(words: List[str]) -> bool:
         if number_of_section["start"]:
             return False
         elif len(words) >= 6 and words[0] == "Number" and words[1] == "of" and words[2] == "orbitals" and words[3] == "in" and words[4] == "each" and words[5] == "symmetry:":
             return True
         return False
 
-    def get_number_of_info(words: "list[str]", line_str: str) -> None:
+    def get_number_of_info(words: List[str], line_str: str) -> None:
         # Parse the line_str and get the number of orbitals
         # (e.g.) Number of orbitals in each symmetry:          108    65    65    24    78    29    29    13
         #
@@ -95,15 +96,15 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             # This is expected exception
             pass
 
-    def get_symmetry(words: "list[str]") -> str:
+    def get_symmetry(words: List[str]) -> str:
         symmetry = words[1]  # e.g. "Ag"
         bra_idx = symmetry.find("(")
         if bra_idx != -1:
             symmetry = symmetry[:bra_idx]
         return symmetry
 
-    def read_func_info(words: "list[str]", line_str: str) -> Function:
-        def get_last_elem() -> "tuple[int, AtomInfo]":
+    def read_func_info(words: List[str], line_str: str) -> Function:
+        def get_last_elem() -> Tuple[int, AtomInfo]:
             # Get the last element of the OrderedDict element with the keys
             last_elem_idx, last_elem = functions_info[component_func][symmetry][atom].popitem()
             # Need to restore the last element because it was popped
@@ -119,7 +120,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 # If the start_idx does not exist, it means that this is the first element, so that the start_idx is 1
                 return 1
 
-        def parse_plabel(plabel: str) -> "tuple[str, str, str]":
+        def parse_plabel(plabel: str) -> Tuple[str, str, str]:
             atom = plabel[:2].strip()  # e.g. "Cm" in "Cm g400"
             subshell = plabel[3].strip()  # e.g. "g" in "Cm g400"
             gto_type = plabel[3:7].strip()  # e.g. "g400" in "Cm g400"
@@ -148,7 +149,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
         multiplicity = parse_multiplicity_label(multiplicity_label)  # (e.g.) 4 (1+2+3+4)
         # Set the current subshell and gto_type
-        ao.current_ao.set(atom, subshell, gto_type)
+        ao.current_ao.update(atom, subshell, gto_type)
 
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
         if is_different_atom(ao, function_label):
@@ -156,7 +157,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             ao.reset()
             ao.start_idx = get_start_idx()
             # ao was reset, so set the current subshell and gto_type again
-            ao.current_ao.set(atom, subshell, gto_type)
+            ao.current_ao.update(atom, subshell, gto_type)
             ao.prev_ao = copy.deepcopy(ao.current_ao)
 
         debug_print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
@@ -171,7 +172,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     symmetry = ""
     functions_info = FunctionsInfo()
     for line_str in dirac_output:
-        words: "list[str]" = space_separated_parsing(line_str)
+        words: List[str] = space_separated_parsing(line_str)
         if len(line_str) == 0:
             continue
         elif not start_symmetry_orbitals_section:
@@ -199,11 +200,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             break  # Stop reading symmetry orbitals
 
     if not start_symmetry_orbitals_section:
-        raise Exception(
-            "ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program, \
+        msg = 'ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program, \
 is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
-Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
-        )
+Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?'
+        raise Exception(msg)
 
     return functions_info

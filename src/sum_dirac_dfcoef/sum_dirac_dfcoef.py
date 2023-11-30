@@ -3,18 +3,19 @@
 import copy
 import sys
 from pathlib import Path
+from typing import List
 
-from .args import args
-from .atoms import AtomInfo
-from .coefficient import get_coefficient
-from .data import Data_All_MO, Data_MO
-from .eigenvalues import Eigenvalues, get_eigenvalues
-from .file_writer import output_file_writer
-from .functions_info import get_functions_info
-from .utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.args import args
+from sum_dirac_dfcoef.atoms import AtomInfo
+from sum_dirac_dfcoef.coefficient import get_coefficient
+from sum_dirac_dfcoef.data import DataAllMO, DataMO
+from sum_dirac_dfcoef.eigenvalues import get_eigenvalues
+from sum_dirac_dfcoef.file_writer import output_file_writer
+from sum_dirac_dfcoef.functions_info import get_functions_info
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
-def is_this_row_for_coefficients(words: "list[str]") -> bool:
+def is_this_row_for_coefficients(words: List[str]) -> bool:
     # min: 4 coefficients and other words => 5 words
     if 5 <= len(words) <= 9 and words[0].isdigit():
         return True
@@ -22,27 +23,27 @@ def is_this_row_for_coefficients(words: "list[str]") -> bool:
         return False
 
 
-def need_to_skip_this_line(words: "list[str]") -> bool:
+def need_to_skip_this_line(words: List[str]) -> bool:
     if len(words) <= 1:
         return True
     else:
         return False
 
 
-def need_to_create_results_for_current_mo(words: "list[str]", is_reading_coefficients: bool) -> bool:
+def need_to_create_results_for_current_mo(words: List[str], is_reading_coefficients: bool) -> bool:
     if is_reading_coefficients and len(words) <= 1:
         return True
     else:
         return False
 
 
-def need_to_get_mo_sym_type(words: "list[str]", start_mo_coefficients: bool) -> bool:
+def need_to_get_mo_sym_type(words: List[str], start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and len(words) == 3 and words[0] == "Fermion" and words[1] == "ircop":
         return True
     return False
 
 
-def need_to_start_mo_section(words: "list[str]", start_mo_coefficients: bool) -> bool:
+def need_to_start_mo_section(words: List[str], start_mo_coefficients: bool) -> bool:
     if not start_mo_coefficients and words[1] == "Electronic" and words[2] == "eigenvalue" and "no." in words[3]:
         return True
     elif not start_mo_coefficients and words[1] == "Positronic" and words[2] == "eigenvalue" and "no." in words[3]:
@@ -59,7 +60,7 @@ def get_dirac_filepath() -> Path:
     return path
 
 
-def check_start_vector_print(words: "list[str]") -> bool:
+def check_start_vector_print(words: List[str]) -> bool:
     # ****************************** Vector print ******************************
     if len(words) < 4:
         return False
@@ -69,7 +70,7 @@ def check_start_vector_print(words: "list[str]") -> bool:
 
 
 def check_end_vector_print(
-    words: "list[str]",
+    words: List[str],
     start_vector_print: bool,
     start_mo_section: bool,
     start_mo_coefficients: bool,
@@ -107,17 +108,17 @@ def main() -> None:
     dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
     functions_info = get_functions_info(dirac_output)
-    eigenvalues: Eigenvalues = get_eigenvalues(dirac_output)
+    eigenvalues = get_eigenvalues(dirac_output)
     output_file_writer.create_blank_file()
     output_file_writer.write_eigenvalues(eigenvalues)
 
-    data_mo = Data_MO()
-    data_all_mo = Data_All_MO()
-    used_atom_info: dict[str, AtomInfo] = dict()
+    data_mo = DataMO()
+    data_all_mo = DataAllMO()
+    used_atom_info: dict[str, AtomInfo] = {}
     current_atom_info = AtomInfo()
     dirac_output.seek(0)  # rewind to the beginning of the file
     for line_str in dirac_output:
-        words: "list[str]" = space_separated_parsing(line_str)
+        words: List[str] = space_separated_parsing(line_str)
 
         if not start_vector_print:
             if check_start_vector_print(words):
@@ -151,7 +152,8 @@ def main() -> None:
             elif words[1] == "Electronic":
                 is_electronic = True
             else:
-                raise Exception(f"Unknown MO type, MO_Type={words[1]}")
+                msg = f"UnKnow MO type, MO_Type={words[1]}"
+                raise Exception(msg)
             try:
                 electron_num = int(words[-2][:-1].replace("no.", ""))
             except ValueError:
@@ -205,7 +207,8 @@ def main() -> None:
                     cur_atom_start_idx = used_atom_info[label].start_idx + used_atom_info[label].mul
                 # Validate start_idx
                 if cur_atom_start_idx not in functions_info[component_func][symmetry_label][atom_label]:
-                    raise Exception(f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]")
+                    msg = f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
+                    raise Exception(msg)
                 # We can get information about the current atom from functions_info with start_idx.
                 current_atom_info = copy.deepcopy(functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
                 # Update used_atom_info with current_atom_info

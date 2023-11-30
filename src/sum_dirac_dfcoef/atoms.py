@@ -4,7 +4,7 @@ from typing import Set
 
 from pydantic import BaseModel, validator
 
-from .subshell import subshell_order
+from sum_dirac_dfcoef.subshell import subshell_order
 
 
 class AtomInfo:
@@ -29,9 +29,11 @@ class AtomInfo:
         try:
             self.functions[gto_type] -= 1
             if self.functions[gto_type] < 0:
-                raise ValueError(f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}")
-        except KeyError:
-            raise KeyError(f"{gto_type} is not in current_atom_info: {self.functions.keys()}")
+                msg = f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}"
+                raise ValueError(msg)
+        except KeyError as e:
+            msg = f"self.functions[{gto_type}] is not found in self.functions: {self.functions.keys()}"
+            raise KeyError(msg) from e
 
     def count_remaining_functions(self) -> int:
         return sum(self.functions.values())
@@ -46,11 +48,13 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
     gto_type: str = "s"
 
     @validator("subshell")
-    def validate_subshell(cls, v: str) -> str:
+    def validate_subshell(cls, v: str) -> str:  # noqa: N805 (pydantic method)
         if v not in subshell_order.subshell_order:
-            raise ValueError(f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'")
+            msg = f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'"
+            raise ValueError(msg)
         if len(v) != 1:
-            raise ValueError("subshell must be one character")
+            msg = f"subshell must be one character, but got '{v}'"
+            raise ValueError(msg)
         return v
 
     def reset(self):
@@ -58,7 +62,7 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
         self.subshell = "s"
         self.gto_type = "s"
 
-    def set(self, atom: str, subshell: str, gto_type: str):
+    def update(self, atom: str, subshell: str, gto_type: str):
         self.atom = atom
         self.subshell = subshell
         self.gto_type = gto_type

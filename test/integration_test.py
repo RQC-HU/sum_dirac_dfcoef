@@ -1,23 +1,9 @@
 import os
-import pytest
 import re
 import subprocess
-import sys
+from typing import List
 
-
-# Prepare the tests, install the package
-@pytest.fixture(scope="session", autouse=True)
-def prepare_test():
-    cur_dir = os.getcwd()
-    # Change the current directory to the root directory of the package
-    test_dir = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(os.path.join(test_dir, ".."))
-    subprocess.run("python3 -m pip install .", shell=True, check=True)
-    p = subprocess.run("sum_dirac_dfcoef -i ./test/data/Ar_Ar.out", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)  # It raises an error if the package is not installed correctly
-    if p.returncode != 0:
-        raise RuntimeError(f"Test preparation failed\nexit code: {p.returncode}\ncommand: {p.args}\nstdout: {p.stdout.decode()}\nstderr: {p.stderr.decode()}")
-    # Change the current directory to the original directory
-    os.chdir(cur_dir)
+import pytest
 
 
 @pytest.mark.parametrize(
@@ -51,16 +37,14 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
 
     test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
     print(test_command)
-    process = subprocess.run(
-        test_command,
-        shell=True,
+    subprocess.run(
+        test_command.split(),
         encoding="utf-8",
+        check=True,
     )
-    if process.returncode != 0:
-        sys.exit(f"{test_command} failed with return code {process.returncode}")
 
-    ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
-    out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
+    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
+    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
@@ -119,16 +103,14 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
 
     test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
     print(test_command)
-    process = subprocess.run(
-        test_command,
-        shell=True,
+    subprocess.run(
+        test_command.split(),
         encoding="utf-8",
+        check=True,
     )
-    if process.returncode != 0:
-        sys.exit(f"{test_command} failed with return code {process.returncode}")
 
-    ref_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
-    out_file: "list[list[str]]" = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
+    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
+    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10

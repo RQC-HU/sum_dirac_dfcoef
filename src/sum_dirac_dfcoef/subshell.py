@@ -1,19 +1,22 @@
+from typing import ClassVar, List, Tuple
+
+
 class Subshell:
     subshell_order = "spdfghiklmnoqrtuvwxyz"
-    gto_label_order: "list[list[str]]" = []
+    gto_label_order: ClassVar[List[List[str]]] = []
 
-    def lmnval(self, idx: int, nfun: int, istep: "list[int]", mval: "list[int]", nval: "list[int]") -> "tuple[list[int], list[int], list[int]]":
+    def lmnval(self, idx: int, nfun: int, istep: List[int], mval: List[int], nval: List[int]) -> Tuple[List[int], List[int], List[int]]:
         # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/abacus/hergam.F#L218-236
-        ix: "list[int]" = []
-        iy: "list[int]" = []
-        iz: "list[int]" = []
+        ix: List[int] = []
+        iy: List[int] = []
+        iz: List[int] = []
         for i in range(nfun):
             ix.append(idx - istep[i])
             iy.append(mval[i])
             iz.append(nval[i])
         return ix, iy, iz
 
-    def carpow(self) -> "tuple[list[int], list[int], list[int]]":
+    def carpow(self) -> Tuple[List[int], List[int], List[int]]:
         # https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/abacus/hergam.F#L162-216
         istep, mval, nval = [], [], []
         for i in range(1, len(self.subshell_order) + 1):

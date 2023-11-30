@@ -1,13 +1,13 @@
-from typing import Dict
+from typing import ClassVar, Dict, List
 
-from .args import args
-from .coefficient import Coefficient
+from sum_dirac_dfcoef.args import args
+from sum_dirac_dfcoef.coefficient import Coefficient
 
 
-class Data_MO:
+class DataMO:
     norm_const_sum: float = 0.0
-    coef_dict: Dict[str, Coefficient] = dict()
-    coef_list: "list[Coefficient]" = list()
+    coef_dict: ClassVar[Dict[str, Coefficient]] = {}
+    coef_list: ClassVar[List[Coefficient]] = []
     electron_num: int = 0
     mo_energy: float = 0.0
     mo_info: str = ""
@@ -36,9 +36,9 @@ class Data_MO:
         self.coef_list.sort(key=lambda coef: coef.coefficient, reverse=True)
 
 
-class Data_All_MO:
-    electronic: "list[Data_MO]" = []
-    positronic: "list[Data_MO]" = []
+class DataAllMO:
+    electronic: ClassVar[List[DataMO]] = []
+    positronic: ClassVar[List[DataMO]] = []
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"
