@@ -8,7 +8,7 @@ from .args import args
 from .atoms import AtomInfo
 from .coefficient import get_coefficient
 from .data import Data_All_MO, Data_MO
-from .eigenvalues import Eigenvalues, get_eigenvalues
+from .eigenvalues import get_eigenvalues
 from .file_writer import output_file_writer
 from .functions_info import get_functions_info
 from .utils import debug_print, space_separated_parsing
@@ -107,7 +107,7 @@ def main() -> None:
     dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
     functions_info = get_functions_info(dirac_output)
-    eigenvalues: Eigenvalues = get_eigenvalues(dirac_output)
+    eigenvalues = get_eigenvalues(dirac_output)
     output_file_writer.create_blank_file()
     output_file_writer.write_eigenvalues(eigenvalues)
 
@@ -151,7 +151,8 @@ def main() -> None:
             elif words[1] == "Electronic":
                 is_electronic = True
             else:
-                raise Exception(f"Unknown MO type, MO_Type={words[1]}")
+                msg = f"UnKnow MO type, MO_Type={words[1]}"
+                raise Exception(msg)
             try:
                 electron_num = int(words[-2][:-1].replace("no.", ""))
             except ValueError:
@@ -205,7 +206,8 @@ def main() -> None:
                     cur_atom_start_idx = used_atom_info[label].start_idx + used_atom_info[label].mul
                 # Validate start_idx
                 if cur_atom_start_idx not in functions_info[component_func][symmetry_label][atom_label]:
-                    raise Exception(f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]")
+                    msg = f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
+                    raise Exception(msg)
                 # We can get information about the current atom from functions_info with start_idx.
                 current_atom_info = copy.deepcopy(functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
                 # Update used_atom_info with current_atom_info

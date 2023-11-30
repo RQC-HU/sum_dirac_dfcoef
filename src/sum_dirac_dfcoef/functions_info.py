@@ -199,11 +199,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             break  # Stop reading symmetry orbitals
 
     if not start_symmetry_orbitals_section:
-        raise Exception(
-            "ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program, \
+        msg = 'ERROR: The \"Symmetry Orbitals\" section, which is one of the essential information sections for this program, \
 is not in the DIRAC output file.\n\
 Please check your DIRAC output file.\n\
-Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?"
-        )
+Perhaps you explicitly set the .PRINT option to a negative number in one of the sections?'
+        raise Exception(msg)
 
     return functions_info

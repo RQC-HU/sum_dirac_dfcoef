@@ -29,9 +29,11 @@ class AtomInfo:
         try:
             self.functions[gto_type] -= 1
             if self.functions[gto_type] < 0:
-                raise ValueError(f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}")
-        except KeyError:
-            raise KeyError(f"{gto_type} is not in current_atom_info: {self.functions.keys()}")
+                msg = f"Too many functions detected. self.functions[{gto_type}] must be >= 0, but got {self.functions[gto_type]}"
+                raise ValueError(msg)
+        except KeyError as e:
+            msg = f"self.functions[{gto_type}] is not found in self.functions: {self.functions.keys()}"
+            raise KeyError(msg) from e
 
     def count_remaining_functions(self) -> int:
         return sum(self.functions.values())
@@ -48,9 +50,11 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
     @validator("subshell")
     def validate_subshell(cls, v: str) -> str:
         if v not in subshell_order.subshell_order:
-            raise ValueError(f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'")
+            msg = f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'"
+            raise ValueError(msg)
         if len(v) != 1:
-            raise ValueError("subshell must be one character")
+            msg = f"subshell must be one character, but got '{v}'"
+            raise ValueError(msg)
         return v
 
     def reset(self):
