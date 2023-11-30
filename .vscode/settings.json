@@ -17,5 +17,6 @@
     ],
     "ruff.lint.args": [
         "--line-length=180",
+        "--ignore=FBT001"
     ]
 }
