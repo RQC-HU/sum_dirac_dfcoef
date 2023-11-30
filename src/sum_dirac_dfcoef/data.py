@@ -4,7 +4,7 @@ from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.coefficient import Coefficient
 
 
-class Data_MO:
+class DataMO:
     norm_const_sum: float = 0.0
     coef_dict: Dict[str, Coefficient] = {}
     coef_list: "list[Coefficient]" = []
@@ -36,9 +36,9 @@ class Data_MO:
         self.coef_list.sort(key=lambda coef: coef.coefficient, reverse=True)
 
 
-class Data_All_MO:
-    electronic: "list[Data_MO]" = []
-    positronic: "list[Data_MO]" = []
+class DataAllMO:
+    electronic: "list[DataMO]" = []
+    positronic: "list[DataMO]" = []
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"

@@ -7,7 +7,7 @@ from pathlib import Path
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.atoms import AtomInfo
 from sum_dirac_dfcoef.coefficient import get_coefficient
-from sum_dirac_dfcoef.data import Data_All_MO, Data_MO
+from sum_dirac_dfcoef.data import DataAllMO, DataMO
 from sum_dirac_dfcoef.eigenvalues import get_eigenvalues
 from sum_dirac_dfcoef.file_writer import output_file_writer
 from sum_dirac_dfcoef.functions_info import get_functions_info
@@ -111,8 +111,8 @@ def main() -> None:
     output_file_writer.create_blank_file()
     output_file_writer.write_eigenvalues(eigenvalues)
 
-    data_mo = Data_MO()
-    data_all_mo = Data_All_MO()
+    data_mo = DataMO()
+    data_all_mo = DataAllMO()
     used_atom_info: dict[str, AtomInfo] = {}
     current_atom_info = AtomInfo()
     dirac_output.seek(0)  # rewind to the beginning of the file
