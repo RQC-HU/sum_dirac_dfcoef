@@ -113,7 +113,7 @@ def main() -> None:
 
     data_mo = Data_MO()
     data_all_mo = Data_All_MO()
-    used_atom_info: dict[str, AtomInfo] = dict()
+    used_atom_info: dict[str, AtomInfo] = {}
     current_atom_info = AtomInfo()
     dirac_output.seek(0)  # rewind to the beginning of the file
     for line_str in dirac_output:

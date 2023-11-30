@@ -6,8 +6,8 @@ from sum_dirac_dfcoef.coefficient import Coefficient
 
 class Data_MO:
     norm_const_sum: float = 0.0
-    coef_dict: Dict[str, Coefficient] = dict()
-    coef_list: "list[Coefficient]" = list()
+    coef_dict: Dict[str, Coefficient] = {}
+    coef_list: "list[Coefficient]" = []
     electron_num: int = 0
     mo_energy: float = 0.0
     mo_info: str = ""
