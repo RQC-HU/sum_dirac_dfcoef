@@ -109,8 +109,8 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
         check=True,
     )
 
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath, "r").read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath, "r").read().splitlines()))]
+    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
+    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
