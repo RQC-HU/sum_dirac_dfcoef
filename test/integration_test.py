@@ -1,9 +1,23 @@
 import os
 import re
 import subprocess
+from pathlib import Path
 from typing import List
 
 import pytest
+
+
+class Env:
+    def __init__(self, ref_filename: str, result_filename: str, input_filename: str, options: str):
+        self.test_path = Path(__file__).resolve().parent
+        self.ref_filepath = Path.joinpath(self.test_path, "data", ref_filename)
+        self.result_filepath = Path.joinpath(self.test_path, "results", result_filename)
+        self.input_filepath = Path.joinpath(self.test_path, "data", input_filename)
+        self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
+
+
+def get_output_list(filepath: Path) -> List[List[str]]:
+    return [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(filepath).read().splitlines()))]
 
 
 @pytest.mark.parametrize(
@@ -27,31 +41,19 @@ import pytest
     # fmt: on
 )
 def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    test_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(test_path)
-    print(test_path, " test start...")
+    env = Env(ref_filename, result_filename, input_filename, options)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "results", result_filename)
-    input_filepath = os.path.join(test_path, "data", input_filename)
-
-    test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
-    print(test_command)
-    subprocess.run(
-        test_command.split(),
-        encoding="utf-8",
-        check=True,
-    )
-
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = get_output_list(env.ref_filepath)
+    result_list: List[List[str]] = get_output_list(env.result_filepath)
     # File should have the same number of lines
-    assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
+    assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
-    checked = len(ref_file)
-    for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+    for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         # 1st line has header information about eigenvalues
-        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
             assert ref == out
             continue
@@ -59,16 +61,14 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
         # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
         assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
         assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert abs(float(ref[2]) - float(out[2])) == pytest.approx(0, threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
         for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
             if idx % 2 == 0:
                 assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
             else:
-                assert abs(float(ref_val) - float(out_val)) == pytest.approx(
-                    0, threshold
+                assert float(ref_val) == pytest.approx(
+                    float(out_val), abs=threshold
                 ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
-
-    open(f"test.{input_filename}.log", "w").write(f"{checked} lines checked")
 
 
 @pytest.mark.parametrize(
@@ -93,36 +93,23 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # fmt: on
 )
 def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    test_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(test_path)
-    print(test_path, " test start...")
+    env = Env(ref_filename, result_filename, input_filename, options)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "results", result_filename)
-    input_filepath = os.path.join(test_path, "data", input_filename)
-
-    test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
-    print(test_command)
-    subprocess.run(
-        test_command.split(),
-        encoding="utf-8",
-        check=True,
-    )
-
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = get_output_list(env.ref_filepath)
+    result_list: List[List[str]] = get_output_list(env.result_filepath)
     # File should have the same number of lines
-    assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
+    assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
-    checked = len(ref_file)
-    for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+    for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         # 1st line has header information about eigenvalues
-        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
             assert ref == out
             continue
         if len(ref) < 2 or len(out) < 2:
-            checked -= 1
             continue
         if "%" in ref[-1]:
             ref_value = float(ref[-2])
@@ -134,6 +121,5 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
             out_value = float(out[-1])
             ref_list_str = " ".join(ref[:-1])
             out_list_str = " ".join(out[:-1])
-        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
-        assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
-    open(f"test.{input_filename}.log", "w").write(f"{checked} lines checked")
+        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+        assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
