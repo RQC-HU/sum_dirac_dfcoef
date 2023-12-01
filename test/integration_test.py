@@ -1,9 +1,19 @@
 import os
 import re
 import subprocess
+from pathlib import Path
 from typing import List
 
 import pytest
+
+
+class Env:
+    def __init__(self, ref_filename: str, result_filename: str, input_filename: str, options: str):
+        self.test_path = Path(__file__).resolve().parent
+        self.ref_filepath = Path.joinpath(self.test_path, "data", ref_filename)
+        self.result_filepath = Path.joinpath(self.test_path, "results", result_filename)
+        self.input_filepath = Path.joinpath(self.test_path, "data", input_filename)
+        self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
 
 
 @pytest.mark.parametrize(
@@ -27,24 +37,13 @@ import pytest
     # fmt: on
 )
 def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    test_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(test_path)
-    print(test_path, " test start...")
+    env = Env(ref_filename, result_filename, input_filename, options)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "results", result_filename)
-    input_filepath = os.path.join(test_path, "data", input_filename)
-
-    test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
-    print(test_command)
-    subprocess.run(
-        test_command.split(),
-        encoding="utf-8",
-        check=True,
-    )
-
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
+    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
+    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
@@ -93,24 +92,13 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # fmt: on
 )
 def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    test_path = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(test_path)
-    print(test_path, " test start...")
+    env = Env(ref_filename, result_filename, input_filename, options)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_filepath = os.path.join(test_path, "data", ref_filename)
-    result_filepath = os.path.join(test_path, "results", result_filename)
-    input_filepath = os.path.join(test_path, "data", input_filename)
-
-    test_command = f"sum_dirac_dfcoef -i {input_filepath} -o {result_filepath} {options}"
-    print(test_command)
-    subprocess.run(
-        test_command.split(),
-        encoding="utf-8",
-        check=True,
-    )
-
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(result_filepath).read().splitlines()))]
+    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
+    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
