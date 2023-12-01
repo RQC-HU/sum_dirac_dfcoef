@@ -2,7 +2,7 @@ import re
 from io import TextIOWrapper
 from typing import Dict, List
 
-from sum_dirac_dfcoef.utils import space_separated_parsing
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 # type definition eigenvalues
@@ -115,5 +115,5 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
                 eigenvalues[current_symmetry_type][current_eigenvalue_type] += num
                 start_idx += match.end()
 
-    print(f"eigenvalues: {eigenvalues}")
+    debug_print(f"eigenvalues: {eigenvalues}")
     return eigenvalues
