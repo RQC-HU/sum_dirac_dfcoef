@@ -42,12 +42,12 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
+    result_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
     # File should have the same number of lines
-    assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
+    assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
-    for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+    for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         # 1st line has header information about eigenvalues
         # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
@@ -94,12 +94,12 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
-    out_file: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
+    result_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
     # File should have the same number of lines
-    assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
+    assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
-    for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
+    for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         # 1st line has header information about eigenvalues
         # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
@@ -117,5 +117,5 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
             out_value = float(out[-1])
             ref_list_str = " ".join(ref[:-1])
             out_list_str = " ".join(out[:-1])
-        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
-        assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
+        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+        assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
