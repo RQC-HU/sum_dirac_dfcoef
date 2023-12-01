@@ -47,10 +47,9 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
-    checked = len(ref_file)
     for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
         # 1st line has header information about eigenvalues
-        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
             assert ref == out
             continue
@@ -66,8 +65,6 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
                 assert abs(float(ref_val) - float(out_val)) == pytest.approx(
                     0, threshold
                 ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
-
-    open(f"test.{input_filename}.log", "w").write(f"{checked} lines checked")
 
 
 @pytest.mark.parametrize(
@@ -102,15 +99,13 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     # File should have the same number of lines
     assert len(ref_file) == len(out_file), f"Number of lines in {ref_filename}(={len(ref_file)}) and {result_filename}(={len(out_file)}) are different."
     threshold: float = 1e-10
-    checked = len(ref_file)
     for line_idx, (ref, out) in enumerate(zip(ref_file, out_file)):
         # 1st line has header information about eigenvalues
-        # E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        # (e.g.) E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx == 0:
             assert ref == out
             continue
         if len(ref) < 2 or len(out) < 2:
-            checked -= 1
             continue
         if "%" in ref[-1]:
             ref_value = float(ref[-2])
@@ -124,4 +119,3 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
             out_list_str = " ".join(out[:-1])
         assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
         assert abs(ref_value - out_value) == pytest.approx(0, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_file[line_idx]}\nout:{out_file[line_idx]}"
-    open(f"test.{input_filename}.log", "w").write(f"{checked} lines checked")
