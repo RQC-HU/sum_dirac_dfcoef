@@ -16,6 +16,10 @@ class Env:
         self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
 
 
+def get_output_list(filepath: Path) -> List[List[str]]:
+    return [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(filepath).read().splitlines()))]
+
+
 @pytest.mark.parametrize(
     "ref_filename, result_filename, input_filename, options",
     # fmt: off
@@ -42,8 +46,8 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
-    result_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = get_output_list(env.ref_filepath)
+    result_list: List[List[str]] = get_output_list(env.result_filepath)
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
@@ -94,8 +98,8 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
-    ref_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.ref_filepath).read().splitlines()))]
-    result_list: List[List[str]] = [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(env.result_filepath).read().splitlines()))]
+    ref_list: List[List[str]] = get_output_list(env.ref_filepath)
+    result_list: List[List[str]] = get_output_list(env.result_filepath)
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
