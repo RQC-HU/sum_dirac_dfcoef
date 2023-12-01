@@ -7,7 +7,6 @@ This program provides a utility to summarize the contribution of each atomic orb
 ## Requirements
 
 - [Python](https://python.org) (version ≧ 3.7)
-  - If you don't know how to install python, I recommend you to use [pyenv](https://github.com/pyenv/pyenv)
 
 ## Install
 
@@ -39,7 +38,7 @@ sum_dirac_dfcoef -i x2c_uo2_238.out
 If you want to use this program on Windows, you can use it with the following command.
 
 ```sh
-python -m sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH
+sum_dirac_dfcoef.exe -i DIRAC_OUPUT_FILE_PATH
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
@@ -157,7 +156,7 @@ optional arguments (--input is required)
 
 - --debug
 
-  print debug output (Normalization constant, Sum of MO coefficient)
+  print debug output (Normalization constant, Sum of MO coefficient ...)
 
 - --no-sort
 
