@@ -12,9 +12,10 @@ class OutputFileWriter:
         super().__init__()
         self.output_path = self.get_output_path()
 
-    def write_eigenvalues(self, eigenvalues: Eigenvalues) -> None:
+    def write_headerinfo(self, eigenvalues: Eigenvalues, electron_num: int) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
             line = ""
+            line += f"electron_num {electron_num} "
             for symmetry_type, d in eigenvalues.items():
                 line += f"{symmetry_type} "
                 for eigenvalue_type, num in d.items():
