@@ -10,7 +10,7 @@ import pytest
 class Env:
     def __init__(self, ref_filename: str, result_filename: str, input_filename: str, options: str):
         self.test_path = Path(__file__).resolve().parent
-        self.ref_filepath = Path.joinpath(self.test_path, "data", ref_filename)
+        self.ref_filepath = Path.joinpath(self.test_path, "references", ref_filename)
         self.result_filepath = Path.joinpath(self.test_path, "results", result_filename)
         self.input_filepath = Path.joinpath(self.test_path, "data", input_filename)
         self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
