@@ -36,7 +36,8 @@ Please check your DIRAC input file and try again.\n"
     is_scf_found: bool = False
     scf_detail_section: bool = False
     # *section name or **section name
-    regex_section = r"^\*{1,2}[0-9A-Z]+"
+    regex_section = r" *\*{1,2}[0-9A-Z]+"
+    regex_scf = r" *\.SCF"
     for line in dirac_output:
         words = space_separated_parsing(line)
         words = [word.upper() for word in words]
@@ -52,7 +53,7 @@ Please check your DIRAC input file and try again.\n"
         if is_reach_input_field:
             if len(words) == 0:
                 continue
-            if ".SCF" in words[0]:
+            if re.match(regex_scf, words[0]) is not None:
                 is_scf_found = True
 
             if re.match(regex_section, words[0]) is not None:
