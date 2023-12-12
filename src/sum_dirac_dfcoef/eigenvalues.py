@@ -1,11 +1,13 @@
 import re
+from collections import OrderedDict
 from io import TextIOWrapper
-from typing import Dict, List
+from typing import ClassVar, Dict, List
+from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
-# type definition eigenvalues
+# type definition eigenvalues.shell_num
 # type eigenvalues = {
 #     "E1g": {
 #         "closed": int
@@ -18,8 +20,13 @@ from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 #         "virtual": int
 #     },
 # }
-class Eigenvalues(Dict[str, Dict[str, int]]):
-    pass
+class Eigenvalues:
+    shell_num: ClassVar[ODict[str, Dict[str, int]]] = OrderedDict()
+    energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
+
+    def setdefault(self, key: str):
+        self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0})
+        self.energies.setdefault(key, [])
 
 
 def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
@@ -86,19 +93,19 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
             if "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
                 print_type = "standard"
                 current_symmetry_type = get_symmetry_type_standard(words)
-                eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
+                eigenvalues.setdefault(current_symmetry_type)
             elif "* Block" in line:
                 print_type = "supersymmetry"
                 current_symmetry_type = get_symmetry_type_supersym(words)
-                eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
+                eigenvalues.setdefault(current_symmetry_type)
             continue
 
         if print_type == "standard" and "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
             current_symmetry_type = get_symmetry_type_standard(words)
-            eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
+            eigenvalues.setdefault(current_symmetry_type)
         elif print_type == "supersymmetry" and "* Block" in line:
             current_symmetry_type = get_symmetry_type_supersym(words)
-            eigenvalues.setdefault(current_symmetry_type, {"closed": 0, "open": 0, "virtual": 0})
+            eigenvalues.setdefault(current_symmetry_type)
         elif is_eigenvalue_type_written(words):
             current_eigenvalue_type = get_current_eigenvalue_type(words)
         elif is_end_of_read(line):
@@ -106,14 +113,25 @@ def get_eigenvalues(dirac_output: TextIOWrapper) -> Eigenvalues:
         else:
             start_idx = 0
             while True:
+                # e.g. -775.202926514  ( 2) => -775.202926514
+                regex = r"[-]?[0-9]+\.?[0-9]+"
+                match = re.search(regex, line[start_idx:])
+                if match is None:
+                    break
+                val = float(match.group())
+                eigenvalues.energies[current_symmetry_type].append(val)
+
                 # e.g. -775.202926514  ( 2) => 2
                 regex = r"\([ ]*[0-9]+\)"
                 match = re.search(regex, line[start_idx:])
                 if match is None:
                     break
+                # [1 : len(match.group()) - 1] => ( 2) => 2
                 num = int(match.group()[1 : len(match.group()) - 1])
-                eigenvalues[current_symmetry_type][current_eigenvalue_type] += num
+                eigenvalues.shell_num[current_symmetry_type][current_eigenvalue_type] += num
                 start_idx += match.end()
 
+    for key in eigenvalues.energies.keys():
+        eigenvalues.energies[key].sort()
     debug_print(f"eigenvalues: {eigenvalues}")
     return eigenvalues

@@ -16,7 +16,7 @@ class OutputFileWriter:
         with open(self.output_path, "a", encoding="utf-8") as f:
             line = ""
             line += f"electron_num {electron_num} "
-            for symmetry_type, d in eigenvalues.items():
+            for symmetry_type, d in eigenvalues.shell_num.items():
                 line += f"{symmetry_type} "
                 for eigenvalue_type, num in d.items():
                     line += f"{eigenvalue_type} {num} "
