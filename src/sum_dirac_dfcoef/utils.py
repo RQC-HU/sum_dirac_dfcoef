@@ -26,6 +26,11 @@ def is_float(parameter: str):
         return False
 
 
+def is_dirac_input_keyword(word: str) -> bool:
+    regex_keyword = r" *\.[0-9A-Z]+"
+    return re.match(regex_keyword, word) is not None
+
+
 def is_dirac_input_section(word: str) -> bool:
     regex_section = r" *\*{1,2}[0-9A-Z]+"
     return re.match(regex_section, word) is not None
