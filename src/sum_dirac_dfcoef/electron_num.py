@@ -1,7 +1,7 @@
 import re
 from io import TextIOWrapper
 
-from sum_dirac_dfcoef.utils import space_separated_parsing
+from sum_dirac_dfcoef.utils import is_dirac_input_section, space_separated_parsing
 
 
 def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
@@ -36,8 +36,7 @@ Please check your DIRAC input file and try again.\n"
     is_scf_found: bool = False
     scf_detail_section: bool = False
     # *section name or **section name
-    regex_section = r" *\*{1,2}[0-9A-Z]+"
-    regex_scf = r" *\.SCF"
+    regex_scf_keyword = r" *\.SCF"
     regex_comment_out = r" *[!#]"
     for line in dirac_output:
         words = space_separated_parsing(line)
@@ -56,10 +55,10 @@ Please check your DIRAC input file and try again.\n"
                 # Comment out line or empty line
                 continue
 
-            if re.match(regex_scf, words[0]) is not None:
+            if re.match(regex_scf_keyword, words[0]) is not None:
                 is_scf_found = True
 
-            if re.match(regex_section, words[0]) is not None:
+            if is_dirac_input_section(words[0]):
                 if "*SCF" in words[0]:
                     scf_detail_section = True
                 else:
