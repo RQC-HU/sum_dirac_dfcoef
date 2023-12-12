@@ -38,6 +38,7 @@ Please check your DIRAC input file and try again.\n"
     # *section name or **section name
     regex_section = r" *\*{1,2}[0-9A-Z]+"
     regex_scf = r" *\.SCF"
+    regex_comment_out = r" *[!#]"
     for line in dirac_output:
         words = space_separated_parsing(line)
         words = [word.upper() for word in words]
@@ -51,8 +52,10 @@ Please check your DIRAC input file and try again.\n"
             break  # end of input field
 
         if is_reach_input_field:
-            if len(words) == 0:
+            if len(words) == 0 or re.match(regex_comment_out, words[0]) is not None:
+                # Comment out line or empty line
                 continue
+
             if re.match(regex_scf, words[0]) is not None:
                 is_scf_found = True
 
