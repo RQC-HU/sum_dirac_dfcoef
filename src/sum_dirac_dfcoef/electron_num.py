@@ -30,7 +30,7 @@ Please check your DIRAC input file and try again.\n"
     electron_num: int = 0
     is_closed_shell_section: bool = False
     is_openshell_section: bool = False
-    num_of_open_shell: int = -1
+    num_of_open_shell: int = 0
     is_next_line_print_setting: bool = False
     is_reach_input_field: bool = False
     is_scf_found: bool = False
