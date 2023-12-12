@@ -5,24 +5,47 @@ from sum_dirac_dfcoef.utils import space_separated_parsing
 
 
 def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
+    """If users calculate SCF with open shell they must explicitly write the OPEN SHELL and CLOSED SHELL keywords
+    in the input file. Therefore, we can get the electron number from the input file.
+
+        Args:
+            dirac_output (TextIOWrapper): Output file of DIRAC
+
+        Returns:
+            int: The number of electrons in the system
+    """
+
+    def get_an_natural_number(word: str) -> int:
+        # OPEN SHELL and CLOSED SHELL electron number settings
+        # must be written as a natural number (negative number is not allowed)
+        regex_number = r"[-]?[0-9]+"
+        number = int(re.search(regex_number, word).group())
+        if number < 0:
+            msg = "The number of electrons in OPEN SHELL and CLOSED SHELL must be a natural number.\n\
+But we found a negative number in your DIRAC input file.\n\
+Please check your DIRAC input file and try again.\n"
+            raise ValueError(msg)
+        return number
+
     electron_num: int = 0
-    is_next_line_electron_num: bool = False
+    is_closed_shell_section: bool = False
+    is_openshell_section: bool = False
+    num_of_open_shell: int = -1
     is_next_line_print_setting: bool = False
     is_reach_input_field: bool = False
     is_scf_found: bool = False
     scf_detail_section: bool = False
-    regex_number = r"[0-9]+"
     # *section name or **section name
     regex_section = r"^\*{1,2}[0-9A-Z]+"
     for line in dirac_output:
         words = space_separated_parsing(line)
         words = [word.upper() for word in words]
-        # find "Contents of the input file"
+        # If we reach this line, it means that we are in the input field
         if "Contents of the input file" in line:
             is_reach_input_field = True
             continue
 
-        # find "Contents of the molecule file"
+        # If we reach this line, it means the end of the input field
         if "Contents of the molecule file" in line:
             break  # end of input field
 
@@ -39,23 +62,52 @@ def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
                     scf_detail_section = False
 
             if scf_detail_section:
-                if is_next_line_electron_num:
-                    number = re.search(regex_number, words[0]).group()
-                    electron_num += int(number)
-                    is_next_line_electron_num = False
+                if is_openshell_section:
+                    if num_of_open_shell == 0:
+                        num_of_open_shell = get_an_natural_number(words[0])
+                    else:
+                        num_of_open_shell -= 1
+                        # open shell format
+                        # https://diracprogram.org/doc/master/manual/wave_function/scf.html#open-shell
+                        # .OPEN SHELL
+                        # num_of_open_shell
+                        # num_of_elec/irrep1_num_spinor irrep2_num_spinor ...
+                        # We want to get only num_of_elec
+                        electron_num += get_an_natural_number(words[0])
+                        if num_of_open_shell == 0:
+                            is_openshell_section = False
+
+                if is_closed_shell_section:
+                    # closed shell format
+                    # https://diracprogram.org/doc/master/manual/wave_function/scf.html#closed-shell
+                    # .CLOSED SHELL
+                    # irrep1_num_spinor irrep2_num_spinor ...
+                    # "!" or "#" means comment out(see https://gitlab.com/dirac/dirac/-/blob/ea717cdb294035d8af3ebe2b1e00cf94f1c1a6b7/src/input/parse_input.F90#L53-54)
+                    # So we need to read electron numbers until the line contains "!" or "#" or the last element of words.
+                    regex_comment_out = r"[!#]"
+                    for word in words:
+                        if re.search(regex_comment_out, word) is not None:
+                            comment_idx = re.search(regex_comment_out, word).start()
+                            w = word[:comment_idx]
+                            if len(w) > 0:
+                                electron_num += get_an_natural_number(w)
+                            break
+                        else:
+                            electron_num += get_an_natural_number(word)
+                    is_closed_shell_section = False
 
                 if is_next_line_print_setting:
                     # https://gitlab.com/kohei-noda/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2865-2876
                     # ipreig = 0 (no eigenvalue printout) and 2 (only positronic eigenvalues written out)
                     # are not supported because we cannot get electron number from them
-                    number = re.search(regex_number, words[0]).group()
+                    number = get_an_natural_number(words[0])
                     ipreig = int(number)
                     if ipreig in (0, 2):
                         msg = ".PRINT setting in *SCF section with value 0 or 2 is not supported.\n\
 0 means no eigenvalue printout and 2 means only positronic eigenvalues written out.\n\
-We cannot get electron number from them.\n\
+Therefore we cannot get the information (e.g. orbital energies) from DIRAC output.\n\
 So we cannot continue this program because we need electron number and orbital energies to summarize DIRAC output.\n\
-    Please check your DIRAC input file and try again.\n"
+Please check your DIRAC input file and try again.\n"
                         raise ValueError(msg)
                     is_next_line_print_setting = False
 
@@ -64,11 +116,11 @@ So we cannot continue this program because we need electron number and orbital e
 
                 # .CLOSED SHELL
                 if ".CLOSED" == words[0] and "SHELL" in words[1]:
-                    is_next_line_electron_num = True
+                    is_closed_shell_section = True
 
                 # .OPEN SHELL
                 if ".OPEN" == words[0] and "SHELL" in words[1]:
-                    is_next_line_electron_num = True
+                    is_openshell_section = True
     if not is_scf_found:
         msg = "Cannot find SCF calculation settings from your DIRAC input file wrtte in your output file.\n\
 we cannot get information about the electron number and orbital energy without SCF calculation.\n\
