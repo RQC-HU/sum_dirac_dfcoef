@@ -86,12 +86,13 @@ Please check your DIRAC input file and try again.\n"
                     # So we need to read electron numbers until the line contains "!" or "#" or the last element of words.
                     regex_comment_out = r"[!#]"
                     for word in words:
-                        if re.search(regex_comment_out, word) is not None:
-                            comment_idx = re.search(regex_comment_out, word).start()
+                        comment_out_str = re.search(regex_comment_out, word)
+                        if comment_out_str is not None:
+                            comment_idx = comment_out_str.start()
                             w = word[:comment_idx]
                             if len(w) > 0:
                                 electron_num += get_an_natural_number(w)
-                            break
+                            break  # end of closed shell section because we found comment out
                         else:
                             electron_num += get_an_natural_number(word)
                     is_closed_shell_section = False
