@@ -57,4 +57,3 @@ class MoltraInfo:
                     break
                 no_comment_line = delete_comment_out(line)
                 cls.range_str.append(no_comment_line.strip())
-                cls.range_str.append(no_comment_line.strip())
