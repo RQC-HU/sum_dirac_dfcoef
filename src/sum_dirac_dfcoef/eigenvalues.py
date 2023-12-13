@@ -117,7 +117,6 @@ class Eigenvalues:
                     if match is None:
                         break
                     val = float(match.group())
-                    self.energies[current_symmetry_type].append(val)
 
                     # e.g. -775.202926514  ( 2) => 2
                     regex = r"\([ ]*[0-9]+\)"
@@ -127,6 +126,8 @@ class Eigenvalues:
                     # [1 : len(match.group()) - 1] => ( 2) => 2
                     num = int(match.group()[1 : len(match.group()) - 1])
                     self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
+                    for _ in range(0, num, 2):
+                        self.energies[current_symmetry_type].append(val)
                     start_idx += match.end()
 
         for key in self.energies.keys():
