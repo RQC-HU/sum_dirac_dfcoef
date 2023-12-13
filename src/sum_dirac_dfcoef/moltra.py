@@ -1,6 +1,8 @@
 import re
+from collections import OrderedDict
 from io import TextIOWrapper
 from typing import ClassVar, List
+from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.utils import (
     delete_comment_out,
@@ -14,9 +16,10 @@ from sum_dirac_dfcoef.utils import (
 
 class MoltraInfo:
     is_default: bool = True
-    ranges: ClassVar[List[str]] = []
-    # ranges Example:
+    range_str: ClassVar[List[str]] = []
+    # range_str Example:
     # ['energy -20 10 2', '10..180', ...]
+    idx_range: ClassVar[ODict[str, List[int]]] = OrderedDict()
 
     @classmethod
     def read_moltra_section(cls, dirac_output: TextIOWrapper):
@@ -26,7 +29,7 @@ class MoltraInfo:
             dirac_output (TextIOWrapper): Output file of DIRAC
 
         Returns:
-            None (cls.ranges and cls.is_default will be updated)
+            None (cls.range_str and cls.is_default will be updated)
         """
 
         is_moltra_section = False
@@ -53,4 +56,5 @@ class MoltraInfo:
                     # End of the .ACTIVE section
                     break
                 no_comment_line = delete_comment_out(line)
-                cls.ranges.append(no_comment_line.strip())
+                cls.range_str.append(no_comment_line.strip())
+                cls.range_str.append(no_comment_line.strip())
