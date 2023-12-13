@@ -123,3 +123,21 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
             out_list_str = " ".join(out[:-1])
         assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
         assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+
+
+def test_version_option():
+    command = "sum_dirac_dfcoef -v"
+    p = subprocess.run(command.split(), encoding="utf-8", check=True, stdout=subprocess.PIPE)
+    # p.stdout = x.y.z\n
+    out_version_str = p.stdout.rstrip("\n")
+    about_file = Path(__file__).resolve().parent.parent / "src/sum_dirac_dfcoef/__about__.py"
+    # readline() => __version__ = "x.y.z"
+    # split()[-1] => "x.y.z"
+    # replace() => x.y.z
+    ref_version_str = open(about_file).readline().split()[-1].replace('"', "")
+    assert out_version_str == ref_version_str
+
+
+def test_help_option():
+    command = "sum_dirac_dfcoef -h"
+    subprocess.run(command.split(), check=True)
