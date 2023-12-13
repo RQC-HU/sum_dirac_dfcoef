@@ -9,7 +9,6 @@ from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.atoms import AtomInfo
 from sum_dirac_dfcoef.coefficient import get_coefficient
 from sum_dirac_dfcoef.data import DataAllMO, DataMO
-from sum_dirac_dfcoef.electron_num import get_electron_num_from_input, get_electron_num_from_scf_field
 from sum_dirac_dfcoef.file_writer import output_file_writer
 from sum_dirac_dfcoef.functions_info import get_functions_info
 from sum_dirac_dfcoef.header_info import HeaderInfo
@@ -111,11 +110,9 @@ def main() -> None:
     header_info = HeaderInfo()
     header_info.read_header_info(dirac_output)
     dirac_output.seek(0)
-    electron_num = get_electron_num_from_input(dirac_output)
     functions_info = get_functions_info(dirac_output)
-    electron_num = get_electron_num_from_scf_field(dirac_output) if electron_num == 0 else electron_num
     output_file_writer.create_blank_file()
-    output_file_writer.write_headerinfo(header_info.eigenvalues, electron_num)
+    output_file_writer.write_headerinfo(header_info)
 
     data_mo = DataMO()
     data_all_mo = DataAllMO()

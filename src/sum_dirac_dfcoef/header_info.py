@@ -1,6 +1,7 @@
 from io import TextIOWrapper
 
 from sum_dirac_dfcoef.eigenvalues import Eigenvalues
+from sum_dirac_dfcoef.electron_num import get_electron_num_from_input, get_electron_num_from_scf_field
 from sum_dirac_dfcoef.moltra import MoltraInfo
 
 
@@ -16,6 +17,7 @@ class HeaderInfo:
     def __init__(self):
         self.moltra_info = MoltraInfo()
         self.eigenvalues = Eigenvalues()
+        self.electrons = 0
 
     def read_header_info(self, dirac_output: TextIOWrapper) -> None:
         """Read the header information from the output file of DIRAC
@@ -25,9 +27,17 @@ class HeaderInfo:
 
         Returns:
         """
+        dirac_output.seek(0)
+        self.__read_electron_number(dirac_output)
         self.__read_eigenvalues(dirac_output)
         self.__read_moltra(dirac_output)
         self.__validate_len_moltra()
+
+    def __read_electron_number(self, dirac_output: TextIOWrapper) -> None:
+        self.electrons = get_electron_num_from_input(dirac_output)
+        if self.electrons == 0:
+            self.electrons = get_electron_num_from_scf_field(dirac_output)
+        dirac_output.seek(0)
 
     def __read_eigenvalues(self, dirac_output: TextIOWrapper) -> None:
         self.eigenvalues.get_eigenvalues(dirac_output)
