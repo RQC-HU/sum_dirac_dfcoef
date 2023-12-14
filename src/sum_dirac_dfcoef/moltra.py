@@ -19,7 +19,6 @@ class MoltraInfo:
     range_str: ClassVar[List[str]] = []
     # range_str Example:
     # ['energy -20 10 2', '10..180', ...]
-    idx_range: ClassVar[ODict[str, List[int]]] = OrderedDict()
 
     @classmethod
     def read_moltra_section(cls, dirac_output: TextIOWrapper):
