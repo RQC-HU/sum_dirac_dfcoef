@@ -71,7 +71,6 @@ class HeaderInfo:
                 self.moltra_info.range_dict[symmetry_type] = self.__parse_energy_str(item, symmetry_type)
             else:
                 self.moltra_info.range_dict[symmetry_type] = self.__parse_range_str(item, symmetry_type)
-        print(self.moltra_info.range_dict)
 
     def __parse_energy_str(self, energy_str: str, symmetry_type: str) -> str:
         """Parse the energy string
