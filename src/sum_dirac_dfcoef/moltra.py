@@ -1,8 +1,6 @@
 import re
-from collections import OrderedDict
 from io import TextIOWrapper
 from typing import ClassVar, List
-from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.utils import (
     delete_comment_out,
