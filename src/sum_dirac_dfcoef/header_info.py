@@ -66,7 +66,7 @@ class HeaderInfo:
         for i, item in enumerate(self.moltra_info.range_str):
             symmetry_type = keys[i]
             if "ALL" == item.upper():
-                self.moltra_info.range_str[i] = f"1..{self.eigenvalues.shell_num[symmetry_type]}"
+                self.moltra_info.range_str[i] = f"1..{len(self.eigenvalues.energies[symmetry_type])}"
             elif "ENERGY" in item.upper():
                 self.moltra_info.range_str[i] = self.__parse_energy_str(item, symmetry_type)
             else:
