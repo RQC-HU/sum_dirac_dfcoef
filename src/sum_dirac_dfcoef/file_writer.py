@@ -14,8 +14,10 @@ class OutputFileWriter:
 
     def write_headerinfo(self, header_info: HeaderInfo) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
-            line = ""
-            line += f"electron_num {header_info.electrons} "
+            line = f"electron_num {header_info.electrons} "
+            for symmetry_type, d in header_info.moltra_info.range_dict.items():
+                line += f"{symmetry_type} {d} "
+            line += "\n"
             for symmetry_type, d in header_info.eigenvalues.shell_num.items():
                 line += f"{symmetry_type} "
                 for eigenvalue_type, num in d.items():
