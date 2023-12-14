@@ -1,6 +1,6 @@
 import re
 from io import TextIOWrapper
-from typing import ClassVar, List
+from typing import ClassVar, Dict, List
 
 from sum_dirac_dfcoef.utils import (
     delete_comment_out,
@@ -17,6 +17,7 @@ class MoltraInfo:
     range_str: ClassVar[List[str]] = []
     # range_str Example:
     # ['energy -20 10 2', '10..180', ...]
+    range_dict: ClassVar[Dict[str, str]] = {}
 
     @classmethod
     def read_moltra_section(cls, dirac_output: TextIOWrapper):
