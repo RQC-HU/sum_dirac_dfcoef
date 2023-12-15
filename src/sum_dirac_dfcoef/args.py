@@ -47,6 +47,13 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
     parser.add_argument("-p", "--positronic-write", action="store_true", help="Print only Positronic MOs.", dest="positronic_write")
     parser.add_argument("-v", "--version", action=PrintVersionExitAction, help="Print version and exit", dest="version")
+    parser.add_argument(
+        "--no-scf",
+        action="store_true",
+        help="If you don't activate .SCF keyword in your DIRAC input file, you must use this option.\
+            But you cannot use the output using this option to dcaspt2_input_generator program.",
+        dest="no_scf",
+    )
     parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)", dest="debug")
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     # If -v or --version option is used, print version and exit
