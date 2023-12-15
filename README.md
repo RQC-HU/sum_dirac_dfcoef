@@ -150,7 +150,7 @@ optional arguments (--input is required)
 
 - -p, --positronic-write
 
-  Print only Positronic MOs.
+  Print only Positronic MOs. The output with this option cannot be used as input to dcaspt2_input_generator.
 
 - -v, --version
 
