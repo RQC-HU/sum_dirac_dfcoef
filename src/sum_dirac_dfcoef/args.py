@@ -45,7 +45,13 @@ def parse_args() -> "argparse.Namespace":
         dest="decimal",
     )
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
-    parser.add_argument("-p", "--positronic-write", action="store_true", help="Print only Positronic MOs.", dest="positronic_write")
+    parser.add_argument(
+        "-p",
+        "--positronic-write",
+        action="store_true",
+        help="Print only Positronic MOs. The output with this option cannot be used as input to dcaspt2_input_generator.",
+        dest="positronic_write",
+    )
     parser.add_argument("-v", "--version", action=PrintVersionExitAction, help="Print version and exit", dest="version")
     parser.add_argument(
         "--no-scf",
