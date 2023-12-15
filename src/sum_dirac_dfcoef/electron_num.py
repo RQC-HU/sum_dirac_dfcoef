@@ -126,10 +126,12 @@ Please check your DIRAC input file and try again.\n"
                 if ".OPEN" == words[0] and "SHELL" in words[1]:
                     is_openshell_section = True
     if not is_scf_found:
-        msg = "Cannot find SCF calculation settings from your DIRAC input file wrtte in your output file.\n\
+        msg = "\nCannot find SCF calculation settings from your DIRAC input file written in your output file.\n\
 we cannot get information about the electron number and orbital energy without SCF calculation.\n\
 So we cannot continue this program because we need electron number and orbital energies to summarize DIRAC output.\n\
-Please check your DIRAC input file and try again.\n"
+Please check your DIRAC input file and try again.\n\
+If you want to use this program by using the output file without SCF calculation, please use --no-scf option.\n\
+But you cannot use the output using --no-scf option to dcaspt2_input_generator program.\n"
         raise ValueError(msg)
     return electron_num
 
@@ -148,8 +150,10 @@ def get_electron_num_from_scf_field(dirac_output: TextIOWrapper) -> int:
             if "i.e. no. of electrons" in line:
                 # ["i.e.", "no.", "of", "electrons", "=", number]
                 return int(words[5])
-    msg = "Cannot find electron number from your DIRAC output file.\n\
+    msg = "\nCannot find electron number from your DIRAC output file.\n\
 we cannot get information about the electron number and orbital energy without SCF calculation.\n\
 So we cannot continue this program because we need electron number and orbital energies to summarize DIRAC output.\n\
-Please check your DIRAC input file and try again.\n"
+Please check your DIRAC input file and try again.\n\
+If you want to use this program by using the output file without SCF calculation, please use --no-scf option.\n\
+But you cannot use the output using --no-scf option to dcaspt2_input_generator program.\n"
     raise ValueError(msg)
