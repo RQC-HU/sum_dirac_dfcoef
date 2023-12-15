@@ -11,7 +11,5 @@ def pytest_sessionstart():
     os.chdir(Path.joinpath(test_dir, ".."))
     cmd = "python3 -m pip install -e ."
     subprocess.run(cmd.split(), check=True)
-    cmd = "sum_dirac_dfcoef -i ./test/data/Ar_Ar.out"
-    subprocess.run(cmd.split(), check=True)
     # Change the current directory to the original directory
     os.chdir(cur_dir)
