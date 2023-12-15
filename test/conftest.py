@@ -9,7 +9,7 @@ def pytest_sessionstart():
     # Change the current directory to the root directory of the package
     test_dir = Path(__file__).resolve().parent
     os.chdir(Path.joinpath(test_dir, ".."))
-    cmd = "python3 -m pip install ."
+    cmd = "python3 -m pip install -e ."
     subprocess.run(cmd.split(), check=True)
     cmd = "sum_dirac_dfcoef -i ./test/data/Ar_Ar.out"
     subprocess.run(cmd.split(), check=True)
