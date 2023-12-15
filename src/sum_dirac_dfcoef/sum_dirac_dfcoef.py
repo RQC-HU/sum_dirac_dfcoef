@@ -231,9 +231,9 @@ def main() -> None:
     if not args.no_sort:
         data_all_mo.electronic.sort(key=lambda x: x.mo_energy)
         data_all_mo.positronic.sort(key=lambda x: x.mo_energy)
-    if should_write_positronic_results_to_file():  # Positronic
-        # Write positronic results to the file
-        output_file_writer.write_mo_data(data_all_mo.positronic, add_blank_line=True)
     if should_write_electronic_results_to_file():  # Electronic
         # Write electronic results to the file
-        output_file_writer.write_mo_data(data_all_mo.electronic, add_blank_line=False)
+        output_file_writer.write_mo_data(data_all_mo.electronic, add_blank_line=True)
+    if should_write_positronic_results_to_file():  # Positronic
+        # Write positronic results to the file
+        output_file_writer.write_mo_data(data_all_mo.positronic, add_blank_line=False)
