@@ -107,12 +107,16 @@ def main() -> None:
     dirac_filepath = get_dirac_filepath()
     dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
-    header_info = HeaderInfo()
-    header_info.read_header_info(dirac_output)
+    if (not args.no_scf):
+        header_info = HeaderInfo()
+        header_info.read_header_info(dirac_output)
     dirac_output.seek(0)
     functions_info = get_functions_info(dirac_output)
     output_file_writer.create_blank_file()
-    output_file_writer.write_headerinfo(header_info)
+    if (args.no_scf):
+        output_file_writer.write_headerinfo_no_scf()
+    else:
+        output_file_writer.write_headerinfo(header_info)
 
     data_mo = DataMO()
     data_all_mo = DataAllMO()

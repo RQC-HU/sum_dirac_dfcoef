@@ -156,6 +156,11 @@ optional arguments (--input is required)
 
   Print version and exit
 
+- --no-scf
+
+  If you don't activate .SCF keyword in your DIRAC input file, you must use this option.
+  But you cannot use the output using this option to dcaspt2_input_generator program.
+
 - --debug
 
   print debug output (Normalization constant, Sum of MO coefficient ...)
