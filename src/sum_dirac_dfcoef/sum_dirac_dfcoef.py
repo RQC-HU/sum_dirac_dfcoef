@@ -113,8 +113,11 @@ def main() -> None:
     dirac_output.seek(0)
     functions_info = get_functions_info(dirac_output)
     output_file_writer.create_blank_file()
-    if (args.no_scf):
-        output_file_writer.write_headerinfo_no_scf()
+    if (args.no_scf or args.positronic_write):
+        # If args.no_scf is True, we cannot get header_info from the output file of DIRAC.
+        # also, if args.positronic_write is True, we do not need to write header_info to the output file.
+        # because dcaspt2_input_generator program does not support positronic results.
+        output_file_writer.write_no_header_info()
     else:
         output_file_writer.write_headerinfo(header_info)
 

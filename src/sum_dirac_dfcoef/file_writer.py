@@ -12,7 +12,7 @@ class OutputFileWriter:
         super().__init__()
         self.output_path = self.get_output_path()
 
-    def write_headerinfo_no_scf(self) -> None:
+    def write_no_header_info(self) -> None:
         # Print NO_HEADERINFO twice because the first and second lines are used for the header
         # If user uses --no-scf option, we cannot get the eigenvalues and the number of electrons from the output file.
         # Therefore, print NO_HEADERINFO twice to avoid using the output file for dcaspt2_input_generator program.
