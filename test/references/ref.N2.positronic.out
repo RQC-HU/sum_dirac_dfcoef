@@ -1,5 +1,5 @@
-electron_num 14 E1g 1..43 E1u 1..43 
-E1g closed 6 open 0 virtual 90 E1u closed 8 open 0 virtual 88 
+NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
+NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
 Positronic no. 1 E1u -138035.453329729993129
 B1uN2s(1)     49.999750113095473 %
 B1uN2s(2)     49.999750113095473 %
@@ -887,5 +887,4 @@ AgN2s(1)      47.979913279832935 %
 AgN2s(2)      47.979913279832935 %
 AgN2pz(1)      1.882591167366750 %
 AgN2pz(2)      1.882591167366750 %
-
 
