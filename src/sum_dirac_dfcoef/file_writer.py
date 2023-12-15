@@ -3,7 +3,7 @@ from typing import List
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.data import DataMO
-from sum_dirac_dfcoef.eigenvalues import Eigenvalues
+from sum_dirac_dfcoef.header_info import HeaderInfo
 from sum_dirac_dfcoef.utils import debug_print
 
 
@@ -12,11 +12,13 @@ class OutputFileWriter:
         super().__init__()
         self.output_path = self.get_output_path()
 
-    def write_headerinfo(self, eigenvalues: Eigenvalues, electron_num: int) -> None:
+    def write_headerinfo(self, header_info: HeaderInfo) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
-            line = ""
-            line += f"electron_num {electron_num} "
-            for symmetry_type, d in eigenvalues.items():
+            line = f"electron_num {header_info.electrons} "
+            for symmetry_type, d in header_info.moltra_info.range_dict.items():
+                line += f"{symmetry_type} {d} "
+            line += "\n"
+            for symmetry_type, d in header_info.eigenvalues.shell_num.items():
                 line += f"{symmetry_type} "
                 for eigenvalue_type, num in d.items():
                     line += f"{eigenvalue_type} {num} "
