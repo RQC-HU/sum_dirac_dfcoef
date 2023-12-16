@@ -116,8 +116,7 @@ def get_electron_num_from_scf_field(dirac_output: TextIOWrapper) -> int:
     # find "i.e. no. of electrons ="
     is_wave_function_module_reached: bool = False
     for line in dirac_output:
-        no_comment_out_line = delete_dirac_input_comment_out(line)
-        words = space_separated_parsing(no_comment_out_line)
+        words = space_separated_parsing(line)
         if "Wave function module" in line:
             is_wave_function_module_reached = True
             continue
