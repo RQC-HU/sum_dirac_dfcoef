@@ -2,6 +2,7 @@ import re
 from io import TextIOWrapper
 
 from sum_dirac_dfcoef.utils import (
+    delete_dirac_input_comment_out,
     is_dirac_input_line_should_be_skipped,
     is_dirac_input_section,
     is_end_dirac_input_field,
@@ -44,18 +45,18 @@ Please check your DIRAC input file and try again.\n"
     scf_detail_section: bool = False
     # *section name or **section name
     regex_scf_keyword = r" *\.SCF"
-    regex_comment_out = r" *[!#]"
     for line in dirac_output:
-        words = space_separated_parsing_upper(line)
+        no_comment_out_line = delete_dirac_input_comment_out(line)
+        words = space_separated_parsing_upper(no_comment_out_line)
 
         if is_dirac_input_line_should_be_skipped(words):
             continue
 
-        if is_start_dirac_input_field(line):
+        if is_start_dirac_input_field(no_comment_out_line):
             is_reach_input_field = True
             continue
 
-        if is_end_dirac_input_field(line):
+        if is_end_dirac_input_field(no_comment_out_line):
             break  # end of input field
 
         if is_reach_input_field:
@@ -89,19 +90,8 @@ Please check your DIRAC input file and try again.\n"
                     # https://diracprogram.org/doc/master/manual/wave_function/scf.html#closed-shell
                     # .CLOSED SHELL
                     # irrep1_num_spinor irrep2_num_spinor ...
-                    # "!" or "#" means comment out(see https://gitlab.com/dirac/dirac/-/blob/ea717cdb294035d8af3ebe2b1e00cf94f1c1a6b7/src/input/parse_input.F90#L53-54)
-                    # So we need to read electron numbers until the line contains "!" or "#" or the last element of words.
-                    regex_comment_out = r"[!#]"
                     for word in words:
-                        comment_out_str = re.search(regex_comment_out, word)
-                        if comment_out_str is not None:
-                            comment_idx = comment_out_str.start()
-                            w = word[:comment_idx]
-                            if len(w) > 0:
-                                electron_num += get_an_natural_number(w)
-                            break  # end of closed shell section because we found comment out
-                        else:
-                            electron_num += get_an_natural_number(word)
+                        electron_num += get_an_natural_number(word)
                     is_closed_shell_section = False
 
                 if is_next_line_print_setting:
@@ -145,7 +135,8 @@ def get_electron_num_from_scf_field(dirac_output: TextIOWrapper) -> int:
     # find "i.e. no. of electrons ="
     is_wave_function_module_reached: bool = False
     for line in dirac_output:
-        words = space_separated_parsing(line)
+        no_comment_out_line = delete_dirac_input_comment_out(line)
+        words = space_separated_parsing(no_comment_out_line)
         if "Wave function module" in line:
             is_wave_function_module_reached = True
             continue

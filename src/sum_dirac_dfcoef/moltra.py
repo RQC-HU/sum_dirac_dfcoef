@@ -3,7 +3,7 @@ from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 
 from sum_dirac_dfcoef.utils import (
-    delete_comment_out,
+    delete_dirac_input_comment_out,
     is_dirac_input_keyword,
     is_dirac_input_line_should_be_skipped,
     is_dirac_input_section,
@@ -37,7 +37,8 @@ class MoltraInfo:
         is_reach_input_field = False
         is_next_line_active = False
         for line in dirac_output:
-            words = space_separated_parsing_upper(line)
+            no_comment_line = delete_dirac_input_comment_out(line)
+            words = space_separated_parsing_upper(no_comment_line)
             if is_dirac_input_line_should_be_skipped(words):
                 continue
 
@@ -55,7 +56,7 @@ class MoltraInfo:
                         continue
 
                 if is_moltra_section:
-                    if re.match(re_active_keyword, line) is not None:
+                    if re.match(re_active_keyword, no_comment_line) is not None:
                         cls.is_default = False
                         is_next_line_active = True
                         continue
@@ -64,5 +65,4 @@ class MoltraInfo:
                     if is_dirac_input_section(words[0]) or is_dirac_input_keyword(words[0]):
                         # End of the .ACTIVE section
                         break
-                    no_comment_line = delete_comment_out(line)
                     cls.range_str.append(no_comment_line.strip())

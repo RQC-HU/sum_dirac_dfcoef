@@ -141,22 +141,23 @@ class Eigenvalues:
         debug_print(f"eigenvalues: {self}")
 
     def validate_eigpri_option(self, dirac_output: TextIOWrapper):
-        from sum_dirac_dfcoef.utils import delete_comment_out, is_dirac_input_keyword, is_end_dirac_input_field, is_start_dirac_input_field
+        from sum_dirac_dfcoef.utils import delete_dirac_input_comment_out, is_dirac_input_keyword, is_end_dirac_input_field, is_start_dirac_input_field
 
         is_reach_input_field: bool = False
         is_scf_section: bool = False
         is_scf_detail_section: bool = False
         is_next_line_eigpri: bool = False
         for line in dirac_output:
-            words = space_separated_parsing_upper(line)
+            no_comment_out_line = delete_dirac_input_comment_out(line)
+            words = space_separated_parsing_upper(no_comment_out_line)
             if is_dirac_input_line_should_be_skipped(words):
                 continue
 
-            if is_start_dirac_input_field(line):
+            if is_start_dirac_input_field(no_comment_out_line):
                 is_reach_input_field = True
                 continue
 
-            if is_end_dirac_input_field(line):
+            if is_end_dirac_input_field(no_comment_out_line):
                 break
 
             if is_reach_input_field:
@@ -185,8 +186,6 @@ class Eigenvalues:
 
             if is_next_line_eigpri:
                 # https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri
-                without_comment = delete_comment_out(line)
-                words = space_separated_parsing(without_comment)
                 if len(words) == 2 and words[0].isdigit() and words[1].isdigit():
                     if int(words[0]) == 0:  # positive energy eigenvalues are not printed
                         msg = f"\nYour .EIGPRI option in your DIRAC input file is invalid!\n\
