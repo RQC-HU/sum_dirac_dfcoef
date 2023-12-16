@@ -30,7 +30,7 @@ class Eigenvalues:
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
         def is_end_of_read(line) -> bool:
-            if "Occupation" in line or "HOMO - LUMO" in line:
+            if "HOMO - LUMO" in line:
                 return True
             return False
 
