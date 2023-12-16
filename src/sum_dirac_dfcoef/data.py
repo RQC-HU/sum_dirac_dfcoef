@@ -42,3 +42,7 @@ class DataAllMO:
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"
+
+    def sort_mo_energy(self) -> None:
+        self.electronic.sort(key=lambda mo: mo.mo_energy)
+        self.positronic.sort(key=lambda mo: mo.mo_energy)

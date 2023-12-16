@@ -178,6 +178,6 @@ def read_privec_data(dirac_output: TextIOWrapper, functions_info: FunctionsInfo)
             data_mo.add_coefficient(get_coefficient(line_str, functions_info, current_atom_info.start_idx))
 
     if not args.no_sort:
-        data_all_mo.electronic.sort(key=lambda x: x.mo_energy)
-        data_all_mo.positronic.sort(key=lambda x: x.mo_energy)
+        data_all_mo.sort_mo_energy()
+
     return data_all_mo
