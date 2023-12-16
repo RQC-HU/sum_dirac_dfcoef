@@ -4,7 +4,17 @@ from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.utils import debug_print, is_dirac_input_line_should_be_skipped, is_dirac_input_section_one_star, space_separated_parsing, space_separated_parsing_upper
+from sum_dirac_dfcoef.utils import (
+    debug_print,
+    delete_dirac_input_comment_out,
+    is_dirac_input_keyword,
+    is_dirac_input_line_should_be_skipped,
+    is_dirac_input_section_one_star,
+    is_end_dirac_input_field,
+    is_start_dirac_input_field,
+    space_separated_parsing,
+    space_separated_parsing_upper,
+)
 
 
 # type definition eigenvalues.shell_num
@@ -141,7 +151,6 @@ class Eigenvalues:
         debug_print(f"eigenvalues: {self}")
 
     def validate_eigpri_option(self, dirac_output: TextIOWrapper):
-        from sum_dirac_dfcoef.utils import delete_dirac_input_comment_out, is_dirac_input_keyword, is_end_dirac_input_field, is_start_dirac_input_field
 
         is_reach_input_field: bool = False
         is_scf_section: bool = False
