@@ -16,12 +16,12 @@ from sum_dirac_dfcoef.utils import (
 
 class STAGE(Enum):
     # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
-    #                                              ↓            ↑
-    #                                           MO_COEF -> READING_COEF
+    #                                             ↓               ↑
+    #                                      WAIT_FIRST_COEF -> READING_COEF
     INIT = auto()
     VECTOR_PRINT = auto()
     WAIT_END_READING_COEF = auto()
-    MO_COEF = auto()
+    WAIT_FIRST_COEF = auto()
     READING_COEF = auto()
     END = auto()
 
@@ -70,11 +70,11 @@ class PrivecProcessor:
                     self.mo_sym_type = words[2]
                 elif self.need_to_start_mo_section(words):
                     self.start_mo_section(words)
-                    self.transition_stage(STAGE.MO_COEF)
+                    self.transition_stage(STAGE.WAIT_FIRST_COEF)
                 elif self.check_end_vector_print(words):
                     self.transition_stage(STAGE.END)
 
-            elif self.stage == STAGE.MO_COEF:
+            elif self.stage == STAGE.WAIT_FIRST_COEF:
                 if self.is_this_row_for_coefficients(words):
                     self.add_coefficient(line_str)
                     self.transition_stage(STAGE.READING_COEF)
