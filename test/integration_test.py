@@ -37,7 +37,7 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.ucl4.compress.out"                    , "result.ucl4.compress.out"                    , "x2c_ucl4.out"      , "-d 15 -c"),
         ("ref.ucl4.no_sort.compress.out"            , "result.ucl4.no_sort.compress.out"            , "x2c_ucl4.out"      , "-d 15 --no-sort -c"),
         ("ref.Cm3+_phen.compress.out"               , "result.Cm3+_phen.compress.out"               , "x2c_Cm3+_phen.out" , "-d 15 -c"),
-        ("ref.H2.no_scf.out"                        , "result.H2.no_scf.out"                        , "H2.noscf_H2.out"   , "-d 15 -c --no-scf"),
+        ("ref.H2.no_scf.compress.out"               , "result.H2.no_scf.compress.out"               , "H2.noscf_H2.out"   , "-d 15 -c --no-scf"),
     ]
     # fmt: on
 )
