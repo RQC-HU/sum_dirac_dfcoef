@@ -25,7 +25,7 @@ class Eigenvalues:
     energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
 
     def setdefault(self, key: str):
-        self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0})
+        self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0, "positronic": 0})
         self.energies.setdefault(key, [])
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
@@ -38,6 +38,8 @@ class Eigenvalues:
             # closed shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1043
             # open shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1053
             # virtual eigenvalues: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1064
+            # negative energy eigenvalues (only atom or linear molecule case): https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1156
+            # positronic eigenvalues (not atom and linear molecule case): https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1073
             if "*" == words[0] and "Closed" == words[1] and "shell," == words[2]:
                 return True
             elif "*" == words[0] and "Open" == words[1] and "shell" == words[2]:
@@ -45,6 +47,8 @@ class Eigenvalues:
             elif "*" == words[0] and "Virtual" == words[1] and "eigenvalues," == words[2]:
                 return True
             elif "*" == words[0] and "Negative" == words[1] and "energy" == words[2] and "eigenvalues," == words[3]:
+                return True
+            elif "*" == words[0] and "Positronic" == words[1] and "eigenvalues," == words[2]:
                 return True
             return False
 
