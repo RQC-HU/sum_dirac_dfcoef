@@ -91,3 +91,21 @@ def get_dirac_filepath() -> Path:
         sys.exit(f"ERROR: DIRAC output file is not found. file={args.file}")
     path = Path(args.file)
     return path
+
+
+def should_write_positronic_results_to_file() -> bool:
+    from sum_dirac_dfcoef.args import args
+
+    if args.all_write or args.positronic_write:
+        return True
+    else:
+        return False
+
+
+def should_write_electronic_results_to_file() -> bool:
+    from sum_dirac_dfcoef.args import args
+
+    if args.all_write or not args.positronic_write:
+        return True
+    else:
+        return False

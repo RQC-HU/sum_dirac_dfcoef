@@ -4,21 +4,7 @@ from sum_dirac_dfcoef.file_writer import output_file_writer
 from sum_dirac_dfcoef.functions_info import get_functions_info
 from sum_dirac_dfcoef.header_info import HeaderInfo
 from sum_dirac_dfcoef.privec_reader import read_privec_data
-from sum_dirac_dfcoef.utils import get_dirac_filepath
-
-
-def should_write_positronic_results_to_file() -> bool:
-    if args.all_write or args.positronic_write:
-        return True
-    else:
-        return False
-
-
-def should_write_electronic_results_to_file() -> bool:
-    if args.all_write or not args.positronic_write:
-        return True
-    else:
-        return False
+from sum_dirac_dfcoef.utils import get_dirac_filepath, should_write_electronic_results_to_file, should_write_positronic_results_to_file
 
 
 def main() -> None:
@@ -33,7 +19,7 @@ def main() -> None:
     output_file_writer.create_blank_file()
     if args.no_scf or args.positronic_write:
         # If args.no_scf is True, we cannot get header_info from the output file of DIRAC.
-        # also, if args.positronic_write is True, we do not need to write header_info to the output file.
+        # also, if args.positronic_write is True, we do not need to write header_info to the output file
         # because dcaspt2_input_generator program does not support positronic results.
         output_file_writer.write_no_header_info()
     else:
