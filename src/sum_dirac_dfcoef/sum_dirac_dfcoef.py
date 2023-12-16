@@ -3,7 +3,7 @@ from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.file_writer import output_file_writer
 from sum_dirac_dfcoef.functions_info import get_functions_info
 from sum_dirac_dfcoef.header_info import HeaderInfo
-from sum_dirac_dfcoef.privec_reader import read_privec_data
+from sum_dirac_dfcoef.privec_reader import PrivecProcessor
 from sum_dirac_dfcoef.utils import get_dirac_filepath, should_write_electronic_results_to_file, should_write_positronic_results_to_file
 
 
@@ -24,12 +24,14 @@ def main() -> None:
         output_file_writer.write_no_header_info()
     else:
         output_file_writer.write_headerinfo(header_info)
-    data_all_mo = read_privec_data(dirac_output, functions_info)
 
-    if should_write_electronic_results_to_file():  # Electronic
-        # Write electronic results to the file
+    # Read coefficients from the output file of DIRAC and store them in data_all_mo.
+    privec_processor = PrivecProcessor(dirac_output, functions_info)
+    privec_processor.read_privec_data()
+    data_all_mo = privec_processor.data_all_mo
+
+    if should_write_electronic_results_to_file():
         add_blank_line = True if args.all_write else False
         output_file_writer.write_mo_data(data_all_mo.electronic, add_blank_line=add_blank_line)
-    if should_write_positronic_results_to_file():  # Positronic
-        # Write positronic results to the file
+    if should_write_positronic_results_to_file():
         output_file_writer.write_mo_data(data_all_mo.positronic, add_blank_line=False)
