@@ -58,44 +58,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             return True
         return False
 
-    def is_start_number_of_section(words: List[str]) -> bool:
-        if number_of_section["start"]:
-            return False
-        elif len(words) >= 6 and words[0] == "Number" and words[1] == "of" and words[2] == "orbitals" and words[3] == "in" and words[4] == "each" and words[5] == "symmetry:":
-            return True
-        return False
-
-    def get_number_of_info(words: List[str], line_str: str) -> None:
-        # Parse the line_str and get the number of orbitals
-        # (e.g.) Number of orbitals in each symmetry:          108    65    65    24    78    29    29    13
-        #
-        def get_orbital_type() -> str:
-            # orbital_type is between "Number of" and "in each symmetry:"
-            start_orbital_type_idx = line_str.find("Number of") + len("Number of")
-            end_orbital_type_idx = line_str.find("in each symmetry:")
-            if start_orbital_type_idx == -1 or end_orbital_type_idx == -1:
-                return ""  # This is not expected but skip this line_str
-
-            return line_str[start_orbital_type_idx:end_orbital_type_idx].strip()
-
-        if "Number of" not in line_str:
-            # End "Number of" section
-            number_of_section["end"] = True
-            return  # Skip this line_str and start reading large
-
-        orbital_type = get_orbital_type()
-        if orbital_type == "":
-            return  # This is not expected but skip this line_str
-
-        orbitals_str_list = words[words.index("symmetry:") + 1 :]
-        try:
-            orbitals = [int(i) for i in orbitals_str_list]
-            number_of_info[orbital_type] = sum(orbitals)
-        except (ValueError, TypeError, IndexError):
-            # Probably ***** is included in the line_str
-            # This is expected exception
-            pass
-
     def get_symmetry(words: List[str]) -> str:
         symmetry = words[1]  # e.g. "Ag"
         bra_idx = symmetry.find("(")
@@ -172,8 +134,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
 
     start_symmetry_orbitals_section = False
-    number_of_section = {"start": False, "end": False}
-    number_of_info: ODict[str, int] = OrderedDict()
     component_func = ""  # "large" or "small"
     symmetry = ""
     functions_info = FunctionsInfo()
@@ -183,11 +143,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             continue
         elif not start_symmetry_orbitals_section:
             start_symmetry_orbitals_section = is_start_symmetry_orbitals_section(words)
-        elif not number_of_section["start"]:
-            number_of_section["start"] = is_start_number_of_section(words)
-            get_number_of_info(words, line_str)
-        elif number_of_section["start"] and not number_of_section["end"]:
-            get_number_of_info(words, line_str)
         elif "component functions" in line_str:
             component_func = "large" if "Large" in line_str else ("small" if "Small" in line_str else "")
         elif "Symmetry" in line_str:
