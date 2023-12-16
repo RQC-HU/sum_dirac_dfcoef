@@ -39,7 +39,6 @@ Please check your DIRAC input file and try again.\n"
     is_closed_shell_section: bool = False
     is_openshell_section: bool = False
     num_of_open_shell: int = 0
-    is_next_line_print_setting: bool = False
     is_reach_input_field: bool = False
     is_scf_found: bool = False
     scf_detail_section: bool = False
@@ -93,24 +92,6 @@ Please check your DIRAC input file and try again.\n"
                     for word in words:
                         electron_num += get_a_natural_number(word)
                     is_closed_shell_section = False
-
-                if is_next_line_print_setting:
-                    # https://gitlab.com/dirac/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2865-2876
-                    # ipreig = 0 (no eigenvalue printout) and 2 (only positronic eigenvalues written out)
-                    # are not supported because we cannot get electron number from them
-                    number = get_a_natural_number(words[0])
-                    ipreig = int(number)
-                    if ipreig in (0, 2):
-                        msg = ".PRINT setting in *SCF section with value 0 or 2 is not supported.\n\
-0 means no eigenvalue printout and 2 means only positronic eigenvalues written out.\n\
-Therefore we cannot get the information (e.g. orbital energies) from DIRAC output.\n\
-So we cannot continue this program because we need electron number and orbital energies to summarize DIRAC output.\n\
-Please check your DIRAC input file and try again.\n"
-                        raise ValueError(msg)
-                    is_next_line_print_setting = False
-
-                if ".PRINT" in line.upper():
-                    is_next_line_print_setting = True
 
                 # .CLOSED SHELL
                 if ".CLOSED" == words[0] and "SHELL" in words[1]:
