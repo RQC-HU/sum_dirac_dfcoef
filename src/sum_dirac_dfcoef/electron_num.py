@@ -70,18 +70,18 @@ Please check your DIRAC input file and try again.\n"
 
             if scf_detail_section:
                 if is_openshell_section:
+                    # open shell format
+                    # https://diracprogram.org/doc/master/manual/wave_function/scf.html#open-shell
+                    # .OPEN SHELL
+                    # num_of_open_shell
+                    # num_of_elec/irrep1_num_spinor irrep2_num_spinor ...
+                    # We want to get only num_of_elec
                     if num_of_open_shell == 0:
                         num_of_open_shell = get_a_natural_number(words[0])
                     else:
-                        num_of_open_shell -= 1
-                        # open shell format
-                        # https://diracprogram.org/doc/master/manual/wave_function/scf.html#open-shell
-                        # .OPEN SHELL
-                        # num_of_open_shell
-                        # num_of_elec/irrep1_num_spinor irrep2_num_spinor ...
-                        # We want to get only num_of_elec
                         electron_num += get_a_natural_number(words[0])
-                        if num_of_open_shell == 0:
+                        num_of_open_shell -= 1  # Got an electron_num, so decrease the num_of_open_shell
+                        if num_of_open_shell == 0:  # Got all open shell electron_num
                             is_openshell_section = False
 
                 if is_closed_shell_section:

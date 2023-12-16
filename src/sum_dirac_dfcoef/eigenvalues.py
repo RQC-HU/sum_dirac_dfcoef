@@ -63,7 +63,7 @@ class Eigenvalues:
             return False
 
         def get_current_eigenvalue_type(words: List[str]) -> str:
-            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative"
+            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative" or "Positronic"
             current_eigenvalue_type = words[1].lower()
             return current_eigenvalue_type
 
@@ -139,7 +139,7 @@ class Eigenvalues:
                     match = re.search(regex, line[start_idx:])
                     if match is None:
                         break
-                    # [1 : len(match.group()) - 1] => ( 2) => 2
+                    # match.group() == ( 2) => [1 : len(match.group()) - 1] == 2
                     num = int(match.group()[1 : len(match.group()) - 1])
                     self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
                     for _ in range(0, num, 2):
@@ -151,6 +151,13 @@ class Eigenvalues:
         debug_print(f"eigenvalues: {self}")
 
     def validate_eigpri_option(self, dirac_output: TextIOWrapper):
+        """Validate the .EIGPRI option in the DIRAC input file,
+        if is not set, it is a valid input
+        because only the positive energy eigenvalues are printed as default.
+
+        Args:
+            dirac_output (TextIOWrapper): _description_
+        """
 
         is_reach_input_field: bool = False
         is_scf_section: bool = False

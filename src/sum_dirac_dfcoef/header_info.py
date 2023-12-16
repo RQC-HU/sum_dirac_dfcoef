@@ -29,6 +29,7 @@ class HeaderInfo:
             dirac_output (TextIOWrapper): Output file of DIRAC
 
         Returns:
+            None: class attributes are updated
         """
         dirac_output.seek(0)
         self.__read_electron_number(dirac_output)
@@ -55,7 +56,7 @@ class HeaderInfo:
         self.moltra_info.read_moltra_section(dirac_output)
 
     def __duplicate_moltra_str(self) -> None:
-        """Duplicate the moltra range string if it is not enough"""
+        # Duplicate the moltra range string if it is not enough
         if self.moltra_info.is_default:
             # Set the default range string
             for _ in range(len(self.eigenvalues.shell_num)):
