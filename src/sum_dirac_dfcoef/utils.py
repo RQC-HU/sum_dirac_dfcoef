@@ -7,6 +7,11 @@ def space_separated_parsing(line: str) -> List[str]:
     return [word for word in words if word != ""]
 
 
+def space_separated_parsing_upper(line: str) -> List[str]:
+    words = re.split(" +", line.rstrip("\n"))
+    return [word.upper() for word in words if word != ""]
+
+
 def debug_print(message: str):
     from sum_dirac_dfcoef.args import args
 

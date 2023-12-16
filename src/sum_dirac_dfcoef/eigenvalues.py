@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.utils import debug_print, is_dirac_input_line_comment_out, is_dirac_input_section_one_star, space_separated_parsing
+from sum_dirac_dfcoef.utils import debug_print, is_dirac_input_line_comment_out, is_dirac_input_section_one_star, space_separated_parsing, space_separated_parsing_upper
 
 
 # type definition eigenvalues.shell_num
@@ -148,7 +148,7 @@ class Eigenvalues:
         is_scf_detail_section: bool = False
         is_next_line_eigpri: bool = False
         for line in dirac_output:
-            words: List[str] = [v.upper() for v in space_separated_parsing(line)]
+            words = space_separated_parsing_upper(line)
             if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
                 continue
 

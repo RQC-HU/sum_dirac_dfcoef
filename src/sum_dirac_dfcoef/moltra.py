@@ -10,7 +10,7 @@ from sum_dirac_dfcoef.utils import (
     is_dirac_input_section_two_stars,
     is_end_dirac_input_field,
     is_start_dirac_input_field,
-    space_separated_parsing,
+    space_separated_parsing_upper,
 )
 
 
@@ -37,7 +37,7 @@ class MoltraInfo:
         is_reach_input_field = False
         is_next_line_active = False
         for line in dirac_output:
-            words = [word.upper() for word in space_separated_parsing(line)]
+            words = space_separated_parsing_upper(line)
             if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
                 continue
 
