@@ -133,20 +133,22 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
 
 
 @pytest.mark.parametrize(
-    "input_filename, options",
+    "input_filename, options, expected_error_message",
+    # fmt: off
     [
-        ("H2O.invalid.eigpri.out", "-d 15"),
+        ("H2O.invalid.eigpri.out"  , "-d 15", "Your .EIGPRI option in your DIRAC input file is invalid!"),
+        ("H2.noscf_H2.out"         , "-d 15", "Cannot find SCF calculation settings"),
     ],
+    # fmt: on
 )
-def test_invalid_eigpri_option_output(input_filename: str, options: str):
+def test_invalid_option_raise_error(input_filename: str, options: str, expected_error_message: str):
     env = Env(input_filename, options)
     os.chdir(env.test_path)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     # Run the command and capture the output
     p = subprocess.run(env.command.split(), encoding="utf-8", stderr=subprocess.PIPE, check=False)
-    assert p.returncode != 0, f"Command should fail but return code is 0.\nstderr: {p.stderr}"
-    expected_error_message = "Your .EIGPRI option in your DIRAC input file is invalid!"
-    assert expected_error_message in p.stderr, f"Expected error message not found in output: {p.stderr}"
+    assert p.returncode != 0, "Failed: Command should fail but return code is 0."
+    assert expected_error_message in p.stderr, f"Failed: Expected error message not found in output:\nexptected: {expected_error_message}\nstderr: {p.stderr}"
 
 
 def test_version_option():
