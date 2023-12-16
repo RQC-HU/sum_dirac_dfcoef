@@ -2,7 +2,7 @@ import re
 from io import TextIOWrapper
 
 from sum_dirac_dfcoef.utils import (
-    is_dirac_input_line_comment_out,
+    is_dirac_input_line_should_be_skipped,
     is_dirac_input_section,
     is_end_dirac_input_field,
     is_start_dirac_input_field,
@@ -48,7 +48,7 @@ Please check your DIRAC input file and try again.\n"
     for line in dirac_output:
         words = space_separated_parsing_upper(line)
 
-        if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
+        if is_dirac_input_line_should_be_skipped(words):
             continue
 
         if is_start_dirac_input_field(line):

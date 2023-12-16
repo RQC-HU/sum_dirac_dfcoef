@@ -64,6 +64,13 @@ def is_dirac_input_line_comment_out(word: str) -> bool:
     return re.match(regex_comment_out, word) is not None
 
 
+def is_dirac_input_line_should_be_skipped(words: List[str]) -> bool:
+    if len(words) == 0:
+        return True
+    if is_dirac_input_line_comment_out(words[0]):
+        return True
+    return False
+
 def delete_comment_out(line: str) -> str:
     regex_comment_out = r" *[!#]"
     idx_comment_out = re.search(regex_comment_out, line)

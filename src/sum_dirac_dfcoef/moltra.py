@@ -5,7 +5,7 @@ from typing import ClassVar, Dict, List
 from sum_dirac_dfcoef.utils import (
     delete_comment_out,
     is_dirac_input_keyword,
-    is_dirac_input_line_comment_out,
+    is_dirac_input_line_should_be_skipped,
     is_dirac_input_section,
     is_dirac_input_section_two_stars,
     is_end_dirac_input_field,
@@ -38,7 +38,7 @@ class MoltraInfo:
         is_next_line_active = False
         for line in dirac_output:
             words = space_separated_parsing_upper(line)
-            if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
+            if is_dirac_input_line_should_be_skipped(words):
                 continue
 
             if is_start_dirac_input_field(line):
