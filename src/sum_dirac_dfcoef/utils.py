@@ -1,4 +1,6 @@
 import re
+import sys
+from pathlib import Path
 from typing import List
 
 
@@ -71,9 +73,21 @@ def is_dirac_input_line_should_be_skipped(words: List[str]) -> bool:
         return True
     return False
 
+
 def delete_dirac_input_comment_out(line: str) -> str:
     regex_comment_out = r" *[!#]"
     idx_comment_out = re.search(regex_comment_out, line)
     if idx_comment_out is None:
         return line
     return line[: idx_comment_out.start()]
+
+
+def get_dirac_filepath() -> Path:
+    from sum_dirac_dfcoef.args import args
+
+    if not args.file:
+        sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
+    elif not Path(args.file).exists():
+        sys.exit(f"ERROR: DIRAC output file is not found. file={args.file}")
+    path = Path(args.file)
+    return path
