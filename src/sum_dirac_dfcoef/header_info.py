@@ -33,6 +33,8 @@ class HeaderInfo:
         dirac_output.seek(0)
         self.__read_electron_number(dirac_output)
         dirac_output.seek(0)
+        self.__validate_eigpri_option(dirac_output)
+        dirac_output.seek(0)
         self.__read_moltra(dirac_output)
         self.__read_eigenvalues(dirac_output)
         self.__duplicate_moltra_str()
@@ -42,6 +44,9 @@ class HeaderInfo:
         self.electrons = get_electron_num_from_input(dirac_output)
         if self.electrons == 0:
             self.electrons = get_electron_num_from_scf_field(dirac_output)
+
+    def __validate_eigpri_option(self, dirac_output: TextIOWrapper) -> None:
+        self.eigenvalues.validate_eigpri_option(dirac_output)
 
     def __read_eigenvalues(self, dirac_output: TextIOWrapper) -> None:
         self.eigenvalues.get_eigenvalues(dirac_output)

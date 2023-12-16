@@ -4,7 +4,7 @@ from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.utils import debug_print, is_dirac_input_line_comment_out, is_dirac_input_section_one_star, space_separated_parsing
 
 
 # type definition eigenvalues.shell_num
@@ -139,3 +139,63 @@ class Eigenvalues:
         for key in self.energies.keys():
             self.energies[key].sort()
         debug_print(f"eigenvalues: {self}")
+
+    def validate_eigpri_option(self, dirac_output: TextIOWrapper):
+        from sum_dirac_dfcoef.utils import delete_comment_out, is_dirac_input_keyword, is_end_dirac_input_field, is_start_dirac_input_field
+
+        is_reach_input_field: bool = False
+        is_scf_section: bool = False
+        is_scf_detail_section: bool = False
+        is_next_line_eigpri: bool = False
+        for line in dirac_output:
+            words: List[str] = [v.upper() for v in space_separated_parsing(line)]
+            if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
+                continue
+
+            if is_start_dirac_input_field(line):
+                is_reach_input_field = True
+                continue
+
+            if is_end_dirac_input_field(line):
+                break
+
+            if is_reach_input_field:
+                if is_dirac_input_keyword(words[0]):
+                    if ".SCF" in words[0]:
+                        is_scf_section = True
+                        continue
+
+            if is_scf_section:
+                if is_dirac_input_section_one_star(words[0]):
+                    if "*SCF" in words[0]:
+                        is_scf_detail_section = True
+                        continue
+                    else:
+                        is_scf_detail_section = False
+                        continue
+
+            if is_scf_detail_section:
+                if is_dirac_input_keyword(words[0]):
+                    if ".EIGPRI" in words[0]:
+                        is_next_line_eigpri = True
+                        continue
+                    else:
+                        is_next_line_eigpri = False
+                        continue
+
+            if is_next_line_eigpri:
+                # https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri
+                without_comment = delete_comment_out(line)
+                words = space_separated_parsing(without_comment)
+                if len(words) == 2 and words[0].isdigit() and words[1].isdigit():
+                    if int(words[0]) == 0:  # positive energy eigenvalues are not printed
+                        msg = f"\nYour .EIGPRI option in your DIRAC input file is invalid!\n\
+.EIGPRI\n\
+{line}\n\
+We cannot get the eigenvalues with your .EIGPRI option.\n\
+If you want to use this output file with this program, you must use --no-scf option to skip reading eigenvalues information.\n\
+But you cannot use the output using --no-scf option to dcaspt2_input_generator program.\n\
+If you want to get the eigenvalues information, please refer the .EIGPRI option in the manual of DIRAC.\n\
+https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri\n\
+You must enable to print out the positive eigenvalues energy.\n"
+                        raise ValueError(msg)
