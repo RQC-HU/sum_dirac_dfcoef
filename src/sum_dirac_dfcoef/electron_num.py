@@ -95,7 +95,7 @@ Please check your DIRAC input file and try again.\n"
                     is_closed_shell_section = False
 
                 if is_next_line_print_setting:
-                    # https://gitlab.com/kohei-noda/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2865-2876
+                    # https://gitlab.com/dirac/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2865-2876
                     # ipreig = 0 (no eigenvalue printout) and 2 (only positronic eigenvalues written out)
                     # are not supported because we cannot get electron number from them
                     number = get_a_natural_number(words[0])
@@ -131,7 +131,7 @@ But you cannot use the output using --no-scf option to dcaspt2_input_generator p
 
 
 def get_electron_num_from_scf_field(dirac_output: TextIOWrapper) -> int:
-    # https://gitlab.com/kohei-noda/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2127
+    # https://gitlab.com/dirac/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2127
     # find "i.e. no. of electrons ="
     is_wave_function_module_reached: bool = False
     for line in dirac_output:
