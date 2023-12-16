@@ -25,7 +25,7 @@ class Eigenvalues:
     energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
 
     def setdefault(self, key: str):
-        self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0})
+        self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0})
         self.energies.setdefault(key, [])
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
@@ -44,10 +44,12 @@ class Eigenvalues:
                 return True
             elif "*" == words[0] and "Virtual" == words[1] and "eigenvalues," == words[2]:
                 return True
+            elif "*" == words[0] and "Negative" == words[1] and "energy" == words[2] and "eigenvalues," == words[3]:
+                return True
             return False
 
         def get_current_eigenvalue_type(words: List[str]) -> str:
-            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual"
+            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative"
             current_eigenvalue_type = words[1].lower()
             return current_eigenvalue_type
 
