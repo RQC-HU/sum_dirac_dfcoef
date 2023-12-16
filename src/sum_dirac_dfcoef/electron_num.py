@@ -23,7 +23,7 @@ def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
             int: The number of electrons in the system
     """
 
-    def get_an_natural_number(word: str) -> int:
+    def get_a_natural_number(word: str) -> int:
         # OPEN SHELL and CLOSED SHELL electron number settings
         # must be written as a natural number (negative number is not allowed)
         regex_number = r"[-]?[0-9]+"
@@ -72,7 +72,7 @@ Please check your DIRAC input file and try again.\n"
             if scf_detail_section:
                 if is_openshell_section:
                     if num_of_open_shell == 0:
-                        num_of_open_shell = get_an_natural_number(words[0])
+                        num_of_open_shell = get_a_natural_number(words[0])
                     else:
                         num_of_open_shell -= 1
                         # open shell format
@@ -81,7 +81,7 @@ Please check your DIRAC input file and try again.\n"
                         # num_of_open_shell
                         # num_of_elec/irrep1_num_spinor irrep2_num_spinor ...
                         # We want to get only num_of_elec
-                        electron_num += get_an_natural_number(words[0])
+                        electron_num += get_a_natural_number(words[0])
                         if num_of_open_shell == 0:
                             is_openshell_section = False
 
@@ -91,14 +91,14 @@ Please check your DIRAC input file and try again.\n"
                     # .CLOSED SHELL
                     # irrep1_num_spinor irrep2_num_spinor ...
                     for word in words:
-                        electron_num += get_an_natural_number(word)
+                        electron_num += get_a_natural_number(word)
                     is_closed_shell_section = False
 
                 if is_next_line_print_setting:
                     # https://gitlab.com/kohei-noda/dirac/-/blob/79e6b9e27cf8018999ddca2aa72247ccfb9d2a2d/src/dirac/dirrdn.F#L2865-2876
                     # ipreig = 0 (no eigenvalue printout) and 2 (only positronic eigenvalues written out)
                     # are not supported because we cannot get electron number from them
-                    number = get_an_natural_number(words[0])
+                    number = get_a_natural_number(words[0])
                     ipreig = int(number)
                     if ipreig in (0, 2):
                         msg = ".PRINT setting in *SCF section with value 0 or 2 is not supported.\n\
