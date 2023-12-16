@@ -109,7 +109,7 @@ class HeaderInfo:
                 cur_idx += 1
             return cur_idx
 
-        energy_str = energy_str.replace("ENERGY", "")
+        energy_str = energy_str.upper().replace("ENERGY", "")
         min_energy, max_energy, step = map(float, energy_str.split())
         if min_energy > max_energy:
             msg = f"The minimum energy is larger than the maximum energy: {min_energy} > {max_energy}"
