@@ -26,6 +26,14 @@ def is_float(parameter: str):
         return False
 
 
+def is_start_dirac_input_field(line: str) -> bool:
+    return True if "Contents of the input file" in line else False
+
+
+def is_end_dirac_input_field(line: str) -> bool:
+    return True if "Contents of the molecule file" in line else False
+
+
 def is_dirac_input_keyword(word: str) -> bool:
     regex_keyword = r" *\.[0-9A-Z]+"
     return re.match(regex_keyword, word) is not None

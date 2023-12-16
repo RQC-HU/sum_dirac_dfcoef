@@ -1,7 +1,7 @@
 import re
 from io import TextIOWrapper
 
-from sum_dirac_dfcoef.utils import is_dirac_input_section, space_separated_parsing
+from sum_dirac_dfcoef.utils import is_dirac_input_line_comment_out, is_dirac_input_section, is_end_dirac_input_field, is_start_dirac_input_field, space_separated_parsing
 
 
 def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
@@ -41,20 +41,18 @@ Please check your DIRAC input file and try again.\n"
     for line in dirac_output:
         words = space_separated_parsing(line)
         words = [word.upper() for word in words]
-        # If we reach this line, it means that we are in the input field
-        if "Contents of the input file" in line:
+
+        if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
+            continue
+
+        if is_start_dirac_input_field(line):
             is_reach_input_field = True
             continue
 
-        # If we reach this line, it means the end of the input field
-        if "Contents of the molecule file" in line:
+        if is_end_dirac_input_field(line):
             break  # end of input field
 
         if is_reach_input_field:
-            if len(words) == 0 or re.match(regex_comment_out, words[0]) is not None:
-                # Comment out line or empty line
-                continue
-
             if re.match(regex_scf_keyword, words[0]) is not None:
                 is_scf_found = True
 

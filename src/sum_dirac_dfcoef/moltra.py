@@ -8,6 +8,8 @@ from sum_dirac_dfcoef.utils import (
     is_dirac_input_line_comment_out,
     is_dirac_input_section,
     is_dirac_input_section_two_stars,
+    is_end_dirac_input_field,
+    is_start_dirac_input_field,
     space_separated_parsing,
 )
 
@@ -38,13 +40,12 @@ class MoltraInfo:
             words = [word.upper() for word in space_separated_parsing(line)]
             if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
                 continue
-            # If we reach this line, it means that we are in the input field
-            if "Contents of the input file" in line:
+
+            if is_start_dirac_input_field(line):
                 is_reach_input_field = True
                 continue
 
-            # If we reach this line, it means the end of the input field
-            if "Contents of the molecule file" in line:
+            if is_end_dirac_input_field(line):
                 break  # end of input field
 
             if is_reach_input_field:

@@ -8,12 +8,15 @@ import pytest
 
 
 class Env:
-    def __init__(self, ref_filename: str, result_filename: str, input_filename: str, options: str):
+    def __init__(self, input_filename: str, options: str, ref_filename: str = "", result_filename: str = "") -> None:
         self.test_path = Path(__file__).resolve().parent
         self.ref_filepath = Path.joinpath(self.test_path, "references", ref_filename)
         self.result_filepath = Path.joinpath(self.test_path, "results", result_filename)
         self.input_filepath = Path.joinpath(self.test_path, "data", input_filename)
-        self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
+        if ref_filename == "":
+            self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} {options}"
+        else:
+            self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
 
 
 def get_output_list(filepath: Path) -> List[List[str]]:
@@ -24,25 +27,26 @@ def get_output_list(filepath: Path) -> List[List[str]]:
     "ref_filename, result_filename, input_filename, options",
     # fmt: off
     [
-        ("ref.Ar.compress.out"                      , "result.Ar.compress.out"                      , "Ar_Ar.out"         , "-d 15 -c"),
-        ("ref.Ar.no_sort.compress.out"              , "result.Ar.no_sort.compress.out"              , "Ar_Ar.out"         , "-d 15 --no-sort -c"),
-        ("ref.N2.compress.out"                      , "result.N2.compress.out"                      , "N2_N2.out"         , "-d 15 -c"),
-        ("ref.N2.compress.positronic.out"           , "result.N2.compress.positronic.out"           , "N2_N2.out"         , "-d 15 -pc"),
-        ("ref.N2.compress.all.out"                  , "result.N2.compress.all.out"                  , "N2_N2.out"         , "-d 15 -ac"),
-        ("ref.N2.no_sort.compress.out"              , "result.N2.no_sort.compress.out"              , "N2_N2.out"         , "-d 15 --no-sort -c"),
-        ("ref.N2.no_sort.compress.positronic.out"   , "result.N2.no_sort.compress.positronic.out"   , "N2_N2.out"         , "-d 15 --no-sort -pc"),
-        ("ref.N2.no_sort.compress.all.out"          , "result.N2.no_sort.compress.all.out"          , "N2_N2.out"         , "-d 15 --no-sort -ac"),
-        ("ref.uo2.compress.out"                     , "result.uo2.compress.out"                     , "x2c_uo2_238.out"   , "-d 15 -c"),
-        ("ref.uo2.no_sort.compress.out"             , "result.uo2.no_sort.compress.out"             , "x2c_uo2_238.out"   , "-d 15 --no-sort -c"),
-        ("ref.ucl4.compress.out"                    , "result.ucl4.compress.out"                    , "x2c_ucl4.out"      , "-d 15 -c"),
-        ("ref.ucl4.no_sort.compress.out"            , "result.ucl4.no_sort.compress.out"            , "x2c_ucl4.out"      , "-d 15 --no-sort -c"),
-        ("ref.Cm3+_phen.compress.out"               , "result.Cm3+_phen.compress.out"               , "x2c_Cm3+_phen.out" , "-d 15 -c"),
-        ("ref.H2.no_scf.out"                        , "result.H2.no_scf.out"                        , "H2.noscf_H2.out"   , "-d 15 -c --no-scf"),
+        ("ref.Ar.compress.out"                      , "result.Ar.compress.out"                      , "Ar_Ar.out"                , "-d 15 -c"),
+        ("ref.Ar.no_sort.compress.out"              , "result.Ar.no_sort.compress.out"              , "Ar_Ar.out"                , "-d 15 --no-sort -c"),
+        ("ref.N2.compress.out"                      , "result.N2.compress.out"                      , "N2_N2.out"                , "-d 15 -c"),
+        ("ref.N2.compress.positronic.out"           , "result.N2.compress.positronic.out"           , "N2_N2.out"                , "-d 15 -pc"),
+        ("ref.N2.compress.all.out"                  , "result.N2.compress.all.out"                  , "N2_N2.out"                , "-d 15 -ac"),
+        ("ref.N2.no_sort.compress.out"              , "result.N2.no_sort.compress.out"              , "N2_N2.out"                , "-d 15 --no-sort -c"),
+        ("ref.N2.no_sort.compress.positronic.out"   , "result.N2.no_sort.compress.positronic.out"   , "N2_N2.out"                , "-d 15 --no-sort -pc"),
+        ("ref.N2.no_sort.compress.all.out"          , "result.N2.no_sort.compress.all.out"          , "N2_N2.out"                , "-d 15 --no-sort -ac"),
+        ("ref.uo2.compress.out"                     , "result.uo2.compress.out"                     , "x2c_uo2_238.out"          , "-d 15 -c"),
+        ("ref.uo2.no_sort.compress.out"             , "result.uo2.no_sort.compress.out"             , "x2c_uo2_238.out"          , "-d 15 --no-sort -c"),
+        ("ref.ucl4.compress.out"                    , "result.ucl4.compress.out"                    , "x2c_ucl4.out"             , "-d 15 -c"),
+        ("ref.ucl4.no_sort.compress.out"            , "result.ucl4.no_sort.compress.out"            , "x2c_ucl4.out"             , "-d 15 --no-sort -c"),
+        ("ref.Cm3+_phen.compress.out"               , "result.Cm3+_phen.compress.out"               , "x2c_Cm3+_phen.out"        , "-d 15 -c"),
+        ("ref.H2.no_scf.compress.out"               , "result.H2.no_scf.compress.out"               , "H2.noscf_H2.out"          , "-d 15 -c --no-scf"),
+        ("ref.H2O.invalid.eigpri.compress.out"      , "result.H2O.invalid.eigpri.compress.out"      , "H2O.invalid.eigpri.out"   , "-d 15 -c --no-scf"),
     ]
     # fmt: on
 )
 def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    env = Env(ref_filename, result_filename, input_filename, options)
+    env = Env(input_filename, options, ref_filename, result_filename)
     os.chdir(env.test_path)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
@@ -95,7 +99,7 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # fmt: on
 )
 def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filename: str, options: str):
-    env = Env(ref_filename, result_filename, input_filename, options)
+    env = Env(input_filename, options, ref_filename, result_filename)
     os.chdir(env.test_path)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
@@ -126,6 +130,25 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
             out_list_str = " ".join(out[:-1])
         assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
         assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+
+
+@pytest.mark.parametrize(
+    "input_filename, options, expected_error_message",
+    # fmt: off
+    [
+        ("H2O.invalid.eigpri.out"  , "-d 15", "Your .EIGPRI option in your DIRAC input file is invalid!"),
+        ("H2.noscf_H2.out"         , "-d 15", "Cannot find SCF calculation settings"),
+    ],
+    # fmt: on
+)
+def test_invalid_option_raise_error(input_filename: str, options: str, expected_error_message: str):
+    env = Env(input_filename, options)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    # Run the command and capture the output
+    p = subprocess.run(env.command.split(), encoding="utf-8", stderr=subprocess.PIPE, check=False)
+    assert p.returncode != 0, "Failed: Command should fail but return code is 0."
+    assert expected_error_message in p.stderr, f"Failed: Expected error message not found in output:\nexptected: {expected_error_message}\nstderr: {p.stderr}"
 
 
 def test_version_option():

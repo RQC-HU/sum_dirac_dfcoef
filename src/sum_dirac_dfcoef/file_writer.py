@@ -30,7 +30,9 @@ class OutputFileWriter:
             for symmetry_type, d in header_info.eigenvalues.shell_num.items():
                 line += f"{symmetry_type} "
                 for eigenvalue_type, num in d.items():
-                    line += f"{eigenvalue_type} {num} "
+                    # only write closed, open, virtual (positive energy eigenvalues)
+                    if eigenvalue_type in ("closed", "open", "virtual"):
+                        line += f"{eigenvalue_type} {num} "
             line += "\n"
             f.write(line)
 
