@@ -42,8 +42,6 @@ Please check your DIRAC input file and try again.\n"
     is_reach_input_field: bool = False
     is_scf_found: bool = False
     scf_detail_section: bool = False
-    # *section name or **section name
-    regex_scf_keyword = r" *\.SCF"
     for line in dirac_output:
         no_comment_out_line = delete_dirac_input_comment_out(line)
         words = space_separated_parsing_upper(no_comment_out_line)
@@ -59,7 +57,7 @@ Please check your DIRAC input file and try again.\n"
             break  # end of input field
 
         if is_reach_input_field:
-            if re.match(regex_scf_keyword, words[0]) is not None:
+            if ".SCF" in words[0]:
                 is_scf_found = True
 
             if is_dirac_input_section(words[0]):

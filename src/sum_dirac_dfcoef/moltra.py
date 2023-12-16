@@ -1,4 +1,3 @@
-import re
 from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 
@@ -33,7 +32,6 @@ class MoltraInfo:
         """
 
         is_moltra_section = False
-        re_active_keyword = r" *\.ACTIVE"
         is_reach_input_field = False
         is_next_line_active = False
         for line in dirac_output:
@@ -56,7 +54,7 @@ class MoltraInfo:
                         continue
 
                 if is_moltra_section:
-                    if re.match(re_active_keyword, no_comment_line) is not None:
+                    if ".ACTIVE" in words[0]:
                         cls.is_default = False
                         is_next_line_active = True
                         continue
