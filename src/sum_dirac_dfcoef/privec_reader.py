@@ -15,8 +15,9 @@ from sum_dirac_dfcoef.utils import (
 
 
 class STAGE(Enum):
-    # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF ->
-    # [MO_COEF -> READING_COEF -> WAIT_END_READING_COEF -> MO_COEF -> READING_COEF -> WAIT_END_READING_COEF -> ...] -> END
+    # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
+    #                                              ↓            ↑
+    #                                           MO_COEF -> READING_COEF
     INIT = auto()
     VECTOR_PRINT = auto()
     WAIT_END_READING_COEF = auto()
