@@ -29,6 +29,7 @@ class HeaderInfo:
             dirac_output (TextIOWrapper): Output file of DIRAC
 
         Returns:
+            None: class attributes are updated
         """
         dirac_output.seek(0)
         self.__read_electron_number(dirac_output)
@@ -55,7 +56,7 @@ class HeaderInfo:
         self.moltra_info.read_moltra_section(dirac_output)
 
     def __duplicate_moltra_str(self) -> None:
-        """Duplicate the moltra range string if it is not enough"""
+        # Duplicate the moltra range string if it is not enough
         if self.moltra_info.is_default:
             # Set the default range string
             for _ in range(len(self.eigenvalues.shell_num)):
@@ -138,7 +139,7 @@ class HeaderInfo:
         # \.{2} => ..
         regex = r"[-]?(?:[0-9]+|oo)\.{2}[-]?(?:[0-9]+|oo)"
         items: List[str] = re.findall(regex, range_str)
-        tmp_list: List[str] = []
+        ret_list: List[str] = []
         for item in items:
             item_li = item.replace("..", " ").split()
             range_li = [1 if item == "-oo" else len(self.eigenvalues.energies[symmetry_type]) if item == "oo" else int(item) for item in item_li]
@@ -146,5 +147,5 @@ class HeaderInfo:
                 msg = f"The minimum index is larger than the maximum index: {range_li[0]} > {range_li[1]}\n\
 your input: {range_str}, invalid input part: {item}"
                 raise ValueError(msg)
-            tmp_list.append(f"{range_li[0]}..{range_li[1]}")
-        return ",".join(tmp_list)
+            ret_list.append(f"{range_li[0]}..{range_li[1]}")
+        return ",".join(ret_list)

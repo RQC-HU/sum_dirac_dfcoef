@@ -58,44 +58,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             return True
         return False
 
-    def is_start_number_of_section(words: List[str]) -> bool:
-        if number_of_section["start"]:
-            return False
-        elif len(words) >= 6 and words[0] == "Number" and words[1] == "of" and words[2] == "orbitals" and words[3] == "in" and words[4] == "each" and words[5] == "symmetry:":
-            return True
-        return False
-
-    def get_number_of_info(words: List[str], line_str: str) -> None:
-        # Parse the line_str and get the number of orbitals
-        # (e.g.) Number of orbitals in each symmetry:          108    65    65    24    78    29    29    13
-        #
-        def get_orbital_type() -> str:
-            # orbital_type is between "Number of" and "in each symmetry:"
-            start_orbital_type_idx = line_str.find("Number of") + len("Number of")
-            end_orbital_type_idx = line_str.find("in each symmetry:")
-            if start_orbital_type_idx == -1 or end_orbital_type_idx == -1:
-                return ""  # This is not expected but skip this line_str
-
-            return line_str[start_orbital_type_idx:end_orbital_type_idx].strip()
-
-        if "Number of" not in line_str:
-            # End "Number of" section
-            number_of_section["end"] = True
-            return  # Skip this line_str and start reading large
-
-        orbital_type = get_orbital_type()
-        if orbital_type == "":
-            return  # This is not expected but skip this line_str
-
-        orbitals_str_list = words[words.index("symmetry:") + 1 :]
-        try:
-            orbitals = [int(i) for i in orbitals_str_list]
-            number_of_info[orbital_type] = sum(orbitals)
-        except (ValueError, TypeError, IndexError):
-            # Probably ***** is included in the line_str
-            # This is expected exception
-            pass
-
     def get_symmetry(words: List[str]) -> str:
         symmetry = words[1]  # e.g. "Ag"
         bra_idx = symmetry.find("(")
@@ -103,7 +65,21 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             symmetry = symmetry[:bra_idx]
         return symmetry
 
-    def read_func_info(words: List[str], line_str: str) -> Function:
+    def read_func_info(words: List[str], line_str: str, component_func: str, symmetry: str) -> Function:
+        """Read function information from the external variables line_str and words
+        format url: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
+        actual format: 3X,ILAB(1,I)," functions: ",PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
+
+        (e.g.)  line_str = "18 functions:    Ar s", component_func = "large", symmetry = "Ag"
+                => return Function(component_func="large", symmetry="Ag", atom="Ar", gto_type="s", start_idx=1, num_functions=18, multiplicity=1)
+
+                line_str = "6 functions:    H  s   1+2", component_func = "large", symmetry = "A1"
+                => return Function(component_func="large", symmetry="A1", atom="H", gto_type="s", start_idx=1, num_functions=6, multiplicity=2)
+
+        Returns:
+            Function: Function information
+        """
+
         def get_last_elem() -> Tuple[int, AtomInfo]:
             # Get the last element of the OrderedDict element with the keys
             last_elem_idx, last_elem = functions_info[component_func][symmetry][atom].popitem()
@@ -129,14 +105,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         def parse_multiplicity_label(multiplicity_label: str) -> int:
             return len(re.findall("[+-]", multiplicity_label)) + 1  # (e.g.) 1+2=>2, 1+2+3=>3, 1+2-3-4=>4
 
-        """Read function information from the external variables line_str and words, which are in the scope of get_functions_info() function.
-
-        Returns:
-            Function: Function information
-        """
-
-        # ref: https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/dirac/dirtra.F#L3697-3699
-        # 3X,ILAB(1,I)," functions: ",PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
         try:
             num_functions = int(words[0])  # ILAB(1,I) (e.g.) 3
         except ValueError as e:
@@ -166,8 +134,6 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
 
     start_symmetry_orbitals_section = False
-    number_of_section = {"start": False, "end": False}
-    number_of_info: ODict[str, int] = OrderedDict()
     component_func = ""  # "large" or "small"
     symmetry = ""
     functions_info = FunctionsInfo()
@@ -177,17 +143,12 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             continue
         elif not start_symmetry_orbitals_section:
             start_symmetry_orbitals_section = is_start_symmetry_orbitals_section(words)
-        elif not number_of_section["start"]:
-            number_of_section["start"] = is_start_number_of_section(words)
-            get_number_of_info(words, line_str)
-        elif number_of_section["start"] and not number_of_section["end"]:
-            get_number_of_info(words, line_str)
         elif "component functions" in line_str:
             component_func = "large" if "Large" in line_str else ("small" if "Small" in line_str else "")
         elif "Symmetry" in line_str:
             symmetry = get_symmetry(words)
         elif "functions" in line_str:
-            func = read_func_info(words, line_str)
+            func = read_func_info(words, line_str, component_func, symmetry)
             # Create an empty dictionary if the key does not exist
             functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
             # Add function information
@@ -196,7 +157,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.start_idx, label, func.multiplicity)
             functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
-            # all characters in line_str are * or space or line break
+            # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals
 
     if not start_symmetry_orbitals_section:

@@ -4,7 +4,17 @@ from io import TextIOWrapper
 from typing import ClassVar, Dict, List
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.utils import debug_print, is_dirac_input_line_comment_out, is_dirac_input_section_one_star, space_separated_parsing
+from sum_dirac_dfcoef.utils import (
+    debug_print,
+    delete_dirac_input_comment_out,
+    is_dirac_input_keyword,
+    is_dirac_input_line_should_be_skipped,
+    is_dirac_input_section_one_star,
+    is_end_dirac_input_field,
+    is_start_dirac_input_field,
+    space_separated_parsing,
+    space_separated_parsing_upper,
+)
 
 
 # type definition eigenvalues.shell_num
@@ -30,7 +40,7 @@ class Eigenvalues:
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
         def is_end_of_read(line) -> bool:
-            if "Occupation" in line or "HOMO - LUMO" in line:
+            if "HOMO - LUMO" in line:
                 return True
             return False
 
@@ -53,7 +63,7 @@ class Eigenvalues:
             return False
 
         def get_current_eigenvalue_type(words: List[str]) -> str:
-            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative"
+            # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative" or "Positronic"
             current_eigenvalue_type = words[1].lower()
             return current_eigenvalue_type
 
@@ -129,7 +139,7 @@ class Eigenvalues:
                     match = re.search(regex, line[start_idx:])
                     if match is None:
                         break
-                    # [1 : len(match.group()) - 1] => ( 2) => 2
+                    # match.group() == ( 2) => [1 : len(match.group()) - 1] == 2
                     num = int(match.group()[1 : len(match.group()) - 1])
                     self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
                     for _ in range(0, num, 2):
@@ -141,22 +151,29 @@ class Eigenvalues:
         debug_print(f"eigenvalues: {self}")
 
     def validate_eigpri_option(self, dirac_output: TextIOWrapper):
-        from sum_dirac_dfcoef.utils import delete_comment_out, is_dirac_input_keyword, is_end_dirac_input_field, is_start_dirac_input_field
+        """Validate the .EIGPRI option in the DIRAC input file,
+        if is not set, it is a valid input
+        because only the positive energy eigenvalues are printed as default.
+
+        Args:
+            dirac_output (TextIOWrapper): _description_
+        """
 
         is_reach_input_field: bool = False
         is_scf_section: bool = False
         is_scf_detail_section: bool = False
         is_next_line_eigpri: bool = False
         for line in dirac_output:
-            words: List[str] = [v.upper() for v in space_separated_parsing(line)]
-            if len(words) == 0 or is_dirac_input_line_comment_out(words[0]):
+            no_comment_out_line = delete_dirac_input_comment_out(line)
+            words = space_separated_parsing_upper(no_comment_out_line)
+            if is_dirac_input_line_should_be_skipped(words):
                 continue
 
-            if is_start_dirac_input_field(line):
+            if is_start_dirac_input_field(no_comment_out_line):
                 is_reach_input_field = True
                 continue
 
-            if is_end_dirac_input_field(line):
+            if is_end_dirac_input_field(no_comment_out_line):
                 break
 
             if is_reach_input_field:
@@ -185,8 +202,6 @@ class Eigenvalues:
 
             if is_next_line_eigpri:
                 # https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri
-                without_comment = delete_comment_out(line)
-                words = space_separated_parsing(without_comment)
                 if len(words) == 2 and words[0].isdigit() and words[1].isdigit():
                     if int(words[0]) == 0:  # positive energy eigenvalues are not printed
                         msg = f"\nYour .EIGPRI option in your DIRAC input file is invalid!\n\
