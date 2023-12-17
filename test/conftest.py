@@ -3,7 +3,6 @@ import subprocess
 from pathlib import Path
 
 
-# def pytest_configure(config):
 def pytest_sessionstart():
     cur_dir = Path.cwd()
     # Change the current directory to the root directory of the package
