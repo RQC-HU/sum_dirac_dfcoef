@@ -162,3 +162,4 @@ cython_debug/
 
 ## Custom
 functions_info.json
+sum_dirac_dfcoef.out
