@@ -6,11 +6,11 @@ from sum_dirac_dfcoef.coefficient import Coefficient
 
 class DataMO:
     norm_const_sum: float = 0.0
-    coef_dict: ClassVar[Dict[str, Coefficient]] = {}
-    coef_list: ClassVar[List[Coefficient]] = []
-    electron_num: int = 0
     mo_energy: float = 0.0
     mo_info: str = ""
+    eigenvalue_no: int = 0
+    coef_dict: ClassVar[Dict[str, Coefficient]] = {}
+    coef_list: ClassVar[List[Coefficient]] = []
 
     def __repr__(self) -> str:
         return f"norm_const_sum: {self.norm_const_sum}, coef_dict: {self.coef_dict}"
@@ -27,7 +27,7 @@ class DataMO:
         self.norm_const_sum = 0.0
         self.mo_energy = 0.0
         self.mo_info = ""
-        self.electron_num = 0
+        self.eigenvalue_no = 0
         self.coef_dict.clear()
         self.coef_list.clear()
 

@@ -137,27 +137,27 @@ class PrivecProcessor:
                 msg = f"ERROR: UnKnow MO type, MO_Type={words[1]}"
                 raise ValueError(msg)
 
-        def get_electron_num():
+        def get_eigenvalue_no():
             try:
-                electron_num = int(words[-2][:-1].replace("no.", ""))
+                eigenvalue_no = int(words[-2][:-1].replace("no.", ""))
             except ValueError:
                 # If *** is printed, we have no information about what number this MO is.
-                # Therefore, we assume that electron_num is the next number after prev_electron_num.
-                prev_electron_num = self.data_mo.electron_num  # prev_electron is the number of electrons of the previous MO
-                electron_num = prev_electron_num + 1
-            return electron_num
+                # Therefore, we assume that eigenvalue_no is the next number after prev_eigenvalue_no.
+                prev_eigenvalue_no = self.data_mo.eigenvalue_no  # prev_electron is the number of electrons of the previous MO
+                eigenvalue_no = prev_eigenvalue_no + 1
+            return eigenvalue_no
 
         set_is_electronic()
-        electron_num = get_electron_num()
+        eigenvalue_no = get_eigenvalue_no()
         mo_energy = float(words[-1])
         mo_info = (
-            f"{self.mo_sym_type} {electron_num}"
+            f"{self.mo_sym_type} {eigenvalue_no}"
             if args.compress
-            else (f"Electronic no. {electron_num} {self.mo_sym_type}" if self.is_electronic else f"Positronic no. {electron_num} {self.mo_sym_type}")
+            else (f"Electronic no. {eigenvalue_no} {self.mo_sym_type}" if self.is_electronic else f"Positronic no. {eigenvalue_no} {self.mo_sym_type}")
         )
         # Here is the start point of reading coefficients of the current MO
         self.data_mo.reset()  # reset data_mo because we need to delete data_mo of the previous MO
-        self.data_mo.electron_num = electron_num
+        self.data_mo.eigenvalue_no = eigenvalue_no
         self.data_mo.mo_energy = mo_energy
         self.data_mo.mo_info = mo_info
         self.used_atom_info.clear()  # reset used_atom_info because we need to delete used_atom_info of the previous MO
@@ -197,4 +197,4 @@ class PrivecProcessor:
             self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
         else:
             self.data_all_mo.positronic.append(copy.deepcopy(self.data_mo))
-        debug_print(f"End of reading {self.data_mo.electron_num}th MO")
+        debug_print(f"End of reading {self.data_mo.eigenvalue_no}th MO")
