@@ -89,10 +89,14 @@ def parse_args() -> "argparse.Namespace":
     if args.for_generator:
         args.no_scf = False
         args.compress = True
+        args.positronic_write = False
         args.all_write = True
 
     if args.only_moltra and args.for_generator:
         parser.error("--only-moltra option cannot be used with --for-generator option.\nUse either --only-moltra or --for-generator option.")
+
+    if args.all_write and args.positronic_write:
+        parser.error("-a/--all-write and -p/--positronic-write options cannot be set at the same time.")
 
     if args.only_moltra and not args.compress:
         print("Warning: --only-moltra option is activated but --compress option is not activated. --only-moltra option will be ignored.")
