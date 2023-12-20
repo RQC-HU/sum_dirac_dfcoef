@@ -26,6 +26,13 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
     parser.add_argument("-o", "--output", type=str, help="Output file name. Default: sum_dirac_dfcoef.out", dest="output")
     parser.add_argument(
+        "-g",
+        "--for-generator",
+        action="store_true",
+        help="Automatically set the arguments for dcaspt2_input_generator.",
+        dest="for_generator",
+    )
+    parser.add_argument(
         "-c",
         "--compress",
         action="store_true",
@@ -63,7 +70,14 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)", dest="debug")
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     # If -v or --version option is used, print version and exit
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.for_generator:
+        args.no_scf = False
+        args.compress = True
+        args.all_write = False
+
+    return args
 
 
 args = parse_args()
