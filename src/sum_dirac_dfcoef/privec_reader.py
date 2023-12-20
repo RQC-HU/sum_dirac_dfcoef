@@ -1,17 +1,15 @@
 import copy
 from enum import Enum, auto
 from io import TextIOWrapper
-from typing import List
+from typing import Dict, List
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.atoms import AtomInfo
 from sum_dirac_dfcoef.coefficient import get_coefficient
 from sum_dirac_dfcoef.data import DataAllMO, DataMO
+from sum_dirac_dfcoef.eigenvalues import Eigenvalues
 from sum_dirac_dfcoef.functions_info import FunctionsInfo
-from sum_dirac_dfcoef.utils import (
-    debug_print,
-    space_separated_parsing,
-)
+from sum_dirac_dfcoef.utils import INF, debug_print, space_separated_parsing
 
 
 class STAGE(Enum):
@@ -27,15 +25,17 @@ class STAGE(Enum):
 
 
 class PrivecProcessor:
-    def __init__(self, dirac_output: TextIOWrapper, functions_info: FunctionsInfo) -> None:
+    def __init__(self, dirac_output: TextIOWrapper, functions_info: FunctionsInfo, eigenvalues: Eigenvalues) -> None:
         self.dirac_output = dirac_output
         self.stage = STAGE.INIT
         self.is_electronic = False
+        self.eigenvalues = eigenvalues
         self.mo_sym_type = ""
+        self.mo_range_per_sym_type: Dict[str, Dict[str, int]] = {}
         self.functions_info = functions_info
         self.data_mo = DataMO()
         self.data_all_mo = DataAllMO()
-        self.used_atom_info: dict[str, AtomInfo] = {}
+        self.used_atom_info: Dict[str, AtomInfo] = {}
         self.current_atom_info = AtomInfo()
 
     def read_privec_data(self):
@@ -48,6 +48,8 @@ class PrivecProcessor:
             words = space_separated_parsing(line_str)
 
             if self.stage == STAGE.END:
+                if args.compress and not args.no_scf and not args.no_sort:
+                    self.fill_non_moltra_range_electronic_eigenvalues()
                 break  # End of reading coefficients
 
             elif self.need_to_skip_this_line(words):
@@ -63,11 +65,13 @@ class PrivecProcessor:
             elif self.stage == STAGE.VECTOR_PRINT:
                 if self.need_to_get_mo_sym_type(words):
                     self.mo_sym_type = words[2]
+                    self.mo_range_per_sym_type.setdefault(self.mo_sym_type, {"first": INF, "last": -INF})
                     self.transition_stage(STAGE.WAIT_END_READING_COEF)
 
             elif self.stage == STAGE.WAIT_END_READING_COEF:
                 if self.need_to_get_mo_sym_type(words):
                     self.mo_sym_type = words[2]
+                    self.mo_range_per_sym_type.setdefault(self.mo_sym_type, {"first": INF, "last": -INF})
                 elif self.need_to_start_mo_section(words):
                     self.start_mo_section(words)
                     self.transition_stage(STAGE.WAIT_FIRST_COEF)
@@ -121,6 +125,14 @@ class PrivecProcessor:
             return True
         return False
 
+    def get_mo_info(self, eigenvalue_no: int) -> str:
+        if args.compress:
+            return f"{self.mo_sym_type} {eigenvalue_no}"
+        elif self.is_electronic:
+            return f"Electronic no. {eigenvalue_no} {self.mo_sym_type}"
+        else:
+            return f"Positronic no. {eigenvalue_no} {self.mo_sym_type}"
+
     def start_mo_section(self, words: List[str]) -> None:
         """
         (e.g.)
@@ -150,11 +162,8 @@ class PrivecProcessor:
         set_is_electronic()
         eigenvalue_no = get_eigenvalue_no()
         mo_energy = float(words[-1])
-        mo_info = (
-            f"{self.mo_sym_type} {eigenvalue_no}"
-            if args.compress
-            else (f"Electronic no. {eigenvalue_no} {self.mo_sym_type}" if self.is_electronic else f"Positronic no. {eigenvalue_no} {self.mo_sym_type}")
-        )
+        mo_info = self.get_mo_info(eigenvalue_no)
+
         # Here is the start point of reading coefficients of the current MO
         self.data_mo.reset()  # reset data_mo because we need to delete data_mo of the previous MO
         self.data_mo.eigenvalue_no = eigenvalue_no
@@ -195,6 +204,31 @@ class PrivecProcessor:
         self.data_mo.fileter_coefficients_by_threshold()
         if self.is_electronic:
             self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
+            cur_sym = self.mo_sym_type
+            cur_first = self.mo_range_per_sym_type[cur_sym]["first"]
+            cur_last = self.mo_range_per_sym_type[cur_sym]["last"]
+            self.mo_range_per_sym_type[cur_sym]["first"] = min(cur_first, self.data_mo.eigenvalue_no)
+            self.mo_range_per_sym_type[self.mo_sym_type]["last"] = max(cur_last, self.data_mo.eigenvalue_no)
         else:
             self.data_all_mo.positronic.append(copy.deepcopy(self.data_mo))
         debug_print(f"End of reading {self.data_mo.eigenvalue_no}th MO")
+
+    def fill_non_moltra_range_electronic_eigenvalues(self):
+        self.is_electronic = True
+        for sym_type_key in self.mo_range_per_sym_type.keys():
+            self.mo_sym_type = sym_type_key
+            energies = self.eigenvalues.energies[sym_type_key]
+            first, last = self.mo_range_per_sym_type[sym_type_key].values()
+            for idx in range(first - 1):  # first is 1-indexed, but energies are 0-indexed
+                self.data_mo.reset()
+                self.data_mo.eigenvalue_no = idx + 1
+                self.data_mo.mo_info = self.get_mo_info(idx + 1)
+                self.data_mo.mo_energy = energies[idx]
+                self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
+
+            for idx in range(last, len(energies)):
+                self.data_mo.reset()
+                self.data_mo.eigenvalue_no = idx + 1
+                self.data_mo.mo_info = self.get_mo_info(idx + 1)
+                self.data_mo.mo_energy = energies[idx]
+                self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))

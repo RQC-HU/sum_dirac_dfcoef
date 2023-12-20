@@ -113,6 +113,10 @@ E1g 17 -5.11753 B2gUdxz 35.98781 B3gUdyz 35.98781 AgUdzz 18.54868 AgUdxx 4.63717
 
 This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
+## For dcaspt2_input_generator
+
+- If you want to use the result of this program as input to [dcaspt2_input_generator](https://github.com/RQC-HU/dcaspt2_input_generator), we recommend you to use -g or --for-generator option.
+
 ## Options
 
 optional arguments (--input is required)
@@ -129,10 +133,18 @@ optional arguments (--input is required)
 
   Output file name. Default: sum_dirac_dfcoef.out
 
+- -g, --for-generator
+
+  Automatically set the arguments for dcaspt2_input_generator.
+
 - -c, --compress
 
   Compress output. Display all coefficients on one line for each MO.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
+
+- --only-moltra
+
+  Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option) but you don't want to get the output that is not included in the range of MOLTRA.
 
 - -t THRESHOLD, --threshold THRESHOLD
 

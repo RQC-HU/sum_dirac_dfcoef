@@ -11,8 +11,8 @@ def main() -> None:
     dirac_filepath = get_dirac_filepath()
     dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
+    header_info = HeaderInfo()
     if not args.no_scf:
-        header_info = HeaderInfo()
         header_info.read_header_info(dirac_output)
     dirac_output.seek(0)
     functions_info = get_functions_info(dirac_output)
@@ -26,7 +26,7 @@ def main() -> None:
         output_file_writer.write_headerinfo(header_info)
 
     # Read coefficients from the output file of DIRAC and store them in data_all_mo.
-    privec_processor = PrivecProcessor(dirac_output, functions_info)
+    privec_processor = PrivecProcessor(dirac_output, functions_info, header_info.eigenvalues)
     privec_processor.read_privec_data()
     data_all_mo = privec_processor.data_all_mo
 

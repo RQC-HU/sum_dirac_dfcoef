@@ -19,18 +19,39 @@ class PrintVersionExitAction(argparse.Action):
         sys.exit()
 
 
+class PrintHelpArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.print_help(sys.stdout)
+        err_msg = f"{self.prog}: error: {message}\n"
+        self.exit(2, err_msg)
+
+
 def parse_args() -> "argparse.Namespace":
-    parser = argparse.ArgumentParser(
+    parser = PrintHelpArgumentParser(
         description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
     )
     parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
     parser.add_argument("-o", "--output", type=str, help="Output file name. Default: sum_dirac_dfcoef.out", dest="output")
+    parser.add_argument(
+        "-g",
+        "--for-generator",
+        action="store_true",
+        help="Automatically set the arguments for dcaspt2_input_generator.",
+        dest="for_generator",
+    )
     parser.add_argument(
         "-c",
         "--compress",
         action="store_true",
         help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
         dest="compress",
+    )
+    parser.add_argument(
+        "--only-moltra",
+        action="store_true",
+        help="Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option)\
+            but you don't want to get the output that is not included in the range of MOLTRA.",
+        dest="only_moltra",
     )
     parser.add_argument(
         "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold"
@@ -63,7 +84,24 @@ def parse_args() -> "argparse.Namespace":
     parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)", dest="debug")
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     # If -v or --version option is used, print version and exit
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.for_generator:
+        args.no_scf = False
+        args.compress = True
+        args.no_sort = False
+        args.positronic_write = False
+
+    if args.only_moltra and args.for_generator:
+        parser.error("--only-moltra option cannot be used with --for-generator option.\nUse either --only-moltra or --for-generator option.")
+
+    if args.all_write and args.positronic_write:
+        parser.error("-a/--all-write and -p/--positronic-write options cannot be set at the same time.")
+
+    if args.only_moltra and not args.compress:
+        print("Warning: --only-moltra option is activated but --compress option is not activated. --only-moltra option will be ignored.")
+
+    return args
 
 
 args = parse_args()
