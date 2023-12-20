@@ -40,6 +40,13 @@ def parse_args() -> "argparse.Namespace":
         dest="compress",
     )
     parser.add_argument(
+        "--only-moltra",
+        action="store_true",
+        help="Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option)\
+            but you don't want to get the output that is not included in the range of MOLTRA.",
+        dest="only_moltra",
+    )
+    parser.add_argument(
         "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold"
     )
     parser.add_argument(
@@ -76,6 +83,12 @@ def parse_args() -> "argparse.Namespace":
         args.no_scf = False
         args.compress = True
         args.all_write = False
+
+    if args.only_moltra and args.for_generator:
+        parser.error("--only-moltra option cannot be used with --for-generator option.\nUse either --only-moltra or --for-generator option.")
+
+    if args.only_moltra and not args.compress:
+        print("Warning: --only-moltra option is activated but --compress option is not activated. --only-moltra option will be ignored.")
 
     return args
 

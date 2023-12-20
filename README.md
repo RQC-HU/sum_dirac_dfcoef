@@ -142,6 +142,10 @@ optional arguments (--input is required)
   Compress output. Display all coefficients on one line for each MO.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
+- --only-moltra
+
+  Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option) but you don't want to get the output that is not included in the range of MOLTRA.
+
 - -t THRESHOLD, --threshold THRESHOLD
 
   threshold. Default: 0.1 %  
