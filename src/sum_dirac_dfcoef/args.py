@@ -19,8 +19,15 @@ class PrintVersionExitAction(argparse.Action):
         sys.exit()
 
 
+class PrintHelpArgumentParser(argparse.ArgumentParser):
+    def error(self, message):
+        self.print_help(sys.stdout)
+        err_msg = f"{self.prog}: error: {message}\n"
+        self.exit(2, err_msg)
+
+
 def parse_args() -> "argparse.Namespace":
-    parser = argparse.ArgumentParser(
+    parser = PrintHelpArgumentParser(
         description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
     )
     parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
