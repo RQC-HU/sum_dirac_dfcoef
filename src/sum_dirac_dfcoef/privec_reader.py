@@ -9,7 +9,7 @@ from sum_dirac_dfcoef.coefficient import get_coefficient
 from sum_dirac_dfcoef.data import DataAllMO, DataMO
 from sum_dirac_dfcoef.eigenvalues import Eigenvalues
 from sum_dirac_dfcoef.functions_info import FunctionsInfo
-from sum_dirac_dfcoef.utils import INF, debug_print, space_separated_parsing
+from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class STAGE(Enum):
@@ -31,7 +31,6 @@ class PrivecProcessor:
         self.is_electronic = False
         self.eigenvalues = eigenvalues
         self.mo_sym_type = ""
-        self.mo_range_per_sym_type: Dict[str, Dict[str, int]] = {}
         self.functions_info = functions_info
         self.data_mo = DataMO()
         self.data_all_mo = DataAllMO()
@@ -48,7 +47,7 @@ class PrivecProcessor:
             words = space_separated_parsing(line_str)
 
             if self.stage == STAGE.END:
-                if args.compress and not args.no_scf and not args.no_sort:
+                if args.for_generator:
                     self.fill_non_moltra_range_electronic_eigenvalues()
                 break  # End of reading coefficients
 
@@ -65,13 +64,11 @@ class PrivecProcessor:
             elif self.stage == STAGE.VECTOR_PRINT:
                 if self.need_to_get_mo_sym_type(words):
                     self.mo_sym_type = words[2]
-                    self.mo_range_per_sym_type.setdefault(self.mo_sym_type, {"first": INF, "last": -INF})
                     self.transition_stage(STAGE.WAIT_END_READING_COEF)
 
             elif self.stage == STAGE.WAIT_END_READING_COEF:
                 if self.need_to_get_mo_sym_type(words):
                     self.mo_sym_type = words[2]
-                    self.mo_range_per_sym_type.setdefault(self.mo_sym_type, {"first": INF, "last": -INF})
                 elif self.need_to_start_mo_section(words):
                     self.start_mo_section(words)
                     self.transition_stage(STAGE.WAIT_FIRST_COEF)
@@ -205,30 +202,22 @@ class PrivecProcessor:
         if self.is_electronic:
             self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
             cur_sym = self.mo_sym_type
-            cur_first = self.mo_range_per_sym_type[cur_sym]["first"]
-            cur_last = self.mo_range_per_sym_type[cur_sym]["last"]
-            self.mo_range_per_sym_type[cur_sym]["first"] = min(cur_first, self.data_mo.eigenvalue_no)
-            self.mo_range_per_sym_type[self.mo_sym_type]["last"] = max(cur_last, self.data_mo.eigenvalue_no)
+            if args.for_generator:
+                self.eigenvalues.energies_used[cur_sym][self.data_mo.eigenvalue_no] = True
         else:
             self.data_all_mo.positronic.append(copy.deepcopy(self.data_mo))
         debug_print(f"End of reading {self.data_mo.eigenvalue_no}th MO")
 
     def fill_non_moltra_range_electronic_eigenvalues(self):
         self.is_electronic = True
-        for sym_type_key in self.mo_range_per_sym_type.keys():
+        print("Filling non-moltra range electronic eigenvalues...")
+        print(self.eigenvalues.energies_used)
+        for sym_type_key, val in self.eigenvalues.energies_used.items():
             self.mo_sym_type = sym_type_key
-            energies = self.eigenvalues.energies[sym_type_key]
-            first, last = self.mo_range_per_sym_type[sym_type_key].values()
-            for idx in range(first - 1):  # first is 1-indexed, but energies are 0-indexed
-                self.data_mo.reset()
-                self.data_mo.eigenvalue_no = idx + 1
-                self.data_mo.mo_info = self.get_mo_info(idx + 1)
-                self.data_mo.mo_energy = energies[idx]
-                self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
-
-            for idx in range(last, len(energies)):
-                self.data_mo.reset()
-                self.data_mo.eigenvalue_no = idx + 1
-                self.data_mo.mo_info = self.get_mo_info(idx + 1)
-                self.data_mo.mo_energy = energies[idx]
-                self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
+            for eigenvalue_no, is_found in val.items():
+                if not is_found:
+                    self.data_mo.reset()
+                    self.data_mo.eigenvalue_no = eigenvalue_no
+                    self.data_mo.mo_info = self.get_mo_info(eigenvalue_no)
+                    self.data_mo.mo_energy = self.eigenvalues.energies[sym_type_key][eigenvalue_no - 1]
+                    self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))

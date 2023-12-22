@@ -109,6 +109,3 @@ def should_write_electronic_results_to_file() -> bool:
         return True
     else:
         return False
-
-
-INF = 10**20

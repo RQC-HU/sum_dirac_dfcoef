@@ -33,10 +33,15 @@ from sum_dirac_dfcoef.utils import (
 class Eigenvalues:
     shell_num: ClassVar[ODict[str, Dict[str, int]]] = OrderedDict()
     energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
+    energies_used: ClassVar[ODict[str, Dict[int, bool]]] = OrderedDict()
 
     def setdefault(self, key: str):
         self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0, "positronic": 0})
         self.energies.setdefault(key, [])
+        self.energies_used.setdefault(key, {})
+
+    def get_electronic_spinor_num(self, symmetry_type: str) -> int:
+        return self.shell_num[symmetry_type]["closed"] + self.shell_num[symmetry_type]["open"] + self.shell_num[symmetry_type]["virtual"]
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
         def is_end_of_read(line) -> bool:
@@ -144,6 +149,7 @@ class Eigenvalues:
                     self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
                     for _ in range(0, num, 2):
                         self.energies[current_symmetry_type].append(val)
+                        self.energies_used[current_symmetry_type][len(self.energies[current_symmetry_type])] = False
                     start_idx += match.end()
 
         for key in self.energies.keys():
