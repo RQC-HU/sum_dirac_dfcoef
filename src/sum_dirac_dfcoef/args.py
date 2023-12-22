@@ -92,6 +92,9 @@ def parse_args() -> "argparse.Namespace":
         args.no_sort = False
         args.positronic_write = False
 
+    if not (args.no_scf or args.no_sort or args.positronic_write) and args.compress:
+        args.for_generator = True
+
     if args.only_moltra and args.for_generator:
         parser.error("--only-moltra option cannot be used with --for-generator option.\nUse either --only-moltra or --for-generator option.")
 
