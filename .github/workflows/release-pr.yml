@@ -19,6 +19,10 @@ on:
         required: false
         default: true
 
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   NEW_VERSION: ""
   BRANCH_NAME: ""
