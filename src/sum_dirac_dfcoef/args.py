@@ -89,10 +89,9 @@ def parse_args() -> "argparse.Namespace":
     if args.for_generator:
         args.no_scf = False
         args.compress = True
-        args.no_sort = False
         args.positronic_write = False
 
-    if not (args.no_scf or args.no_sort or args.positronic_write) and args.compress:
+    if not (args.no_scf or args.positronic_write) and args.compress:
         args.for_generator = True
 
     if args.only_moltra and args.for_generator:
