@@ -79,7 +79,8 @@ A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
 A part of the result (... represents an omission)
 
 ```out
-E1g closed 52 open 0 virtual 268 E1u closed 54 open 0 virtual 314 
+NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
+NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
 Electronic no. 19 E1u -8.88244
 B3uUpx        49.99917 %
 B2uUpy        49.99917 %
@@ -104,6 +105,7 @@ AgUs           0.13729 %
 If you use -c or --compress option, you can get a compressed result like this.(one line per MO)
 
 ```out
+electron_num 106 E1g 16..85 E1u 11..91 
 E1g closed 52 open 0 virtual 268 E1u closed 54 open 0 virtual 314 
 E1u 19 -8.88244 B3uUpx 49.99917 B2uUpy 49.99917
 E1u 20 -8.86075 B1uUpz 66.76661 B3uUpx 16.05235 B2uUpy 16.05235 B1uOs(1) 0.54741 B1uOs(2) 0.54741
@@ -136,6 +138,8 @@ optional arguments (--input is required)
 - -g, --for-generator
 
   Automatically set the arguments for dcaspt2_input_generator.
+  This option is useful when you want to use the result of this program as input to dcaspt2_input_generator.
+  This option is equivalent to set -c/--compress and not set -p/--positronic and --no-scf options.
 
 - -c, --compress
 
