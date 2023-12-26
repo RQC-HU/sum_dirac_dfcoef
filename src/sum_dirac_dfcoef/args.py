@@ -36,7 +36,9 @@ def parse_args() -> "argparse.Namespace":
         "-g",
         "--for-generator",
         action="store_true",
-        help="Automatically set the arguments for dcaspt2_input_generator.",
+        help="Automatically set the arguments for dcaspt2_input_generator. \
+This option is useful when you want to use the result of this program as input to dcaspt2_input_generator. \
+This option is equivalent to set -c/--compress and not set -p/--positronic and --no-scf options.",
         dest="for_generator",
     )
     parser.add_argument(
