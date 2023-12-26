@@ -210,8 +210,6 @@ class PrivecProcessor:
 
     def fill_non_moltra_range_electronic_eigenvalues(self):
         self.is_electronic = True
-        print("Filling non-moltra range electronic eigenvalues...")
-        print(self.eigenvalues.energies_used)
         for sym_type_key, val in self.eigenvalues.energies_used.items():
             self.mo_sym_type = sym_type_key
             for eigenvalue_no, is_found in val.items():

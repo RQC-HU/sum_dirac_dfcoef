@@ -12,15 +12,13 @@ def main() -> None:
     dirac_output = open(dirac_filepath, encoding="utf-8")
     dirac_output.seek(0)  # rewind to the beginning of the file
     header_info = HeaderInfo()
-    if not args.no_scf:
+    if args.for_generator:
         header_info.read_header_info(dirac_output)
     dirac_output.seek(0)
     functions_info = get_functions_info(dirac_output)
     output_file_writer.create_blank_file()
-    if args.no_scf or args.positronic_write:
-        # If args.no_scf is True, we cannot get header_info from the output file of DIRAC.
-        # also, if args.positronic_write is True, we do not need to write header_info to the output file
-        # because dcaspt2_input_generator program does not support positronic results.
+    if not args.for_generator:
+        # If the output file is not for dcaspt2_input_generator, don't write header information.
         output_file_writer.write_no_header_info()
     else:
         output_file_writer.write_headerinfo(header_info)
