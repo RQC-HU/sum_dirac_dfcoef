@@ -26,6 +26,7 @@ def main() -> None:
     # Read coefficients from the output file of DIRAC and store them in data_all_mo.
     privec_processor = PrivecProcessor(dirac_output, functions_info, header_info.eigenvalues)
     privec_processor.read_privec_data()
+    privec_processor.data_all_mo.sort_mo_energy()
     data_all_mo = privec_processor.data_all_mo
 
     if should_write_electronic_results_to_file():

@@ -84,8 +84,7 @@ class PrivecProcessor:
                 if self.is_this_row_for_coefficients(words):
                     self.add_coefficient(line_str)
 
-        if not args.no_sort:
-            self.data_all_mo.sort_mo_energy()
+        self.data_all_mo.sort_mo_sym_type()
 
     def transition_stage(self, new_stage: STAGE) -> None:
         self.stage = new_stage
