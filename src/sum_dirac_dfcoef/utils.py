@@ -14,7 +14,7 @@ def space_separated_parsing_upper(line: str) -> List[str]:
     return [word.upper() for word in words if word != ""]
 
 
-def debug_print(message: str):
+def debug_print(message: str) -> None:
     from sum_dirac_dfcoef.args import args
 
     # print debug message if --debug option is used
@@ -22,7 +22,7 @@ def debug_print(message: str):
         print(message)
 
 
-def is_float(parameter: str):
+def is_float(parameter: str) -> bool:
     if not parameter.isdecimal():
         try:
             float(parameter)
