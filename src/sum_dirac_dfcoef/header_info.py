@@ -3,6 +3,7 @@ from bisect import bisect_left, bisect_right
 from collections import OrderedDict
 from io import TextIOWrapper
 from typing import List
+from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.data import DataAllMO, DataMO
 from sum_dirac_dfcoef.eigenvalues import Eigenvalues
@@ -148,7 +149,7 @@ class HeaderInfo:
                 within_moltra[data_all_mo.electronic[idx].eigenvalue_no] = True
             return within_moltra
 
-        def create_energy_str(within_moltra: OrderedDict[int, bool]):
+        def create_energy_str(within_moltra: ODict[int, bool]):
             energy_str = ""
             cur_mo_num = 0
             start_mo_num = cur_mo_num
