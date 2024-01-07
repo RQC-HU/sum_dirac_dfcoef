@@ -35,6 +35,9 @@ class Eigenvalues:
     energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
     energies_used: ClassVar[ODict[str, Dict[int, bool]]] = OrderedDict()
 
+    def __repr__(self) -> str:
+        return f"shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used}"
+
     def setdefault(self, key: str):
         self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0, "positronic": 0})
         self.energies.setdefault(key, [])
