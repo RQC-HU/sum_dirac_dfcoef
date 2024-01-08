@@ -84,8 +84,7 @@ class PrivecProcessor:
                 if self.is_this_row_for_coefficients(words):
                     self.add_coefficient(line_str)
 
-        if not args.no_sort:
-            self.data_all_mo.sort_mo_energy()
+        self.data_all_mo.sort_mo_sym_type()
 
     def transition_stage(self, new_stage: STAGE) -> None:
         self.stage = new_stage
@@ -165,6 +164,7 @@ class PrivecProcessor:
         self.data_mo.reset()  # reset data_mo because we need to delete data_mo of the previous MO
         self.data_mo.eigenvalue_no = eigenvalue_no
         self.data_mo.mo_energy = mo_energy
+        self.data_mo.sym_type = self.mo_sym_type
         self.data_mo.mo_info = mo_info
         self.used_atom_info.clear()  # reset used_atom_info because we need to delete used_atom_info of the previous MO
 
@@ -217,5 +217,6 @@ class PrivecProcessor:
                     self.data_mo.reset()
                     self.data_mo.eigenvalue_no = eigenvalue_no
                     self.data_mo.mo_info = self.get_mo_info(eigenvalue_no)
+                    self.data_mo.sym_type = sym_type_key
                     self.data_mo.mo_energy = self.eigenvalues.energies[sym_type_key][eigenvalue_no - 1]
                     self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))

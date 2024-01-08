@@ -8,12 +8,13 @@ class DataMO:
     norm_const_sum: float = 0.0
     mo_energy: float = 0.0
     mo_info: str = ""
+    sym_type: str = ""
     eigenvalue_no: int = 0
     coef_dict: ClassVar[Dict[str, Coefficient]] = {}
     coef_list: ClassVar[List[Coefficient]] = []
 
     def __repr__(self) -> str:
-        return f"norm_const_sum: {self.norm_const_sum}, coef_dict: {self.coef_dict}"
+        return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict}"
 
     def add_coefficient(self, coef: Coefficient) -> None:
         key = coef.function_label + str(coef.start_idx)
@@ -42,6 +43,10 @@ class DataAllMO:
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"
+
+    def sort_mo_sym_type(self) -> None:
+        self.electronic.sort(key=lambda mo: (mo.sym_type, mo.mo_energy))
+        self.positronic.sort(key=lambda mo: (mo.sym_type, mo.mo_energy))
 
     def sort_mo_energy(self) -> None:
         self.electronic.sort(key=lambda mo: mo.mo_energy)
