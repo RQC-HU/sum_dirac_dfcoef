@@ -166,4 +166,5 @@ def test_version_option():
 
 def test_help_option():
     command = "sum_dirac_dfcoef -h"
-    subprocess.run(command.split(), check=True)
+    p = subprocess.run(command.split(), check=True)
+    assert p.returncode == 0
