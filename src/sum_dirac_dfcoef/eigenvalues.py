@@ -171,7 +171,6 @@ class Eigenvalues:
                 self.setdefault(current_symmetry_type)
             elif print_type == "supersymmetry" and "* Block" in line:
                 current_symmetry_type = get_symmetry_type_supersym(words)
-                atomic = ";" in line
                 omega_str = get_omega_str(words)
                 self.setdefault(current_symmetry_type)
                 self.omega.setdefault(current_symmetry_type, OrderedDict()).setdefault(omega_str, [])
