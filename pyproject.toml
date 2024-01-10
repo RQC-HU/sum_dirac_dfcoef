@@ -30,9 +30,9 @@ dev = ["coverage[toml]>=6.5", "pytest", "black>=23.1.0", "mypy>=1.0.0", "ruff>=0
 test = ["coverage[toml]>=6.5", "pytest"]
 
 [project.urls]
-Documentation = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef#readme"
-Issues = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef/issues"
-Source = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef"
+Documentation = "https://github.com/RQC-HU/sum_dirac_dfcoef#readme"
+Issues = "https://github.com/RQC-HU/sum_dirac_dfcoef/issues"
+Source = "https://github.com/RQC-HU/sum_dirac_dfcoef"
 
 
 [project.scripts]
