@@ -2,7 +2,7 @@ import re
 from collections import OrderedDict
 from enum import Enum, auto
 from io import TextIOWrapper
-from typing import ClassVar, Dict, List
+from typing import ClassVar, Dict, List, Tuple
 from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.utils import (
@@ -81,6 +81,14 @@ class Eigenvalues:
                 return True
             return False
 
+        def is_occupation_info_header(line: str) -> bool:
+            return True if "Occupation in fermion symmetry" in line else False
+
+        def prepare_occupation_info(words: List[str]) -> Tuple[str, Dict[str, int]]:
+            current_symmetry_type = words[len(words) - 1]
+            occ_idx = {k: 1 for k in omega[current_symmetry_type].keys()}
+            return current_symmetry_type, occ_idx
+
         def get_current_eigenvalue_type(words: List[str]) -> str:
             # words[0] = '*', words[1] = "Closed" or "Open" or "Virtual" or "Negative" or "Positronic"
             current_eigenvalue_type = words[1].lower()
@@ -136,6 +144,42 @@ class Eigenvalues:
             split_by_slash2 = [f"{item.strip()}/2" for item in split_by_slash2]
             return split_by_slash2
 
+        def add_mj_info_to_omega_list(line: str, omega_list: List[str]) -> List[str]:
+            mj_list = create_splitted_by_slash2_list(line.replace("Mj", "").strip("\r\n"))
+            if len(mj_list) != len(omega_list):
+                msg = f"len(mj_list) != len(omega_list)\nmj_list: {mj_list}\nomega_list: {omega_list}\nline: {line}\n"
+                raise ValueError(msg)
+            omega_list = [f"{omega_list[i]} {mj_list[i]}" for i in range(len(mj_list))]
+            return omega_list
+
+        def read_eigenvalues(line: str) -> None:
+            start_idx = 0
+            while True:
+                # e.g. -775.202926514  ( 2) => -775.202926514
+                regex = r"[-]?[0-9]+\.?[0-9]+"
+                match = re.search(regex, line[start_idx:])
+                if match is None:
+                    break
+                val = float(match.group())
+
+                # e.g. -775.202926514  ( 2) => 2
+                regex = r"\([ ]*[0-9]+\)"
+                match = re.search(regex, line[start_idx:])
+                if match is None:
+                    break
+                # match.group() == ( 2) => [1 : len(match.group()) - 1] == 2
+                num = int(match.group()[1 : len(match.group()) - 1])
+                self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
+                if print_type == "standard":
+                    for _ in range(0, num, 2):
+                        idx = len(self.energies[current_symmetry_type]) + 1
+                        self.energies[current_symmetry_type][idx] = val
+                elif print_type == "supersymmetry":
+                    for _ in range(0, num, 2):
+                        idx = len(omega[current_symmetry_type][omega_str]) + 1
+                        omega[current_symmetry_type][omega_str][idx] = val
+                start_idx += match.end()
+
         stage = StageEigenvalues.INIT
         atomic = False
         print_type = ""  # "standard" or "supersymmetry"
@@ -187,63 +231,28 @@ class Eigenvalues:
                     omega.setdefault(current_symmetry_type, {}).setdefault(omega_str, {})
                 elif is_eigenvalue_type_written(words):
                     current_eigenvalue_type = get_current_eigenvalue_type(words)
-                elif "Occupation in fermion symmetry" in line:
+                elif is_occupation_info_header(line):
                     stage = StageEigenvalues.OCCUPATION_INFO_READ
-                    current_symmetry_type = words[len(words) - 1]
-                    occ_idx.clear()
-                    occ_idx = {k: 1 for k in omega[current_symmetry_type].keys()}
+                    current_symmetry_type, occ_idx = prepare_occupation_info(words)
                 else:
-                    start_idx = 0
-                    while True:
-                        # e.g. -775.202926514  ( 2) => -775.202926514
-                        regex = r"[-]?[0-9]+\.?[0-9]+"
-                        match = re.search(regex, line[start_idx:])
-                        if match is None:
-                            break
-                        val = float(match.group())
-
-                        # e.g. -775.202926514  ( 2) => 2
-                        regex = r"\([ ]*[0-9]+\)"
-                        match = re.search(regex, line[start_idx:])
-                        if match is None:
-                            break
-                        # match.group() == ( 2) => [1 : len(match.group()) - 1] == 2
-                        num = int(match.group()[1 : len(match.group()) - 1])
-                        self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
-                        if print_type == "standard":
-                            for _ in range(0, num, 2):
-                                idx = len(self.energies[current_symmetry_type]) + 1
-                                self.energies[current_symmetry_type][idx] = val
-                        elif print_type == "supersymmetry":
-                            for _ in range(0, num, 2):
-                                idx = len(omega[current_symmetry_type][omega_str]) + 1
-                                omega[current_symmetry_type][omega_str][idx] = val
-                        start_idx += match.end()
+                    read_eigenvalues(line)
             elif stage == StageEigenvalues.OCCUPATION_INFO_READ:
                 if "Occupation of" in line:
                     stage = StageEigenvalues.WAIT_END
-                elif "Occupation in fermion symmetry" in line:
-                    stage = StageEigenvalues.OCCUPATION_INFO_READ
-                    current_symmetry_type = words[len(words) - 1]
-                    occ_idx.clear()
-                    occ_idx = {k: 1 for k in omega[current_symmetry_type].keys()}
+                elif is_occupation_info_header(line):
+                    current_symmetry_type, occ_idx = prepare_occupation_info(words)
                 elif "orbitals" in line:
                     # * Inactive orbitals => inactive
                     occ_type = words[1].lower()
                     # inactive => closed
                     current_eigenvalue_type = eigenvalue_type_omega_replacement[occ_type]
                 elif "Mj" in line:
-                    mj_list = create_splitted_by_slash2_list(line.replace("Mj", "").strip("\r\n"))
-                    if len(mj_list) != len(omega_list):
-                        msg = f"len(mj_list) != len(omega_list)\nmj_list: {mj_list}\nomega_list: {omega_list}\nline: {line}\n"
-                        raise ValueError(msg)
-                    omega_list = [f"{omega_list[i]} {mj_list[i]}" for i in range(len(mj_list))]
+                    omega_list = add_mj_info_to_omega_list(line, omega_list)
                     supersym_append_energies()
                 elif atomic:
                     omega_list = create_splitted_by_slash2_list(line)
                 else:  # molecular
                     omega_list = create_splitted_by_slash2_list(line)
-                    print(f"omega_list: {omega_list}, line: {line}")
                     supersym_append_energies()
 
         for key in self.energies.keys():
