@@ -218,5 +218,5 @@ class PrivecProcessor:
                     self.data_mo.eigenvalue_no = eigenvalue_no
                     self.data_mo.mo_info = self.get_mo_info(eigenvalue_no)
                     self.data_mo.sym_type = sym_type_key
-                    self.data_mo.mo_energy = self.eigenvalues.energies[sym_type_key][eigenvalue_no - 1]
+                    self.data_mo.mo_energy = self.eigenvalues.energies[sym_type_key][eigenvalue_no]
                     self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))

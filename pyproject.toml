@@ -19,15 +19,20 @@ classifiers = [
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = ["pydantic"]
 
+[project.optional-dependencies]
+dev = ["coverage[toml]>=6.5", "pytest", "black>=23.1.0", "mypy>=1.0.0", "ruff>=0.0.243"]
+test = ["coverage[toml]>=6.5", "pytest"]
+
 [project.urls]
-Documentation = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef#readme"
-Issues = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef/issues"
-Source = "https://github.com/kohei-noda-qcrg/sum_dirac_dfcoef"
+Documentation = "https://github.com/RQC-HU/sum_dirac_dfcoef#readme"
+Issues = "https://github.com/RQC-HU/sum_dirac_dfcoef/issues"
+Source = "https://github.com/RQC-HU/sum_dirac_dfcoef"
 
 
 [project.scripts]
@@ -45,7 +50,7 @@ cov-report = ["- coverage combine", "coverage report"]
 cov = ["test-cov", "cov-report"]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
 [tool.hatch.envs.lint]
 detached = true
