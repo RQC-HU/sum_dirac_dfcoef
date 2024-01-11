@@ -32,17 +32,16 @@ from sum_dirac_dfcoef.utils import (
 # }
 class Eigenvalues:
     shell_num: ClassVar[ODict[str, Dict[str, int]]] = OrderedDict()
-    energies: ClassVar[ODict[str, List[float]]] = OrderedDict()
+    energies: ClassVar[ODict[str, Dict[int, float]]] = OrderedDict()
     energies_used: ClassVar[ODict[str, Dict[int, bool]]] = OrderedDict()
     omega: ClassVar[ODict[str, ODict[str, List[float]]]] = OrderedDict()
-    eigenvalue_type_omega_replacement: ClassVar[Dict[str, str]] = {"inactive": "closed", "active": "open", "virtual": "virtual"}
 
     def __repr__(self) -> str:
         return f"shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used}"
 
     def setdefault(self, key: str):
         self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0, "positronic": 0})
-        self.energies.setdefault(key, [])
+        self.energies.setdefault(key, {})
         self.energies_used.setdefault(key, {})
 
     def get_electronic_spinor_num(self, symmetry_type: str) -> int:
@@ -115,7 +114,8 @@ class Eigenvalues:
                     msg = f"Cannot find {item} in occ_idx.keys()!"
                     raise ValueError(msg)
                 val = self.omega[current_symmetry_type][item][occ_idx[item]]
-                self.energies[current_symmetry_type].append(val)
+                idx = len(self.energies[current_symmetry_type]) + 1
+                self.energies[current_symmetry_type][idx] = val
                 occ_idx[item] += 1
 
         def create_splitted_by_slash2_list(line: str) -> List[str]:
@@ -136,6 +136,7 @@ class Eigenvalues:
         omega_list = []
         current_eigenvalue_type = ""  # "closed" or "open" or "virtual"
         current_symmetry_type = ""  # "E1g" or "E1u" or "E1" ...
+        eigenvalue_type_omega_replacement = {"inactive": "closed", "active": "open", "virtual": "virtual"}
 
         for line in dirac_output:
             words: List[str] = space_separated_parsing(line)
@@ -190,7 +191,7 @@ class Eigenvalues:
                     # * Inactive orbitals => inactive
                     occ_type = words[1].lower()
                     # inactive => closed
-                    current_eigenvalue_type = self.eigenvalue_type_omega_replacement[occ_type]
+                    current_eigenvalue_type = eigenvalue_type_omega_replacement[occ_type]
                 elif "Mj" in line:  # Mj values (atomic, https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1257-1258)
                     mj_list = create_splitted_by_slash2_list(line.replace("Mj", "").strip("\r\n"))
                     if len(mj_list) != len(omega_list):
@@ -223,7 +224,8 @@ class Eigenvalues:
                     self.shell_num[current_symmetry_type][current_eigenvalue_type] += num
                     if print_type == "standard":
                         for _ in range(0, num, 2):
-                            self.energies[current_symmetry_type].append(val)
+                            idx = len(self.energies[current_symmetry_type]) + 1
+                            self.energies[current_symmetry_type][idx] = val
                     elif print_type == "supersymmetry":
                         for _ in range(0, num, 2):
                             self.omega[current_symmetry_type][omega_str].append(val)

@@ -90,8 +90,7 @@ class HeaderInfo:
             str: Range string
         """
 
-        def get_min_energy_idx(min_energy: float, step: float) -> int:
-            energies = self.eigenvalues.energies[symmetry_type]
+        def get_min_energy_idx(energies: List[float], min_energy: float, step: float) -> int:
             # Find the index of the minimum energy without exceeding the step
             cur_idx = bisect_left(energies, min_energy)
             cur_min_energy = energies[cur_idx]
@@ -104,8 +103,7 @@ class HeaderInfo:
                 cur_idx -= 1
             return cur_idx
 
-        def get_max_energy_idx(max_energy: float, step: float) -> int:
-            energies = self.eigenvalues.energies[symmetry_type]
+        def get_max_energy_idx(energies: List[float], max_energy: float, step: float) -> int:
             # Find the index of the maximum energy without exceeding the step
             cur_idx = bisect_right(energies, max_energy)
             cur_max_energy = energies[cur_idx - 1]
@@ -181,8 +179,9 @@ class HeaderInfo:
         if min_energy > max_energy:
             msg = f"The minimum energy is larger than the maximum energy: {min_energy} > {max_energy}"
             raise ValueError(msg)
-        min_energy_idx = get_min_energy_idx(min_energy, step)
-        max_energy_idx = get_max_energy_idx(max_energy, step)
+        energies: List[float] = sorted(self.eigenvalues.energies[symmetry_type].values())
+        min_energy_idx = get_min_energy_idx(energies, min_energy, step)
+        max_energy_idx = get_max_energy_idx(energies, max_energy, step)
 
         within_moltra = create_within_moltra_dict(min_energy_idx + start_sym_idx, max_energy_idx + start_sym_idx)
         energy_str = create_energy_str(within_moltra)
