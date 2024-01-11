@@ -20,9 +20,8 @@ from sum_dirac_dfcoef.utils import (
 
 class StageEigenvalues(Enum):
     INIT = auto()
-    SCF_CYCLE_FOUND = auto()
-    EIGENVALUES_HEADER = auto()
-    PRINT_TYPE_READ = auto()
+    SEARCH_EIGENVALUES_HEADER = auto()
+    SEARCH_PRINT_TYPE = auto()
     EIGENVALUES_READ = auto()
     OCCUPATION_INFO_READ = auto()
     WAIT_END = auto()
@@ -59,9 +58,7 @@ class Eigenvalues:
 
     def get_eigenvalues(self, dirac_output: TextIOWrapper):
         def is_end_of_read(line) -> bool:
-            if "HOMO - LUMO" in line:
-                return True
-            return False
+            return True if "HOMO - LUMO" in line else False
 
         def is_eigenvalue_type_written(words: List[str]) -> bool:
             # closed shell: https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1043
@@ -196,31 +193,29 @@ class Eigenvalues:
 
             if len(words) == 0:
                 continue
-            elif stage == StageEigenvalues.WAIT_END:
-                break
             elif stage == StageEigenvalues.INIT:
                 if "SCF - CYCLE" in line:
-                    stage = StageEigenvalues.SCF_CYCLE_FOUND
-            elif stage == StageEigenvalues.SCF_CYCLE_FOUND:
+                    stage = StageEigenvalues.SEARCH_EIGENVALUES_HEADER
+            elif stage == StageEigenvalues.SEARCH_EIGENVALUES_HEADER:
                 if "Eigenvalues" == words[0]:
-                    stage = StageEigenvalues.EIGENVALUES_HEADER
-            elif stage == StageEigenvalues.EIGENVALUES_HEADER:  # Search print_type
+                    stage = StageEigenvalues.SEARCH_PRINT_TYPE
+            elif stage == StageEigenvalues.SEARCH_PRINT_TYPE:
                 if "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
-                    stage = StageEigenvalues.PRINT_TYPE_READ
+                    stage = StageEigenvalues.EIGENVALUES_READ
                     print_type = "standard"
                     current_symmetry_type = get_symmetry_type_standard(words)
                     self.setdefault(current_symmetry_type)
                 elif "* Block" in line:
-                    stage = StageEigenvalues.PRINT_TYPE_READ
+                    stage = StageEigenvalues.EIGENVALUES_READ
                     print_type = "supersymmetry"
                     current_symmetry_type = get_symmetry_type_supersym(words)
                     atomic = ";" in line
                     omega_str = get_omega_str(words)
                     self.setdefault(current_symmetry_type)
                     omega.setdefault(current_symmetry_type, {}).setdefault(omega_str, {})
-            elif is_end_of_read(line):
+            elif is_end_of_read(line) or stage == StageEigenvalues.WAIT_END:
                 break
-            elif stage == StageEigenvalues.PRINT_TYPE_READ:
+            elif stage == StageEigenvalues.EIGENVALUES_READ:
                 if print_type == "standard" and "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
                     current_symmetry_type = get_symmetry_type_standard(words)
                     self.setdefault(current_symmetry_type)
