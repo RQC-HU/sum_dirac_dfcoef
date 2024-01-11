@@ -18,7 +18,7 @@ from sum_dirac_dfcoef.utils import (
 
 
 # type definition eigenvalues.shell_num
-# type eigenvalues = {
+# type shell_num = {
 #     "E1g": {
 #         "closed": int
 #         "open": int
@@ -34,7 +34,6 @@ class Eigenvalues:
     shell_num: ClassVar[ODict[str, Dict[str, int]]] = OrderedDict()
     energies: ClassVar[ODict[str, Dict[int, float]]] = OrderedDict()
     energies_used: ClassVar[ODict[str, Dict[int, bool]]] = OrderedDict()
-    omega: ClassVar[ODict[str, ODict[str, List[float]]]] = OrderedDict()
 
     def __repr__(self) -> str:
         return f"shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used}"
@@ -113,7 +112,7 @@ class Eigenvalues:
                 if item not in occ_idx.keys():
                     msg = f"Cannot find {item} in occ_idx.keys()!"
                     raise ValueError(msg)
-                val = self.omega[current_symmetry_type][item][occ_idx[item]]
+                val = omega[current_symmetry_type][item][occ_idx[item]]
                 idx = len(self.energies[current_symmetry_type]) + 1
                 self.energies[current_symmetry_type][idx] = val
                 occ_idx[item] += 1
@@ -132,6 +131,7 @@ class Eigenvalues:
         atomic = False
         print_type = ""  # "standard" or "supersymmetry"
         occ_idx: Dict[str, int] = {}
+        omega: Dict[str, Dict[str, Dict[int, float]]] = {}
         omega_str = ""  # 1/2 or 3/2 or 5/2 or p 3/2 -3/2 ...
         omega_list = []
         current_eigenvalue_type = ""  # "closed" or "open" or "virtual"
@@ -164,7 +164,7 @@ class Eigenvalues:
                     atomic = ";" in line
                     omega_str = get_omega_str(words)
                     self.setdefault(current_symmetry_type)
-                    self.omega.setdefault(current_symmetry_type, OrderedDict()).setdefault(omega_str, [])
+                    omega.setdefault(current_symmetry_type, {}).setdefault(omega_str, {})
                 continue
 
             if print_type == "standard" and "*" == words[0] and "Fermion" in words[1] and "symmetry" in words[2]:
@@ -174,7 +174,7 @@ class Eigenvalues:
                 current_symmetry_type = get_symmetry_type_supersym(words)
                 omega_str = get_omega_str(words)
                 self.setdefault(current_symmetry_type)
-                self.omega.setdefault(current_symmetry_type, OrderedDict()).setdefault(omega_str, [])
+                omega.setdefault(current_symmetry_type, {}).setdefault(omega_str, {})
             elif is_eigenvalue_type_written(words):
                 current_eigenvalue_type = get_current_eigenvalue_type(words)
             elif is_end_of_read(line):
@@ -183,7 +183,7 @@ class Eigenvalues:
                 occupation_info = True
                 current_symmetry_type = words[len(words) - 1]
                 occ_idx.clear()
-                occ_idx = {k: 0 for k in self.omega[current_symmetry_type].keys()}
+                occ_idx = {k: 1 for k in omega[current_symmetry_type].keys()}
             elif occupation_info:
                 if "Occupation of" in line:
                     occupation_info = False
@@ -228,7 +228,8 @@ class Eigenvalues:
                             self.energies[current_symmetry_type][idx] = val
                     elif print_type == "supersymmetry":
                         for _ in range(0, num, 2):
-                            self.omega[current_symmetry_type][omega_str].append(val)
+                            idx = len(omega[current_symmetry_type][omega_str]) + 1
+                            omega[current_symmetry_type][omega_str][idx] = val
                     start_idx += match.end()
 
         for key in self.energies.keys():
