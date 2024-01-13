@@ -27,6 +27,15 @@ class StageEigenvalues(Enum):
     WAIT_END = auto()
 
 
+class StageEIGPRI(Enum):
+    INIT = auto()
+    SEARCH_SCF_SECTION = auto()
+    SEARCH_SCF_DETAIL_SECTION = auto()
+    SEARCH_EIGPRI = auto()
+    NEXT_LINE_EIGPRI = auto()
+    WAIT_END = auto()
+
+
 # type definition eigenvalues.shell_num
 # type shell_num = {
 #     "E1g": {
@@ -265,48 +274,33 @@ class Eigenvalues:
             dirac_output (TextIOWrapper): _description_
         """
 
-        is_reach_input_field: bool = False
-        is_scf_section: bool = False
-        is_scf_detail_section: bool = False
-        is_next_line_eigpri: bool = False
+        stage = StageEIGPRI.INIT
         for line in dirac_output:
             no_comment_out_line = delete_dirac_input_comment_out(line)
             words = space_separated_parsing_upper(no_comment_out_line)
             if is_dirac_input_line_should_be_skipped(words):
                 continue
 
-            if is_start_dirac_input_field(no_comment_out_line):
-                is_reach_input_field = True
-                continue
-
-            if is_end_dirac_input_field(no_comment_out_line):
+            if is_end_dirac_input_field(no_comment_out_line) or stage == StageEIGPRI.WAIT_END:
                 break
 
-            if is_reach_input_field:
-                if is_dirac_input_keyword(words[0]):
-                    if ".SCF" in words[0]:
-                        is_scf_section = True
-                        continue
+            if stage == StageEIGPRI.INIT:
+                if is_start_dirac_input_field(no_comment_out_line):
+                    stage = StageEIGPRI.SEARCH_SCF_SECTION
 
-            if is_scf_section:
-                if is_dirac_input_section_one_star(words[0]):
-                    if "*SCF" in words[0]:
-                        is_scf_detail_section = True
-                        continue
-                    else:
-                        is_scf_detail_section = False
-                        continue
+            if stage == StageEIGPRI.SEARCH_SCF_SECTION:
+                if is_dirac_input_keyword(words[0]) and ".SCF" in words[0]:
+                    stage = StageEIGPRI.SEARCH_SCF_DETAIL_SECTION
 
-            if is_scf_detail_section:
-                if is_dirac_input_keyword(words[0]):
-                    if ".EIGPRI" in words[0]:
-                        is_next_line_eigpri = True
-                        continue
-                    else:
-                        is_next_line_eigpri = False
-                        continue
+            if stage == StageEIGPRI.SEARCH_SCF_DETAIL_SECTION:
+                if is_dirac_input_section_one_star(words[0]) and "*SCF" in words[0]:
+                    stage = StageEIGPRI.SEARCH_EIGPRI
 
-            if is_next_line_eigpri:
+            if stage == StageEIGPRI.SEARCH_EIGPRI:
+                if is_dirac_input_keyword(words[0]) and ".EIGPRI" in words[0]:
+                    stage = StageEIGPRI.NEXT_LINE_EIGPRI
+
+            if stage == StageEIGPRI.NEXT_LINE_EIGPRI:
                 # https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri
                 if len(words) == 2 and words[0].isdigit() and words[1].isdigit():
                     if int(words[0]) == 0:  # positive energy eigenvalues are not printed
@@ -320,3 +314,4 @@ If you want to get the eigenvalues information, please refer the .EIGPRI option 
 https://diracprogram.org/doc/master/manual/wave_function/scf.html#eigpri\n\
 You must enable to print out the positive eigenvalues energy.\n"
                         raise ValueError(msg)
+                    stage = StageEIGPRI.WAIT_END
