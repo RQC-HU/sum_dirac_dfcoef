@@ -1,4 +1,3 @@
-import copy
 from enum import Enum, auto
 from io import TextIOWrapper
 from typing import Dict, List
@@ -9,7 +8,7 @@ from sum_dirac_dfcoef.coefficient import get_coefficient
 from sum_dirac_dfcoef.data import DataAllMO, DataMO
 from sum_dirac_dfcoef.eigenvalues import Eigenvalues
 from sum_dirac_dfcoef.functions_info import FunctionsInfo
-from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
+from sum_dirac_dfcoef.utils import debug_print, fast_deepcopy_pickle, space_separated_parsing
 
 
 class STAGE(Enum):
@@ -190,22 +189,26 @@ class PrivecProcessor:
                 msg = f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
                 raise Exception(msg)
             # We can get information about the current atom from functions_info with start_idx.
-            self.current_atom_info = copy.deepcopy(self.functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
+            atom_info: AtomInfo = fast_deepcopy_pickle(self.functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
+            self.current_atom_info = atom_info
             # Update used_atom_info with current_atom_info
-            self.used_atom_info[label] = copy.deepcopy(self.current_atom_info)
+            self.used_atom_info[label] = atom_info
 
         self.current_atom_info.decrement_function(gto_type)
         self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.start_idx))
 
     def add_current_mo_data_to_data_all_mo(self) -> None:
         self.data_mo.fileter_coefficients_by_threshold()
+        # add current MO data to data_all_mo
+        # create a new DataMO object using pickle
+        copy_data_mo = fast_deepcopy_pickle(self.data_mo)
         if self.is_electronic:
-            self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
+            self.data_all_mo.electronic.append(copy_data_mo)
             cur_sym = self.mo_sym_type
             if args.for_generator:
                 self.eigenvalues.energies_used[cur_sym][self.data_mo.eigenvalue_no] = True
         else:
-            self.data_all_mo.positronic.append(copy.deepcopy(self.data_mo))
+            self.data_all_mo.positronic.append(copy_data_mo)
         debug_print(f"End of reading {self.data_mo.eigenvalue_no}th MO")
 
     def fill_non_moltra_range_electronic_eigenvalues(self):
@@ -219,4 +222,5 @@ class PrivecProcessor:
                     self.data_mo.mo_info = self.get_mo_info(eigenvalue_no)
                     self.data_mo.sym_type = sym_type_key
                     self.data_mo.mo_energy = self.eigenvalues.energies[sym_type_key][eigenvalue_no]
-                    self.data_all_mo.electronic.append(copy.deepcopy(self.data_mo))
+                    copy_data_mo = fast_deepcopy_pickle(self.data_mo)
+                    self.data_all_mo.electronic.append(copy_data_mo)
