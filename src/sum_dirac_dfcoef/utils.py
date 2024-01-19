@@ -5,13 +5,11 @@ from typing import List
 
 
 def space_separated_parsing(line: str) -> List[str]:
-    words = re.split(" +", line.rstrip("\n"))
-    return [word for word in words if word != ""]
+    return [word for word in line.rstrip("\n").split(" ") if word != ""]
 
 
 def space_separated_parsing_upper(line: str) -> List[str]:
-    words = re.split(" +", line.rstrip("\n"))
-    return [word.upper() for word in words if word != ""]
+    return [word.upper() for word in line.rstrip("\n").split(" ") if word != ""]
 
 
 def debug_print(message: str) -> None:
