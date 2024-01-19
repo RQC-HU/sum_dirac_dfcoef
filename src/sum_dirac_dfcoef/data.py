@@ -17,7 +17,7 @@ class DataMO:
         return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict}"
 
     def add_coefficient(self, coef: Coefficient) -> None:
-        key = coef.function_label + str(coef.start_idx)
+        key = (coef.function_label, coef.start_idx)
         if key in self.coef_dict:
             self.coef_dict[key].coefficient += coef.coefficient
         else:

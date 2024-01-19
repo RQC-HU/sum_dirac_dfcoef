@@ -1,17 +1,28 @@
+import pickle
 import re
 import sys
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 
 def space_separated_parsing(line: str) -> List[str]:
-    words = re.split(" +", line.rstrip("\n"))
-    return [word for word in words if word != ""]
+    return [word for word in line.rstrip("\n").split(" ") if word != ""]
 
 
 def space_separated_parsing_upper(line: str) -> List[str]:
-    words = re.split(" +", line.rstrip("\n"))
-    return [word.upper() for word in words if word != ""]
+    return [word.upper() for word in line.rstrip("\n").split(" ") if word != ""]
+
+
+def fast_deepcopy_pickle(obj: Any) -> Any:
+    """Fast deep copy using pickle.
+
+    Args:
+        obj (Any): object to be copied
+
+    Returns:
+        Any: copied object
+    """
+    return pickle.loads(pickle.dumps(obj, protocol=pickle.HIGHEST_PROTOCOL))  # noqa: S301
 
 
 def debug_print(message: str) -> None:
@@ -23,13 +34,10 @@ def debug_print(message: str) -> None:
 
 
 def is_float(parameter: str) -> bool:
-    if not parameter.isdecimal():
-        try:
-            float(parameter)
-            return True
-        except ValueError:
-            return False
-    else:
+    try:
+        float(parameter)
+        return True
+    except ValueError:
         return False
 
 
