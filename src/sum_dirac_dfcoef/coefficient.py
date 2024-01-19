@@ -67,10 +67,8 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coeffic
         coef_len = 14
         coef_start_idx = 24
         coefficient = sum(
-            [
-                pow(float(line_str[i : i + coef_len]), 2) if is_float(line_str[i : i + coef_len]) else pow(-100, 2)
-                for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
-            ]
+            pow(float(line_str[i : i + coef_len]) if is_float(line_str[i : i + coef_len]) else -100, 2)
+            for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
         )
 
         need_identifier = True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx].mul > 1 else False
