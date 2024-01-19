@@ -21,13 +21,10 @@ def debug_print(message: str) -> None:
 
 
 def is_float(parameter: str) -> bool:
-    if not parameter.isdecimal():
-        try:
-            float(parameter)
-            return True
-        except ValueError:
-            return False
-    else:
+    try:
+        float(parameter)
+        return True
+    except ValueError:
         return False
 
 
