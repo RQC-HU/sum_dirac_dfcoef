@@ -18,10 +18,10 @@ def main() -> None:
     functions_info = get_functions_info(dirac_output)
     output_file_writer.create_blank_file()
 
+    dirac_output_lines = dirac_output.readlines()
     # Read coefficients from the output file of DIRAC and store them in data_all_mo.
-    privec_processor = PrivecProcessor(dirac_output, functions_info, header_info.eigenvalues)
-    privec_processor.read_privec_data()
-
+    privec_processor = PrivecProcessor(dirac_output_lines, functions_info, header_info.eigenvalues)
+    privec_processor.read_privec_data_wrapper()
 
     # Write the header information to the output file.
     if not args.for_generator:

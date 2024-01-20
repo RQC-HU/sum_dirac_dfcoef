@@ -1,6 +1,6 @@
+import concurrent.futures
 from enum import Enum, auto
-from io import TextIOWrapper
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.atoms import AtomInfo
@@ -12,19 +12,22 @@ from sum_dirac_dfcoef.utils import debug_print, fast_deepcopy_pickle, space_sepa
 
 
 class STAGE(Enum):
+    #                                             SKIP_READING_COEF
+    #                                                    ↑↓
     # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
     #                                             ↓               ↑
     #                                      WAIT_FIRST_COEF -> READING_COEF
     INIT = auto()
     VECTOR_PRINT = auto()
     WAIT_END_READING_COEF = auto()
+    SKIP_READING_COEF = auto()
     WAIT_FIRST_COEF = auto()
     READING_COEF = auto()
     END = auto()
 
 
 class PrivecProcessor:
-    def __init__(self, dirac_output: TextIOWrapper, functions_info: FunctionsInfo, eigenvalues: Eigenvalues) -> None:
+    def __init__(self, dirac_output: List[str], functions_info: FunctionsInfo, eigenvalues: Eigenvalues) -> None:
         self.dirac_output = dirac_output
         self.stage = STAGE.INIT
         self.is_electronic = False
@@ -36,21 +39,24 @@ class PrivecProcessor:
         self.used_atom_info: Dict[str, AtomInfo] = {}
         self.current_atom_info = AtomInfo()
 
-    def read_privec_data(self):
+    def read_privec_data(self, rank: int = 0) -> Tuple[DataAllMO, Eigenvalues]:
         """Read coefficients from the output file of DIRAC and store them in data_all_mo.
 
         self.data_all is the final result of this function. You can get all results from this variable except header information.
         """
         self.stage = STAGE.INIT
+        mo_cnt = 0
         for line_str in self.dirac_output:
+            if self.stage == STAGE.END:
+                break  # End of reading coefficients
+            elif self.stage == STAGE.SKIP_READING_COEF:
+                if len(line_str.strip()) == 0:
+                    self.transition_stage(STAGE.WAIT_END_READING_COEF)
+                continue
+
             words = space_separated_parsing(line_str)
 
-            if self.stage == STAGE.END:
-                if args.for_generator:
-                    self.fill_non_moltra_range_electronic_eigenvalues()
-                break  # End of reading coefficients
-
-            elif self.need_to_skip_this_line(words):
+            if self.need_to_skip_this_line(words):
                 if self.stage == STAGE.READING_COEF:
                     if self.need_to_create_results_for_current_mo(words):
                         self.add_current_mo_data_to_data_all_mo()
@@ -76,14 +82,21 @@ class PrivecProcessor:
 
             elif self.stage == STAGE.WAIT_FIRST_COEF:
                 if self.is_this_row_for_coefficients(words):
-                    self.add_coefficient(line_str)
-                    self.transition_stage(STAGE.READING_COEF)
+                    if args.parallel == 1 or mo_cnt % args.parallel == rank:
+                        # Need to read coefficients of the current MO
+                        self.add_coefficient(line_str)
+                        self.transition_stage(STAGE.READING_COEF)
+                    else:
+                        # Don't need to read coefficients of the current MO because it is read by another process.
+                        # multi-process version only
+                        self.transition_stage(STAGE.SKIP_READING_COEF)
+                    mo_cnt += 1
 
             elif self.stage == STAGE.READING_COEF:
                 if self.is_this_row_for_coefficients(words):
                     self.add_coefficient(line_str)
 
-        self.data_all_mo.sort_mo_sym_type()
+        return self.data_all_mo, self.eigenvalues
 
     def transition_stage(self, new_stage: STAGE) -> None:
         self.stage = new_stage
@@ -210,6 +223,45 @@ class PrivecProcessor:
         else:
             self.data_all_mo.positronic.append(copy_data_mo)
         debug_print(f"End of reading {self.data_mo.eigenvalue_no}th MO")
+
+    def read_privec_data_wrapper(self):
+        """Read coefficients from the output file of DIRAC and store them in data_all_mo.
+        This function is intended to wrap the processing of
+        read_privec_data between the single-process and multiprocess versions.
+        """
+
+        def merge_energies_used(eigenvalues: Eigenvalues) -> None:
+            """If multi-process version is used, eigenvalues.energies_used is stored in different memory space.
+            Therefore, we need to merge eigenvalues.energies_used of each process.
+
+            Args:
+                eigenvalues (Eigenvalues): eigenvalues.energies_used of each process is stored in this variable.
+            """
+            for sym_type_key, val in eigenvalues.energies_used.items():
+                for eigenvalue_no, is_found in val.items():
+                    if is_found:
+                        self.eigenvalues.energies_used[sym_type_key][eigenvalue_no] = True
+
+        num_processes = args.parallel
+        if num_processes > 1:
+            # Multi-process version
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                futures = [executor.submit(self.read_privec_data, i) for i in range(num_processes)]
+                result_list = [future.result() for future in concurrent.futures.as_completed(futures)]
+            result: Tuple[DataAllMO, Eigenvalues]
+            for result in result_list:
+                data_all_mo = result[0]
+                self.data_all_mo.electronic.extend(data_all_mo.electronic)
+                self.data_all_mo.positronic.extend(data_all_mo.positronic)
+                eigenvalues = result[1]
+                merge_energies_used(eigenvalues)
+        else:
+            # Single-process version
+            self.read_privec_data()
+
+        if args.for_generator:
+            self.fill_non_moltra_range_electronic_eigenvalues()
+        self.data_all_mo.sort_mo_sym_type()
 
     def fill_non_moltra_range_electronic_eigenvalues(self):
         self.is_electronic = True
