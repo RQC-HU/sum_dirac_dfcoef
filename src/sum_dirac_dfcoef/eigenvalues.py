@@ -2,7 +2,7 @@ import re
 from collections import OrderedDict
 from enum import Enum, auto
 from io import TextIOWrapper
-from typing import ClassVar, Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from typing import OrderedDict as ODict
 
 from sum_dirac_dfcoef.utils import (
@@ -50,9 +50,19 @@ class StageEIGPRI(Enum):
 #     },
 # }
 class Eigenvalues:
-    shell_num: ClassVar[ODict[str, Dict[str, int]]] = OrderedDict()
-    energies: ClassVar[ODict[str, Dict[int, float]]] = OrderedDict()
-    energies_used: ClassVar[ODict[str, Dict[int, bool]]] = OrderedDict()
+    shell_num: ODict[str, Dict[str, int]]
+    energies: ODict[str, Dict[int, float]]
+    energies_used: ODict[str, Dict[int, bool]]
+
+    def __init__(
+        self,
+        shell_num: Optional[ODict[str, Dict[str, int]]] = None,
+        energies: Optional[ODict[str, Dict[int, float]]] = None,
+        energies_used: Optional[ODict[str, Dict[int, bool]]] = None,
+    ) -> None:
+        self.shell_num = shell_num if shell_num is not None else OrderedDict()
+        self.energies = energies if energies is not None else OrderedDict()
+        self.energies_used = energies_used if energies_used is not None else OrderedDict()
 
     def __repr__(self) -> str:
         return f"shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used}"
