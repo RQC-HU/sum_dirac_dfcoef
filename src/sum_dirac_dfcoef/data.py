@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, List
+from typing import Dict, List, Optional
 
 from sum_dirac_dfcoef.args import args
 from sum_dirac_dfcoef.coefficient import Coefficient
@@ -10,8 +10,24 @@ class DataMO:
     mo_info: str = ""
     sym_type: str = ""
     eigenvalue_no: int = 0
-    coef_dict: ClassVar[Dict[str, Coefficient]] = {}
-    coef_list: ClassVar[List[Coefficient]] = []
+    coef_dict: Dict[str, Coefficient]
+    coef_list: List[Coefficient]
+
+    def __init__(
+        self,
+        mo_info: str = "",
+        mo_energy: float = 0.0,
+        eigenvalue_no: int = 0,
+        sym_type: str = "",
+        coef_dict: Optional[Dict[str, Coefficient]] = None,
+        coef_list: Optional[List[Coefficient]] = None,
+    ) -> None:
+        self.mo_info = mo_info
+        self.mo_energy = mo_energy
+        self.eigenvalue_no = eigenvalue_no
+        self.sym_type = sym_type
+        self.coef_dict = coef_dict if coef_dict is not None else {}
+        self.coef_list = coef_list if coef_list is not None else []
 
     def __repr__(self) -> str:
         return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict}"
@@ -38,8 +54,12 @@ class DataMO:
 
 
 class DataAllMO:
-    electronic: ClassVar[List[DataMO]] = []
-    positronic: ClassVar[List[DataMO]] = []
+    electronic: List[DataMO]
+    positronic: List[DataMO]
+
+    def __init__(self, electronic: Optional[List[DataMO]] = None, positronic: Optional[List[DataMO]] = None) -> None:
+        self.electronic = electronic if electronic is not None else []
+        self.positronic = positronic if positronic is not None else []
 
     def __repr__(self) -> str:
         return f"electronic: {self.electronic}, positronic: {self.positronic}"

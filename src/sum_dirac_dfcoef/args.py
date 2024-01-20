@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 
@@ -40,6 +41,17 @@ def parse_args() -> "argparse.Namespace":
 This option is useful when you want to use the result of this program as input to dcaspt2_input_generator. \
 This option is equivalent to set -c/--compress and not set -p/--positronic and --no-scf options.",
         dest="for_generator",
+    )
+    parser.add_argument(
+        "-j",
+        "--parallel",
+        type=int,
+        nargs="?",
+        const=-1,
+        default=1,
+        help="Number of parallel processes. Default: 1 (single process).\
+        If you set -j option without argument, the number of parallel processes is set to the number of CPU cores(=os.cpu_count()).",
+        dest="parallel",
     )
     parser.add_argument(
         "-c",
@@ -87,6 +99,8 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
     parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
     # If -v or --version option is used, print version and exit
     args = parser.parse_args()
+
+    args.parallel = os.cpu_count() if args.parallel == -1 else args.parallel
 
     if args.for_generator:
         args.no_scf = False
