@@ -42,7 +42,17 @@ This option is useful when you want to use the result of this program as input t
 This option is equivalent to set -c/--compress and not set -p/--positronic and --no-scf options.",
         dest="for_generator",
     )
-    parser.add_argument("-j", "--parallel", type=int, nargs="?", const=-1, default=1, help="Number of parallel processes. Default: 1", dest="parallel")
+    parser.add_argument(
+        "-j",
+        "--parallel",
+        type=int,
+        nargs="?",
+        const=-1,
+        default=1,
+        help="Number of parallel processes. Default: 1 (single process).\
+        If you set -j option without argument, the number of parallel processes is set to the number of CPU cores(=os.cpu_count()).",
+        dest="parallel",
+    )
     parser.add_argument(
         "-c",
         "--compress",
