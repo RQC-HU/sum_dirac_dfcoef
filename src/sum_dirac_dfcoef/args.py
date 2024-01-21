@@ -61,14 +61,7 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
         dest="compress",
     )
     parser.add_argument(
-        "--only-moltra",
-        action="store_true",
-        help="Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option)\
-            but you don't want to get the output that is not included in the range of MOLTRA.",
-        dest="only_moltra",
-    )
-    parser.add_argument(
-        "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 => print orbital with more than 0.1 %% contribution", dest="threshold"
+        "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 → print orbital with more than 0.1 %% contribution", dest="threshold"
     )
     parser.add_argument(
         "-d",
@@ -76,7 +69,7 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
         type=int,
         default=5,
         choices=range(1, 16),
-        help="Set the decimal places. Default: 5 (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15",
+        help="Set the decimal places. Default: 5 (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15",
         dest="decimal",
     )
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
@@ -110,14 +103,8 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
     if not (args.no_scf or args.positronic_write) and args.compress:
         args.for_generator = True
 
-    if args.only_moltra and args.for_generator:
-        parser.error("--only-moltra option cannot be used with --for-generator option.\nUse either --only-moltra or --for-generator option.")
-
     if args.all_write and args.positronic_write:
         parser.error("-a/--all-write and -p/--positronic-write options cannot be set at the same time.")
-
-    if args.only_moltra and not args.compress:
-        print("Warning: --only-moltra option is activated but --compress option is not activated. --only-moltra option will be ignored.")
 
     return args
 
