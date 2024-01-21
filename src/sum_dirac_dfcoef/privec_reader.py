@@ -128,7 +128,7 @@ class PrivecProcessor:
         return False
 
     def check_end_vector_print(self, words: List[str]) -> bool:
-        # https://github.com/kohei-noda-qcrg/summarize_dirac_dfcoef_coefficients/issues/7#issuecomment-1377969626
+        # https://github.com/RQC-HU/sum_dirac_dfcoef/issues/7#issuecomment-1377969626
         if len(words) >= 2 and self.stage == STAGE.WAIT_END_READING_COEF:
             return True
         return False
