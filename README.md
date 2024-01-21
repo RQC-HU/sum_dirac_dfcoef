@@ -133,18 +133,19 @@ optional arguments (--input is required)
 
 - -o OUTPUT, --output OUTPUT
 
-  Output file name. Default: sum_dirac_dfcoef.out
+  Output file name.  
+  Default: sum_dirac_dfcoef.out
 
 - -g, --for-generator
 
-  Automatically set the arguments for dcaspt2_input_generator.
-  This option is useful when you want to use the result of this program as input to dcaspt2_input_generator.
+  Automatically set the arguments for dcaspt2_input_generator.  
+  This option is useful when you want to use the result of this program as input to dcaspt2_input_generator.  
   This option is equivalent to set -c/--compress and not set -p/--positronic and --no-scf options.
 
 - -j [PARALLEL], --parallel [PARALLEL]
 
-  Number of parallel processes.
-  Default: 1 (single process).
+  Number of parallel processes.  
+  Default: 1 (single process).  
   If you set -j option without argument, the number of parallel processes is set to the number of CPU cores(=os.cpu_count()).
 
 - -c, --compress
@@ -152,19 +153,17 @@ optional arguments (--input is required)
   Compress output. Display all coefficients on one line for each MO.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
-- --only-moltra
-
-  Print only MOs that is included in the range of MOLTRA. You should activate this option when you want to get compressed output (-c/--compress option) but you don't want to get the output that is not included in the range of MOLTRA.
-
 - -t THRESHOLD, --threshold THRESHOLD
 
   threshold. Default: 0.1 %  
-  (e.g) --threshold=0.1 => print orbital with more than 0.1 % contribution
+  (e.g) --threshold=0.1 → print orbital with more than 0.1 % contribution
 
 - -d DECIMAL, --decimal DECIMAL
 
-  Set the decimal places. Default: 5  
-  (e.g) --decimal=3 => print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15
+  Set the decimal places.  
+  Default: 5  
+  (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...).  
+  range: 1-15
 
 - -a, --all-write
 
@@ -172,7 +171,8 @@ optional arguments (--input is required)
 
 - -p, --positronic-write
 
-  Print only Positronic MOs. The output with this option cannot be used as input to dcaspt2_input_generator.
+  Print only Positronic MOs.  
+  The output with this option cannot be used as input to dcaspt2_input_generator.
 
 - -v, --version
 
@@ -180,7 +180,7 @@ optional arguments (--input is required)
 
 - --no-scf
 
-  If you don't activate .SCF keyword in your DIRAC input file, you must use this option.
+  If you don't activate .SCF keyword in your DIRAC input file, you must use this option.  
   But you cannot use the output using this option to dcaspt2_input_generator program.
 
 - --debug
