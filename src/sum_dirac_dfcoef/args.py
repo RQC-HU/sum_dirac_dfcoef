@@ -31,7 +31,7 @@ def parse_args() -> "argparse.Namespace":
     parser = PrintHelpArgumentParser(
         description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
     )
-    parser.add_argument("-i", "--input", type=str, required=True, help="(required) file name of DIRAC output", dest="file")
+    parser.add_argument("-i", "--input", type=str, required=True, help="(required) file path of DIRAC output", dest="file")
     parser.add_argument("-o", "--output", type=str, help="Output file name. Default: sum_dirac_dfcoef.out", dest="output")
     parser.add_argument(
         "-g",
@@ -57,11 +57,16 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
         "-c",
         "--compress",
         action="store_true",
-        help="Compress output. Display all coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
+        help="Compress output. Display coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
         dest="compress",
     )
     parser.add_argument(
-        "-t", "--threshold", type=float, default=0.1, help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 → print orbital with more than 0.1 %% contribution", dest="threshold"
+        "-t",
+        "--threshold",
+        type=float,
+        default=0.1,
+        help="threshold. Default: 0.1 %% (e.g) --threshold=0.1 → only print atomic orbitals with more than 0.1 %% contribution",
+        dest="threshold",
     )
     parser.add_argument(
         "-d",
