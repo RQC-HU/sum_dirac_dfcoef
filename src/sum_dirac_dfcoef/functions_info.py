@@ -97,9 +97,9 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 return 1
 
         def parse_plabel(plabel: str) -> Tuple[str, str, str]:
-            atom = plabel[:2].strip()  # e.g. "Cm" in "Cm g400"
-            subshell = plabel[3].strip()  # e.g. "g" in "Cm g400"
-            gto_type = plabel[3:7].strip()  # e.g. "g400" in "Cm g400"
+            atom = plabel[4:6].strip()  # e.g. "Cm" in "    Cm g400"
+            gto_type = plabel[7:].strip()  # e.g. "g400" in "    Cm g400"
+            subshell = gto_type[0]  # e.g. "g" in "g400"
             return atom, subshell, gto_type
 
         def parse_multiplicity_label(multiplicity_label: str) -> int:
@@ -110,11 +110,11 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         except ValueError as e:
             # Perhaps words[0] == "******"
             raise ValueError from e  # num_functions must be integer, so raise ValueError and exit this program
-        after_functions = line_str[line_str.find("functions:") + len("functions:") :].strip()  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) "Cm g400 1+2+3+4
-        plabel = after_functions[:7]  # PLABEL(I,2)(6:12) (e.g.) "Cm g400"
+        after_functions = line_str[line_str.find("functions:") + len("functions:") :]  # PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) "Cm g400 1+2+3+4
+        plabel = after_functions[:11]  # "functions: ",3X,PLABEL(I,2)(6:12) (e.g.) "functions:    Cm g400" => "    Cm g400"
         atom, subshell, gto_type = parse_plabel(plabel)
 
-        multiplicity_label = after_functions[7:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
+        multiplicity_label = after_functions[11:].strip()  # 1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG) (e.g.) 1+2+3+4
         multiplicity = parse_multiplicity_label(multiplicity_label)  # (e.g.) 4 (1+2+3+4)
         # Set the current subshell and gto_type
         ao.current_ao.update(atom, subshell, gto_type)
