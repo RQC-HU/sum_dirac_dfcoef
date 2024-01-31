@@ -43,9 +43,6 @@ jobs:
       - name: Create release draft
         uses: release-drafter/release-drafter@v5
         with:
-          tag: ${{ steps.get_tag_name.outputs.tag_name }}
-          name: ${{ steps.get_tag_name.outputs.tag_name }}
-          version: ${{ steps.get_tag_name.outputs.tag_name }}
           publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
