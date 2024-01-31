@@ -24,12 +24,12 @@ def main() -> None:
     privec_processor.read_privec_data_wrapper()
 
     # Write the header information to the output file.
-    if not args.for_generator:
-        # If the output file is not for dcaspt2_input_generator, don't write header information.
-        output_file_writer.write_no_header_info()
-    else:
+    if args.for_generator:
         header_info.calculate_moltra_idx_range(privec_processor.data_all_mo)
         output_file_writer.write_headerinfo(header_info)
+    else:
+        # If the output file is not for dcaspt2_input_generator, don't write header information.
+        output_file_writer.write_no_header_info()
 
     # Sort the MOs by energy.
     if not args.no_sort:
