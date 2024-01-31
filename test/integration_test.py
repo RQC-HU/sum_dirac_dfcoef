@@ -43,6 +43,7 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.Cm3+_phen_reorder.compress.out"       , "result.Cm3+_phen_reorder.compress.out"       , "x2c_Cm3+_phen_reorder.out", "-d 15 -g"),
         ("ref.H2.no_scf.compress.out"               , "result.H2.no_scf.compress.out"               , "H2.noscf_H2.out"          , "-d 15 -c --no-scf"),
         ("ref.H2O.invalid.eigpri.compress.out"      , "result.H2O.invalid.eigpri.compress.out"      , "H2O.invalid.eigpri.out"   , "-d 15 -c --no-scf"),
+        ("ref.methane.whitespace.compress.out"      , "result.methane.whitespace.compress.out"      , "methane.whitespace_mol.out"   , "-d 15 -c"),
         # multiprocess (should be the same as the single process case)
         ("ref.ucl4.compress.out"                    , "result.ucl4.compress.multi-process.out"      , "x2c_ucl4.out"             , "-j2 -d 15 -g"),
     ]
