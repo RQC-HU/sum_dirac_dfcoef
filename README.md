@@ -129,7 +129,7 @@ optional arguments (--input is required)
 
 - -i FILE, --input FILE
 
-  (required) file name of DIRAC output
+  (required) file path of DIRAC output
 
 - -o OUTPUT, --output OUTPUT
 
@@ -150,13 +150,14 @@ optional arguments (--input is required)
 
 - -c, --compress
 
-  Compress output. Display all coefficients on one line for each MO.  
+  Compress output.  
+  Display coefficients on one line for each MO.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 - -t THRESHOLD, --threshold THRESHOLD
 
   threshold. Default: 0.1 %  
-  (e.g) --threshold=0.1 → print orbital with more than 0.1 % contribution
+  (e.g) --threshold=0.1 → only print atomic orbitals with more than 0.1 % contribution
 
 - -d DECIMAL, --decimal DECIMAL
 
