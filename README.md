@@ -81,6 +81,7 @@ A part of the result (... represents an omission)
 ```out
 NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
 NO_HEADERINFO: This output cannot be used for the dcaspt2_input_generator program.
+
 Electronic no. 19 E1u -8.88244
 B3uUpx        49.99917 %
 B2uUpy        49.99917 %
@@ -107,6 +108,7 @@ If you use -c or --compress option, you can get a compressed result like this.(o
 ```out
 electron_num 106 E1g 16..85 E1u 11..91 
 E1g closed 52 open 0 virtual 268 E1u closed 54 open 0 virtual 314 
+
 E1u 19 -8.88244 B3uUpx 49.99917 B2uUpy 49.99917
 E1u 20 -8.86075 B1uUpz 66.76661 B3uUpx 16.05235 B2uUpy 16.05235 B1uOs(1) 0.54741 B1uOs(2) 0.54741
 E1g 17 -5.11753 B2gUdxz 35.98781 B3gUdyz 35.98781 AgUdzz 18.54868 AgUdxx 4.63717 AgUdyy 4.63717 AgUs 0.13729
