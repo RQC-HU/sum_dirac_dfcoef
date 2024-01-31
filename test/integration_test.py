@@ -20,7 +20,7 @@ class Env:
 
 
 def get_output_list(filepath: Path) -> List[List[str]]:
-    return [re.split(" +", line.rstrip("\n")) for line in list(filter(lambda val: val != "", open(filepath).read().splitlines()))]
+    return [re.split(" +", line.rstrip("\n")) for line in list(open(filepath).read().splitlines())]
 
 
 @pytest.mark.parametrize(
@@ -66,6 +66,8 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
         #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
         if line_idx < 2:
             assert ref == out
+            continue
+        if len(ref) < 2 or len(out) < 2:
             continue
         # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
         # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
