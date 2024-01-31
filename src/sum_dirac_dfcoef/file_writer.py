@@ -36,8 +36,9 @@ class OutputFileWriter:
             line += "\n"
             f.write(line)
 
-    def write_mo_data(self, mo_data: List[DataMO], add_blank_line: bool) -> None:
+    def write_mo_data(self, mo_data: List[DataMO]) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
+            f.write("\n")
             for mo in mo_data:
                 digit_int = len(str(int(mo.mo_energy)))  # number of digits of integer part
                 # File write but if args.compress is True \n is not added
@@ -56,8 +57,6 @@ class OutputFileWriter:
                         f.write(output_str)
                 f.write("\n")  # add empty line
                 debug_print(f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
-            if add_blank_line:
-                f.write("\n")
 
     def create_blank_file(self) -> None:
         # Open the file in write mode

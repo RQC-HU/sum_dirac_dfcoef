@@ -37,7 +37,6 @@ def main() -> None:
 
     # Write the MO data to the output file.
     if should_write_electronic_results_to_file():
-        add_blank_line = True if args.all_write else False
-        output_file_writer.write_mo_data(privec_processor.data_all_mo.electronic, add_blank_line=add_blank_line)
+        output_file_writer.write_mo_data(privec_processor.data_all_mo.electronic)
     if should_write_positronic_results_to_file():
-        output_file_writer.write_mo_data(privec_processor.data_all_mo.positronic, add_blank_line=False)
+        output_file_writer.write_mo_data(privec_processor.data_all_mo.positronic)
