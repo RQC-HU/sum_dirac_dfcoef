@@ -57,7 +57,8 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
         "-c",
         "--compress",
         action="store_true",
-        help="Compress output. Display coefficients on one line for each MO. This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
+        help="Compress output. Display coefficients on one line for each kramers pair.\
+This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.",
         dest="compress",
     )
     parser.add_argument(
@@ -77,12 +78,12 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
         help="Set the decimal places. Default: 5 (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15",
         dest="decimal",
     )
-    parser.add_argument("-a", "--all-write", action="store_true", help="Print all MOs(Positronic and Electronic).", dest="all_write")
+    parser.add_argument("-a", "--all-write", action="store_true", help="Print all kramers pairs(Positronic and Electronic).", dest="all_write")
     parser.add_argument(
         "-p",
         "--positronic-write",
         action="store_true",
-        help="Print only Positronic MOs. The output with this option cannot be used as input to dcaspt2_input_generator.",
+        help="Print only Positronic kramers pairs. The output with this option cannot be used as input to dcaspt2_input_generator.",
         dest="positronic_write",
     )
     parser.add_argument("-v", "--version", action=PrintVersionExitAction, help="Print version and exit", dest="version")
@@ -93,8 +94,8 @@ This option is equivalent to set -c/--compress and not set -p/--positronic and -
             But you cannot use the output using this option to dcaspt2_input_generator program.",
         dest="no_scf",
     )
-    parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of MO coefficient)", dest="debug")
-    parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by MO energy")
+    parser.add_argument("--debug", action="store_true", help="print debug output (Normalization constant, Sum of kramers pair coefficient)", dest="debug")
+    parser.add_argument("--no-sort", action="store_true", help="Don't sort the output by kramers pair energy")
     # If -v or --version option is used, print version and exit
     args = parser.parse_args()
 
