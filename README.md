@@ -11,7 +11,7 @@ This program provides a utility to summarize the contribution of each atomic orb
 ## Install
 
 ```sh
-pip install sum_dirac_dfcoef
+pip install -U sum_dirac_dfcoef
 ```
 
 ## Usage
