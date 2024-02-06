@@ -103,7 +103,7 @@ AgUs           0.13729 %
 ...
 ```
 
-If you use -c or --compress option, you can get a compressed result like this.(one line per MO)
+If you use -c or --compress option, you can get a compressed result like this.(one line per kramers pair)
 
 ```out
 electron_num 106 E1g 16..85 E1u 11..91 
@@ -153,7 +153,7 @@ optional arguments (--input is required)
 - -c, --compress
 
   Compress output.  
-  Display coefficients on one line for each MO.  
+  Display coefficients on one line for each kramers pair.  
   This options is useful when you want to use the result in a spreadsheet like Microsoft Excel.
 
 - -t THRESHOLD, --threshold THRESHOLD
@@ -170,11 +170,11 @@ optional arguments (--input is required)
 
 - -a, --all-write
 
-  Print all MOs(Positronic and Electronic).
+  Print all kramers pairs(Positronic and Electronic).
 
 - -p, --positronic-write
 
-  Print only Positronic MOs.  
+  Print only Positronic kramers pairs.  
   The output with this option cannot be used as input to dcaspt2_input_generator.
 
 - -v, --version
@@ -188,11 +188,11 @@ optional arguments (--input is required)
 
 - --debug
 
-  print debug output (Normalization constant, Sum of MO coefficient ...)
+  print debug output (Normalization constant, Sum of kramers pair coefficient ...)
 
 - --no-sort
 
-  Don't sort the output by MO energy
+  Don't sort the output by kramers pair energy
 
 ## Development
 
