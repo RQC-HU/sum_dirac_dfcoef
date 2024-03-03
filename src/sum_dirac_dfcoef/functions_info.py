@@ -10,12 +10,12 @@ from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class Function:
-    def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, start_idx: int, num_functions: int, multiplicity: int) -> None:
+    def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, idx_within_same_atom: int, num_functions: int, multiplicity: int) -> None:
         self.component_func = component_func  # "large" or "small"
         self.symmetry = symmetry  # e.g. "Ag"
         self.atom = atom  # e.g. "Cl"
         self.gto_type = gto_type  # e.g. "dxz"
-        self.start_idx = start_idx  # e.g. 1
+        self.idx_within_same_atom = idx_within_same_atom  # e.g. 1
         self.num_functions = num_functions  # e.g. 3
         self.multiplicity = multiplicity  # e.g. 2
 
@@ -71,10 +71,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         actual format: 3X,ILAB(1,I)," functions: ",PLABEL(I,2)(6:12),1,(CHRSGN(NINT(CTRAN(II,K))),K,K=2,NDEG)
 
         (e.g.)  line_str = "18 functions:    Ar s", component_func = "large", symmetry = "Ag"
-                => return Function(component_func="large", symmetry="Ag", atom="Ar", gto_type="s", start_idx=1, num_functions=18, multiplicity=1)
+                => return Function(component_func="large", symmetry="Ag", atom="Ar", gto_type="s", idx_within_same_atom=1, num_functions=18, multiplicity=1)
 
                 line_str = "6 functions:    H  s   1+2", component_func = "large", symmetry = "A1"
-                => return Function(component_func="large", symmetry="A1", atom="H", gto_type="s", start_idx=1, num_functions=6, multiplicity=2)
+                => return Function(component_func="large", symmetry="A1", atom="H", gto_type="s", idx_within_same_atom=1, num_functions=6, multiplicity=2)
 
         Returns:
             Function: Function information
@@ -82,18 +82,18 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
 
         def get_last_elem() -> Tuple[int, AtomInfo]:
             # Get the last element of the OrderedDict element with the keys
-            last_elem_idx, last_elem = functions_info[component_func][symmetry][atom].popitem()
+            last_elem_atom_idx, last_elem = functions_info[component_func][symmetry][atom].popitem()
             # Need to restore the last element because it was popped
-            functions_info[component_func][symmetry][atom][last_elem_idx] = last_elem
-            return last_elem_idx, last_elem
+            functions_info[component_func][symmetry][atom][last_elem_atom_idx] = last_elem
+            return last_elem_atom_idx, last_elem
 
-        def get_start_idx() -> int:
+        def get_idx_within_the_same_atom() -> int:
             try:
-                last_elem_idx, last_elem = get_last_elem()
-                start_idx = last_elem_idx + last_elem.mul
-                return start_idx
+                last_elem_atom_idx, last_elem = get_last_elem()
+                idx_within_same_atom = last_elem_atom_idx + last_elem.mul
+                return idx_within_same_atom
             except KeyError:
-                # If the start_idx does not exist, it means that this is the first element, so that the start_idx is 1
+                # If the idx_within_same_atom does not exist, it means that this is the first element, so that the idx_within_same_atom is 1
                 return 1
 
         def parse_plabel(plabel: str) -> Tuple[str, str, str]:
@@ -123,15 +123,15 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         if is_different_atom(ao, function_label):
             # Different atom
             ao.reset()
-            ao.start_idx = get_start_idx()
+            ao.idx_within_same_atom = get_idx_within_the_same_atom()
             # ao was reset, so set the current subshell and gto_type again
             ao.current_ao.update(atom, subshell, gto_type)
             ao.prev_ao = copy.deepcopy(ao.current_ao)
 
-        debug_print(f"function_label: {function_label}, ao: {ao}, start_idx: {ao.start_idx}")
+        debug_print(f"function_label: {function_label}, ao: {ao}, idx_within_same_atom: {ao.idx_within_same_atom}")
         ao.function_types.add(function_label)
 
-        return Function(component_func, symmetry, atom, gto_type, ao.start_idx, num_functions, multiplicity)
+        return Function(component_func, symmetry, atom, gto_type, ao.idx_within_same_atom, num_functions, multiplicity)
 
     start_symmetry_orbitals_section = False
     component_func = ""  # "large" or "small"
@@ -152,10 +152,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             # Create an empty dictionary if the key does not exist
             functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
             # Add function information
-            if func.start_idx not in functions_info[component_func][symmetry][func.atom].keys():
+            if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
                 label = symmetry + func.atom
-                functions_info[component_func][symmetry][func.atom][func.start_idx] = AtomInfo(func.start_idx, label, func.multiplicity)
-            functions_info[component_func][symmetry][func.atom][func.start_idx].add_function(func.gto_type, func.num_functions)
+                functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(func.idx_within_same_atom, label, func.multiplicity)
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals

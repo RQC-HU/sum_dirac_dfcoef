@@ -9,7 +9,7 @@ class Coefficient(BaseModel, validate_assignment=True):
     function_label: str
     need_identifier: bool
     coefficient: float
-    start_idx: int
+    idx_within_same_atom: int
     multiplication: int
 
     def __repr__(self) -> str:
@@ -17,11 +17,11 @@ class Coefficient(BaseModel, validate_assignment=True):
         return f"vector_num: {self.vector_num}, \
 function_label: {self.function_label}, \
 coefficient: {self.coefficient}, \
-start_idx: {self.start_idx}, \
+idx_within_same_atom: {self.idx_within_same_atom}, \
 multiplication: {self.multiplication}"
 
 
-def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coefficient:
+def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom: int) -> Coefficient:
     """
     Nested functions to get coefficient
     (e.g.)
@@ -71,11 +71,18 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx: int) -> Coeffic
             for i in range(coef_start_idx, coef_start_idx + coef_len * coef_num, coef_len)
         )
 
-        need_identifier = True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx].mul > 1 else False
-        multiplication = int(orbitals[component_func][symmetry_label][atom_label][idx].mul)
+        need_identifier = (
+            True if len(orbitals[component_func][symmetry_label][atom_label]) > 1 or orbitals[component_func][symmetry_label][atom_label][idx_within_same_atom].mul > 1 else False
+        )
+        multiplication = int(orbitals[component_func][symmetry_label][atom_label][idx_within_same_atom].mul)
 
         return Coefficient(
-            vector_num=vec_num, function_label=function_label, need_identifier=need_identifier, coefficient=coefficient, start_idx=idx, multiplication=multiplication
+            vector_num=vec_num,
+            function_label=function_label,
+            need_identifier=need_identifier,
+            coefficient=coefficient,
+            idx_within_same_atom=idx_within_same_atom,
+            multiplication=multiplication,
         )
 
     """

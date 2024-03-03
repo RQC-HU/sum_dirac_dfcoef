@@ -191,24 +191,24 @@ class PrivecProcessor:
             # First, we need to read information about the current atom.
             if label not in self.used_atom_info:
                 # It is the first time to read information about the current atom.
-                cur_atom_start_idx = 1
+                cur_atom_idx_within_same_atom = 1
             else:
                 # It is not the first time to read information about the current atom.
                 # So we need to read information about the previous atom from used_atom_info.
-                # current start_idx = previous start_idx + previous mul
-                cur_atom_start_idx = self.used_atom_info[label].start_idx + self.used_atom_info[label].mul
-            # Validate start_idx
-            if cur_atom_start_idx not in self.functions_info[component_func][symmetry_label][atom_label]:
-                msg = f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
+                # current idx_within_same_atom = previous idx_within_same_atom + previous mul
+                cur_atom_idx_within_same_atom = self.used_atom_info[label].idx_within_same_atom + self.used_atom_info[label].mul
+            # Validate idx_within_same_atom
+            if cur_atom_idx_within_same_atom not in self.functions_info[component_func][symmetry_label][atom_label]:
+                msg = f"idx_within_same_atom={cur_atom_idx_within_same_atom} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
                 raise Exception(msg)
-            # We can get information about the current atom from functions_info with start_idx.
-            atom_info: AtomInfo = fast_deepcopy_pickle(self.functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
+            # We can get information about the current atom from functions_info with idx_within_same_atom.
+            atom_info: AtomInfo = fast_deepcopy_pickle(self.functions_info[component_func][symmetry_label][atom_label][cur_atom_idx_within_same_atom])
             self.current_atom_info = atom_info
             # Update used_atom_info with current_atom_info
             self.used_atom_info[label] = atom_info
 
         self.current_atom_info.decrement_function(gto_type)
-        self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.start_idx))
+        self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.idx_within_same_atom))
 
     def add_current_mo_data_to_data_all_mo(self) -> None:
         self.data_mo.fileter_coefficients_by_threshold()

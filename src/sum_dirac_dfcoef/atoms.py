@@ -8,19 +8,19 @@ from sum_dirac_dfcoef.subshell import subshell_order
 
 
 class AtomInfo:
-    start_idx: int
+    idx_within_same_atom: int
     label: str
     mul: int
     functions: ODict[str, int]
 
-    def __init__(self, start_idx: int = 0, label: str = "", multiplicity: int = 0) -> None:
-        self.start_idx = start_idx
+    def __init__(self, idx_within_same_atom: int = 0, label: str = "", multiplicity: int = 0) -> None:
+        self.idx_within_same_atom = idx_within_same_atom
         self.label = label
         self.mul = multiplicity
         self.functions = OrderedDict()
 
     def __repr__(self) -> str:
-        return f"start_idx: {self.start_idx}, mul: {self.mul}, functions: {self.functions}"
+        return f"idx_within_same_atom: {self.idx_within_same_atom}, mul: {self.mul}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions
@@ -71,13 +71,13 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
 class AtomicOrbitals(BaseModel, validate_assignment=True):
     prev_ao: AtomicOrbital = AtomicOrbital()
     current_ao: AtomicOrbital = AtomicOrbital()
-    start_idx: int = 1
+    idx_within_same_atom: int = 1
     function_types: Set[str] = set()
 
     def reset(self):
         self.prev_ao.reset()
         self.current_ao.reset()
-        self.start_idx = 1
+        self.idx_within_same_atom = 1
         self.function_types.clear()
 
 
