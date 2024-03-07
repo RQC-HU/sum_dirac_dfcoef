@@ -24,8 +24,8 @@ class AtomInfo:
     label: str
     mul: int
     functions: ODict[str, int]
-    func_idx_per_sym: FuncIndices  # For DIRAC < 21
-    func_idx_all_sym: FuncIndices  # For DIRAC >= 21
+    func_idx_per_sym: FuncIndices  # For DIRAC >= 21
+    func_idx_all_sym: FuncIndices  # For DIRAC < 21
 
     def __init__(
         self,
@@ -44,7 +44,7 @@ class AtomInfo:
 
     def __repr__(self) -> str:
         return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
-            func_idx_per_sym: {self.func_idx_per_sym}, func_idx_all_sym: {self.func_idx_all_sym}, functions: {self.functions}"
+func_idx_per_sym: {self.func_idx_per_sym}, func_idx_all_sym: {self.func_idx_all_sym}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions

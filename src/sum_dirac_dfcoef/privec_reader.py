@@ -214,8 +214,6 @@ class PrivecProcessor:
         gto_type = line_str[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
         label = symmetry_label + atom_label
 
-        # self.is_less_than_dirac_21 = is_dirac_version_less_than_21()
-
         if need_to_update_current_atom_info():
             self.is_less_than_dirac_21 = is_dirac_version_less_than_21()
             found_next_atom_info = False
@@ -266,7 +264,7 @@ class PrivecProcessor:
                     if is_found:
                         self.eigenvalues.energies_used[sym_type_key][eigenvalue_no] = True
 
-        num_processes = args.parallel
+        num_processes: int = args.parallel
         if num_processes > 1:
             # Multi-process version
             with concurrent.futures.ProcessPoolExecutor() as executor:
