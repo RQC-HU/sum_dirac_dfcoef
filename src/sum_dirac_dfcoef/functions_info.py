@@ -5,7 +5,7 @@ from io import TextIOWrapper
 from typing import List, Tuple
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.atoms import AtomInfo, ao, is_different_atom
+from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, LastFuncNum, ao, is_different_atom
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
@@ -34,6 +34,8 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     #                     functions: {
     #                         "s": 3,
     #                         "p": 3,
+    #                     },
+    #                     last_func_num: 6
     #                 }
     #            },
     #            "3": {
@@ -42,13 +44,28 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     #                     functions: {
     #                         "s": 3,
     #                         "p": 3,
-    #                     }
+    #                     },
+    #                     last_func_num: 12
     #                 },...
     #             }
     #         }
     #     }
     # }
     pass
+
+
+class SymmetryOrbitalsSummary:
+    all_sym: Tuple[int]
+    large_sym: Tuple[int]
+    small_sym: Tuple[int]
+
+    def __init__(self):
+        self.all_sym = ()
+        self.large_sym = ()
+        self.small_sym = ()
+
+    def __repr__(self):
+        return f"all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym}"
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
@@ -64,6 +81,19 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         if bra_idx != -1:
             symmetry = symmetry[:bra_idx]
         return symmetry
+
+    def get_symmetry_idx(line_str: str) -> int:
+        bra_idx = line_str.find("(")
+        ket_idx = line_str.find(")")
+        if bra_idx == -1 or ket_idx == -1:
+            msg = f"error: The symmetry index is not found in the line: {line_str}"
+            raise ValueError(msg)
+        return int(line_str[bra_idx + 1 : ket_idx])
+
+    def check_symmetry_idx(idx_symmetry: int, symmetry: str) -> None:
+        if idx_symmetry < 0:
+            msg = f"error: The symmetry index must be >= 0, but got {idx_symmetry} in symmetry: {symmetry}"
+            raise ValueError(msg)
 
     def read_func_info(words: List[str], line_str: str, component_func: str, symmetry: str) -> Function:
         """Read function information from the external variables line_str and words
@@ -133,20 +163,59 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
 
         return Function(component_func, symmetry, atom, gto_type, ao.idx_within_same_atom, num_functions, multiplicity)
 
+    def update_symmetry_orbitals_summary(line_str: str) -> None:
+        tmp_list = [0]  # Add 0 to the beginning of the list
+        tmp_list.extend(int(idx) for idx in line_str[line_str.find(":") + 1 :].split())
+        indices = tuple(tmp_list)
+        if "large" in line_str:
+            summary.large_sym = indices
+        elif "small" in line_str:
+            summary.small_sym = indices
+        else:
+            summary.all_sym = indices
+
+    def check_symmetry_orbitals_summary() -> None:
+        if len(summary.all_sym) == 0:
+            msg = "error: The number of symmetry orbitals is not found."
+            raise ValueError(msg)
+        elif len(summary.all_sym) != len(summary.large_sym) or len(summary.all_sym) != len(summary.small_sym):
+            msg = "error: The number of elements in summary.all_sym, summary.large_sym, and summary.small_sym must be the same."
+            raise ValueError(msg)
+
     start_symmetry_orbitals_section = False
     component_func = ""  # "large" or "small"
     symmetry = ""
+    idx_symmetry = -1
+    cur_orb_idx = 0
+    last_orb_idx = 0
+    last_func_num = LastFuncNum()
     functions_info = FunctionsInfo()
+    summary = SymmetryOrbitalsSummary()
     for line_str in dirac_output:
         words: List[str] = space_separated_parsing(line_str)
         if len(line_str) == 0:
             continue
         elif not start_symmetry_orbitals_section:
             start_symmetry_orbitals_section = is_start_symmetry_orbitals_section(words)
+        elif "Number of" in line_str:
+            update_symmetry_orbitals_summary(line_str)
         elif "component functions" in line_str:
+            check_symmetry_orbitals_summary()
             component_func = "large" if "Large" in line_str else ("small" if "Small" in line_str else "")
+            idx_symmetry = -1
         elif "Symmetry" in line_str:
+            if cur_orb_idx != last_orb_idx:
+                msg = f"cur_orb_idx: {cur_orb_idx}, last_orb_idx: {last_orb_idx} must be the same when reading the beginning of the symmetry orbitals."
+                raise ValueError(msg)
             symmetry = get_symmetry(words)
+            idx_symmetry = get_symmetry_idx(line_str)
+            check_symmetry_idx(idx_symmetry, symmetry)
+            if component_func == "large":
+                cur_orb_idx = sum(summary.all_sym[:idx_symmetry])
+                last_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
+            elif component_func == "small":
+                cur_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
+                last_orb_idx = sum(summary.all_sym[:idx_symmetry + 1])
         elif "functions" in line_str:
             func = read_func_info(words, line_str, component_func, symmetry)
             # Create an empty dictionary if the key does not exist
@@ -154,12 +223,22 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             # Add function information
             if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
                 label = symmetry + func.atom
-                functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(func.idx_within_same_atom, label, func.multiplicity)
+                prev_num_per_sym = last_func_num.get(symmetry)
+                ln = last_func_num.get(symmetry)
+                fn_idx_per_sym = FuncIndices(first=prev_num_per_sym + 1, last=prev_num_per_sym + func.num_functions)
+                fn_idx_all_sym = FuncIndices(first=cur_orb_idx + 1, last=cur_orb_idx + func.num_functions)
+                functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
+                    func.idx_within_same_atom, label, func.multiplicity, ln, fn_idx_per_sym, fn_idx_all_sym
+                )
+            last_func_num.add(symmetry, func.num_functions)
+            cur_orb_idx += func.num_functions
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = cur_orb_idx
+
             functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].update_last_func_num(symmetry, last_func_num)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals
-
     if not start_symmetry_orbitals_section:
         msg = 'ERROR: The "Symmetry Orbitals" section, which is one of the essential information sections for this program, \
 is not in the DIRAC output file.\n\

@@ -7,23 +7,78 @@ from pydantic import BaseModel, validator
 from sum_dirac_dfcoef.subshell import subshell_order
 
 
+class LastFuncNum:
+    gerade: int = 0  # Number of functions with gerade symmetry
+    ungerade: int = 0  # Number of functions with ungerade symmetry
+    no_inv_sym: int = 0  # Number of functions with no inversion symmetry
+    sum_all: int = 0  # Sum of all functions
+
+    def add(self, symmetry: str, num_functions: int) -> None:
+        if symmetry[-1].lower() == "g":
+            self.gerade += num_functions
+        elif symmetry[-1].lower() == "u":
+            self.ungerade += num_functions
+        else:
+            self.no_inv_sym += num_functions
+        self.sum_all += num_functions
+
+    def get(self, symmetry: str) -> int:
+        if symmetry[-1].lower() == "g":
+            return self.gerade
+        elif symmetry[-1].lower() == "u":
+            return self.ungerade
+        else:
+            return self.no_inv_sym
+
+    def get_all(self) -> int:
+        return self.sum_all
+
+
+class FuncIndices:
+    first: int
+    last: int
+
+    def __init__(self, first: int = 0, last: int = 0) -> None:
+        self.first = first
+        self.last = last
+
+
 class AtomInfo:
     idx_within_same_atom: int
     label: str
     mul: int
     functions: ODict[str, int]
+    func_idx_per_sym: FuncIndices  # For DIRAC < 21
+    func_idx_all_sym: FuncIndices  # For DIRAC >= 21
+    last_func_num: int
 
-    def __init__(self, idx_within_same_atom: int = 0, label: str = "", multiplicity: int = 0) -> None:
+    def __init__(
+        self,
+        idx_within_same_atom: int = 0,
+        label: str = "",
+        multiplicity: int = 0,
+        last_func_num: int = 0,
+        func_idx_per_sym: FuncIndices = None,
+        func_idx_all_sym: FuncIndices = None,
+    ) -> None:
         self.idx_within_same_atom = idx_within_same_atom
         self.label = label
         self.mul = multiplicity
         self.functions = OrderedDict()
+        self.func_idx_per_sym = func_idx_per_sym if func_idx_per_sym is not None else FuncIndices()
+        self.func_idx_all_sym = func_idx_all_sym if func_idx_all_sym is not None else FuncIndices()
+        self.last_func_num = last_func_num
 
     def __repr__(self) -> str:
-        return f"idx_within_same_atom: {self.idx_within_same_atom}, mul: {self.mul}, functions: {self.functions}"
+        return f"idx_within_same_atom: {self.idx_within_same_atom}, mul: {self.mul}, last_func_num: {self.last_func_num}, func_idx_per_sym.first: {self.func_idx_per_sym.first}, func_idx_per_sym.last: {self.func_idx_per_sym.last}, func_idx_all_sym.first: {self.func_idx_all_sym.first}, func_idx_all_sym.last: {self.func_idx_all_sym.last}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions
+
+    def update_last_func_num(self, symmetry: str, last_func_num: LastFuncNum) -> None:
+        self.last_func_num = last_func_num.get(symmetry)
+        self.func_idx_per_sym.last = self.last_func_num
+        # self.func_idx_all_sym.last = last_func_num.get_all()
 
     def decrement_function(self, gto_type: str) -> None:
         try:
@@ -35,8 +90,6 @@ class AtomInfo:
             msg = f"self.functions[{gto_type}] is not found in self.functions: {self.functions.keys()}"
             raise KeyError(msg) from e
 
-    def count_remaining_functions(self) -> int:
-        return sum(self.functions.values())
 
     def get_remaining_functions(self) -> "ODict[str, int]":
         return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
