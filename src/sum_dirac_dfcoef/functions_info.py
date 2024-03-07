@@ -112,7 +112,7 @@ class FuncNumDIRAC21:
         else:
             self.no_inv_sym += num_functions
 
-    def get_current_fn_idx(self, symmetry: str) -> int:
+    def get_current_func_idx(self, symmetry: str) -> int:
         if symmetry[-1].lower() == "g":
             return self.gerade
         elif symmetry[-1].lower() == "u":
@@ -257,7 +257,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         # Add function information
         if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
             label = symmetry + func.atom
-            prev_idx_per_sym = fn_summary.dirac21.get_current_fn_idx(symmetry)
+            prev_idx_per_sym = fn_summary.dirac21.get_current_func_idx(symmetry)
             prev_idx_all_sym = fn_summary.dirac19.cur_func_idx
             fn_idx_per_sym = FuncIndices(first=prev_idx_per_sym + 1, last=prev_idx_per_sym + func.num_functions)
             fn_idx_all_sym = FuncIndices(first=prev_idx_all_sym + 1, last=prev_idx_all_sym + func.num_functions)
@@ -270,7 +270,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         fn_summary.dirac19.add_num_functions(func.num_functions)
         fn_summary.dirac21.add_num_functions(symmetry, func.num_functions)
         functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = fn_summary.dirac19.cur_func_idx
-        functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = fn_summary.dirac21.get_current_fn_idx(symmetry)
+        functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = fn_summary.dirac21.get_current_func_idx(symmetry)
 
     def check_symmetry_orbitals_summary() -> None:
         if len(orb_summary.all_sym) == 0:
