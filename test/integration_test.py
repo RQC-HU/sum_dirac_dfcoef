@@ -51,6 +51,8 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.N2.dirac19.compress.out"              , "result.N2.dirac19.compress.out"              , "dirac19_N2_N2.out"            , "-d 15 -g"),
         # F2 (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/92)
         ("ref.F2.compress.out"                      , "result.F2.compress.out"                      , "F2_F2.out"                    , "-d 15 -g"),
+        # CO (No inversion symmetry linear molecule, https://github.com/RQC-HU/sum_dirac_dfcoef/issues/95)
+        ("ref.CO.compress.out"                      , "result.CO.compress.out"                      , "CO_CO.out"                    , "-d 15 -g"),
     ]
     # fmt: on
 )
