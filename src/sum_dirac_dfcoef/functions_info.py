@@ -9,33 +9,6 @@ from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao, is_different_atom
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
-class LastFuncNum:
-    gerade: int = 0  # Number of functions with gerade symmetry
-    ungerade: int = 0  # Number of functions with ungerade symmetry
-    no_inv_sym: int = 0  # Number of functions with no inversion symmetry
-    sum_all: int = 0  # Sum of all functions
-
-    def add(self, symmetry: str, num_functions: int) -> None:
-        if symmetry[-1].lower() == "g":
-            self.gerade += num_functions
-        elif symmetry[-1].lower() == "u":
-            self.ungerade += num_functions
-        else:
-            self.no_inv_sym += num_functions
-        self.sum_all += num_functions
-
-    def get(self, symmetry: str) -> int:
-        if symmetry[-1].lower() == "g":
-            return self.gerade
-        elif symmetry[-1].lower() == "u":
-            return self.ungerade
-        else:
-            return self.no_inv_sym
-
-    def get_all(self) -> int:
-        return self.sum_all
-
-
 class Function:
     def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, idx_within_same_atom: int, num_functions: int, multiplicity: int) -> None:
         self.component_func = component_func  # "large" or "small"
@@ -93,6 +66,77 @@ class SymmetryOrbitalsSummary:
         return f"all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym}"
 
 
+class FuncIndicesDIRAC19:
+    cur_func_idx: int
+    last_func_idx: int
+
+    def __init__(self):
+        self.cur_func_idx = 0
+        self.last_func_idx = 0
+
+    def __repr__(self):
+        return f"cur_func_idx: {self.cur_func_idx}, last_func_idx: {self.last_func_idx}"
+
+    def add_num_functions(self, num_functions: int) -> None:
+        self.cur_func_idx += num_functions
+
+    def set_indices(self, start: int, last: int) -> None:
+        self.cur_func_idx = start
+        self.last_func_idx = last
+
+    def check_prev_sym_idx(self) -> None:
+        # Before reading the next symmetry, the current symmetry index must be the same as the last symmetry index
+        if self.cur_func_idx != self.last_func_idx:
+            msg = f"error: The current symmetry index {self.cur_func_idx} must be the same as the last symmetry index {self.last_func_idx}"
+            raise ValueError(msg)
+
+
+class FuncNumDIRAC21:
+    gerade: int  # Number of functions with gerade symmetry
+    ungerade: int  # Number of functions with ungerade symmetry
+    no_inv_sym: int  # Number of functions with no inversion symmetry
+
+    def __init__(self):
+        self.gerade = 0
+        self.ungerade = 0
+        self.no_inv_sym = 0
+
+    def __repr__(self):
+        return f"gerade: {self.gerade}, ungerade: {self.ungerade}, sum_all: {self.sum_all}"
+
+    def add_num_functions(self, symmetry: str, num_functions: int) -> None:
+        if symmetry[-1].lower() == "g":
+            self.gerade += num_functions
+        elif symmetry[-1].lower() == "u":
+            self.ungerade += num_functions
+        else:
+            self.no_inv_sym += num_functions
+
+    def get_current_fn_idx(self, symmetry: str) -> int:
+        if symmetry[-1].lower() == "g":
+            return self.gerade
+        elif symmetry[-1].lower() == "u":
+            return self.ungerade
+        else:
+            return self.no_inv_sym
+
+
+class FuncNumSummary:
+    dirac19: FuncIndicesDIRAC19
+    dirac21: FuncNumDIRAC21
+
+    def __init__(self):
+        self.dirac19 = FuncIndicesDIRAC19()
+        self.dirac21 = FuncNumDIRAC21()
+
+    def __repr__(self):
+        return f"dirac19: {self.dirac19}, dirac21: {self.dirac21}"
+
+    def add_num_functions(self, symmetry: str, num_functions: int) -> None:
+        self.dirac19.add_num_functions(num_functions)
+        self.dirac21.add_num_functions(symmetry, num_functions)
+
+
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def is_start_symmetry_orbitals_section(words: List[str]) -> bool:
         # ref: https://gitlab.com/dirac/dirac/-/blob/de590d17dd38da238ff417b4938d69564158cd7f/src/dirac/dirtra.F#L3654
@@ -115,9 +159,12 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             raise ValueError(msg)
         return int(line_str[bra_idx + 1 : ket_idx])
 
-    def check_symmetry_idx(idx_symmetry: int, symmetry: str) -> None:
+    def check_symmetry_idx(idx_symmetry: int, symmetry: str, summary: SymmetryOrbitalsSummary) -> None:
         if idx_symmetry < 0:
             msg = f"error: The symmetry index must be >= 0, but got {idx_symmetry} in symmetry: {symmetry}"
+            raise ValueError(msg)
+        elif idx_symmetry > len(summary.all_sym):
+            msg = f"error: The symmetry index must be <= {len(summary.all_sym)}, but got {idx_symmetry} in symmetry: {symmetry}"
             raise ValueError(msg)
 
     def read_func_info(words: List[str], line_str: str, component_func: str, symmetry: str) -> Function:
@@ -193,29 +240,27 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         tmp_list.extend(int(idx) for idx in line_str[line_str.find(":") + 1 :].split())
         indices = tuple(tmp_list)
         if "large" in line_str:
-            summary.large_sym = indices
+            orb_summary.large_sym = indices
         elif "small" in line_str:
-            summary.small_sym = indices
+            orb_summary.small_sym = indices
         else:
-            summary.all_sym = indices
+            orb_summary.all_sym = indices
 
     def check_symmetry_orbitals_summary() -> None:
-        if len(summary.all_sym) == 0:
+        if len(orb_summary.all_sym) == 0:
             msg = "error: The number of symmetry orbitals is not found."
             raise ValueError(msg)
-        elif len(summary.all_sym) != len(summary.large_sym) or len(summary.all_sym) != len(summary.small_sym):
-            msg = "error: The number of elements in summary.all_sym, summary.large_sym, and summary.small_sym must be the same."
+        elif len(orb_summary.all_sym) != len(orb_summary.large_sym) or len(orb_summary.all_sym) != len(orb_summary.small_sym):
+            msg = "error: The number of elements in orb_summary.all_sym, orb_summary.large_sym, and orb_summary.small_sym must be the same."
             raise ValueError(msg)
 
     start_symmetry_orbitals_section = False
     component_func = ""  # "large" or "small"
     symmetry = ""
     idx_symmetry = -1
-    cur_orb_idx = 0
-    last_orb_idx = 0
-    last_func_num = LastFuncNum()
     functions_info = FunctionsInfo()
-    summary = SymmetryOrbitalsSummary()
+    fn_summary = FuncNumSummary()
+    orb_summary = SymmetryOrbitalsSummary()
     for line_str in dirac_output:
         words: List[str] = space_separated_parsing(line_str)
         if len(line_str) == 0:
@@ -229,18 +274,18 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             component_func = "large" if "Large" in line_str else ("small" if "Small" in line_str else "")
             idx_symmetry = -1
         elif "Symmetry" in line_str:
-            if cur_orb_idx != last_orb_idx:
-                msg = f"cur_orb_idx: {cur_orb_idx}, last_orb_idx: {last_orb_idx} must be the same when reading the beginning of the symmetry orbitals."
-                raise ValueError(msg)
+            fn_summary.dirac19.check_prev_sym_idx()
             symmetry = get_symmetry(words)
             idx_symmetry = get_symmetry_idx(line_str)
-            check_symmetry_idx(idx_symmetry, symmetry)
+            check_symmetry_idx(idx_symmetry, symmetry, orb_summary)
             if component_func == "large":
-                cur_orb_idx = sum(summary.all_sym[:idx_symmetry])
-                last_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
+                start = sum(orb_summary.all_sym[:idx_symmetry])
+                last = sum(orb_summary.all_sym[:idx_symmetry]) + orb_summary.large_sym[idx_symmetry]
+                fn_summary.dirac19.set_indices(start, last)
             elif component_func == "small":
-                cur_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
-                last_orb_idx = sum(summary.all_sym[: idx_symmetry + 1])
+                start = sum(orb_summary.all_sym[:idx_symmetry]) + orb_summary.large_sym[idx_symmetry]
+                last = sum(orb_summary.all_sym[: idx_symmetry + 1])
+                fn_summary.dirac19.set_indices(start, last)
         elif "functions" in line_str:
             func = read_func_info(words, line_str, component_func, symmetry)
             # Create an empty dictionary if the key does not exist
@@ -248,18 +293,18 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             # Add function information
             if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
                 label = symmetry + func.atom
-                prev_num_per_sym = last_func_num.get(symmetry)
-                fn_idx_per_sym = FuncIndices(first=prev_num_per_sym + 1, last=prev_num_per_sym + func.num_functions)
-                fn_idx_all_sym = FuncIndices(first=cur_orb_idx + 1, last=cur_orb_idx + func.num_functions)
+                prev_idx_per_sym = fn_summary.dirac21.get_current_fn_idx(symmetry)
+                prev_idx_all_sym = fn_summary.dirac19.cur_func_idx
+                fn_idx_per_sym = FuncIndices(first=prev_idx_per_sym + 1, last=prev_idx_per_sym + func.num_functions)
+                fn_idx_all_sym = FuncIndices(first=prev_idx_all_sym + 1, last=prev_idx_all_sym + func.num_functions)
                 functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
                     func.idx_within_same_atom, label, func.multiplicity, fn_idx_per_sym, fn_idx_all_sym
                 )
-            last_func_num.add(symmetry, func.num_functions)
-            cur_orb_idx += func.num_functions
             functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
 
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = cur_orb_idx
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = last_func_num.get(symmetry)
+            fn_summary.add_num_functions(symmetry, func.num_functions)
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = fn_summary.dirac19.cur_func_idx
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = fn_summary.dirac21.get_current_fn_idx(symmetry)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals
