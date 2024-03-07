@@ -5,8 +5,35 @@ from io import TextIOWrapper
 from typing import List, Tuple
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, LastFuncNum, ao, is_different_atom
+from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao, is_different_atom
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
+
+
+class LastFuncNum:
+    gerade: int = 0  # Number of functions with gerade symmetry
+    ungerade: int = 0  # Number of functions with ungerade symmetry
+    no_inv_sym: int = 0  # Number of functions with no inversion symmetry
+    sum_all: int = 0  # Sum of all functions
+
+    def add(self, symmetry: str, num_functions: int) -> None:
+        if symmetry[-1].lower() == "g":
+            self.gerade += num_functions
+        elif symmetry[-1].lower() == "u":
+            self.ungerade += num_functions
+        else:
+            self.no_inv_sym += num_functions
+        self.sum_all += num_functions
+
+    def get(self, symmetry: str) -> int:
+        if symmetry[-1].lower() == "g":
+            return self.gerade
+        elif symmetry[-1].lower() == "u":
+            return self.ungerade
+        else:
+            return self.no_inv_sym
+
+    def get_all(self) -> int:
+        return self.sum_all
 
 
 class Function:
@@ -215,7 +242,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 last_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
             elif component_func == "small":
                 cur_orb_idx = sum(summary.all_sym[:idx_symmetry]) + summary.large_sym[idx_symmetry]
-                last_orb_idx = sum(summary.all_sym[:idx_symmetry + 1])
+                last_orb_idx = sum(summary.all_sym[: idx_symmetry + 1])
         elif "functions" in line_str:
             func = read_func_info(words, line_str, component_func, symmetry)
             # Create an empty dictionary if the key does not exist
@@ -232,10 +259,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 )
             last_func_num.add(symmetry, func.num_functions)
             cur_orb_idx += func.num_functions
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = cur_orb_idx
-
             functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].update_last_func_num(symmetry, last_func_num)
+
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = cur_orb_idx
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = last_func_num.get(symmetry)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals

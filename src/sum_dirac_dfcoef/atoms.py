@@ -7,33 +7,6 @@ from pydantic import BaseModel, validator
 from sum_dirac_dfcoef.subshell import subshell_order
 
 
-class LastFuncNum:
-    gerade: int = 0  # Number of functions with gerade symmetry
-    ungerade: int = 0  # Number of functions with ungerade symmetry
-    no_inv_sym: int = 0  # Number of functions with no inversion symmetry
-    sum_all: int = 0  # Sum of all functions
-
-    def add(self, symmetry: str, num_functions: int) -> None:
-        if symmetry[-1].lower() == "g":
-            self.gerade += num_functions
-        elif symmetry[-1].lower() == "u":
-            self.ungerade += num_functions
-        else:
-            self.no_inv_sym += num_functions
-        self.sum_all += num_functions
-
-    def get(self, symmetry: str) -> int:
-        if symmetry[-1].lower() == "g":
-            return self.gerade
-        elif symmetry[-1].lower() == "u":
-            return self.ungerade
-        else:
-            return self.no_inv_sym
-
-    def get_all(self) -> int:
-        return self.sum_all
-
-
 class FuncIndices:
     first: int
     last: int
@@ -78,11 +51,6 @@ class AtomInfo:
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions
-
-    def update_last_func_num(self, symmetry: str, last_func_num: LastFuncNum) -> None:
-        self.last_func_num = last_func_num.get(symmetry)
-        self.func_idx_per_sym.last = self.last_func_num
-        # self.func_idx_all_sym.last = last_func_num.get_all()
 
     def decrement_function(self, gto_type: str) -> None:
         try:
