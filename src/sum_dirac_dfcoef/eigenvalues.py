@@ -114,15 +114,16 @@ class Eigenvalues:
             current_symmetry_type = words[3]
             return current_symmetry_type
 
-        def get_symmetry_type_supersym(words: List[str]) -> str:
+        def get_symmetry_type_supersym(line: str) -> str:
             # https://gitlab.com/dirac/dirac/-/blob/364663fd2bcc419e41ad01703fd782889435b576/src/dirac/dirout.F#L1097-1105
             # FORMAT '(/A,I4,4A,I2,...)'
             # DATA "* Block",ISUB,' in ',FREP(IFSYM),":  ",...
             # ISUB might be **** if ISUB > 9999 or ISUB < -999 because of the format
-            # Therefore, find 'in' word list and get FREP(IFSYM) from the word list
+            # Therefore, find 'in' and ':' in line and get FREP(IFSYM) from the line
             # FREP(IFSYM) is a symmetry type
-            idx = words.index("in")
-            current_symmetry_type = words[idx + 1][: len(words[idx + 1]) - 1]
+            in_idx = line.index("in")
+            colon_idx = line.index(":")
+            current_symmetry_type = line[in_idx + 2:colon_idx].strip()
             return current_symmetry_type
 
         def get_omega_str(words: List[str]) -> str:
@@ -227,7 +228,7 @@ class Eigenvalues:
                 elif "* Block" in line:
                     stage = StageEigenvalues.EIGENVALUES_READ
                     print_type = "supersymmetry"
-                    current_symmetry_type = get_symmetry_type_supersym(words)
+                    current_symmetry_type = get_symmetry_type_supersym(line)
                     atomic = ";" in line
                     omega_str = get_omega_str(words)
                     self.setdefault(current_symmetry_type)
@@ -239,7 +240,7 @@ class Eigenvalues:
                     current_symmetry_type = get_symmetry_type_standard(words)
                     self.setdefault(current_symmetry_type)
                 elif print_type == "supersymmetry" and "* Block" in line:
-                    current_symmetry_type = get_symmetry_type_supersym(words)
+                    current_symmetry_type = get_symmetry_type_supersym(line)
                     omega_str = get_omega_str(words)
                     self.setdefault(current_symmetry_type)
                     omega.setdefault(current_symmetry_type, {}).setdefault(omega_str, {})
