@@ -35,7 +35,6 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.N2.no_sort.compress.out"              , "result.N2.no_sort.compress.out"              , "N2_N2.out"                    , "-d 15 --no-sort -c"),
         ("ref.N2.no_sort.compress.positronic.out"   , "result.N2.no_sort.compress.positronic.out"   , "N2_N2.out"                    , "-d 15 --no-sort -pc"),
         ("ref.N2.no_sort.compress.all.out"          , "result.N2.no_sort.compress.all.out"          , "N2_N2.out"                    , "-d 15 --no-sort -ac"),
-        ("ref.uo2.compress.out"                     , "result.uo2.compress.out"                     , "x2c_uo2_238.out"              , "-d 15 -g"),
         ("ref.uo2.no_sort.compress.out"             , "result.uo2.no_sort.compress.out"             , "x2c_uo2_238.out"              , "-d 15 --no-sort -c"),
         ("ref.ucl4.compress.out"                    , "result.ucl4.compress.out"                    , "x2c_ucl4.out"                 , "-d 15 -g"),
         ("ref.ucl4.no_sort.compress.out"            , "result.ucl4.no_sort.compress.out"            , "x2c_ucl4.out"                 , "-d 15 --no-sort -c"),
@@ -46,6 +45,12 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.methane.whitespace.compress.out"      , "result.methane.whitespace.compress.out"      , "methane.whitespace_mol.out"   , "-d 15 -c"),
         # multiprocess (should be the same as the single process case)
         ("ref.ucl4.compress.out"                    , "result.ucl4.compress.multi-process.out"      , "x2c_ucl4.out"                 , "-j2 -d 15 -g"),
+        # DIRAC 19 UO2 x2c (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/93#issue-2164290127)
+        ("ref.uo2.compress.out"                     , "result.uo2.compress.out"                     , "x2c_uo2_238.out"              , "-d 15 -g"),
+        # DIRAC 19 N2 4component (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/93#issuecomment-1976947902)
+        ("ref.N2.dirac19.compress.out"              , "result.N2.dirac19.compress.out"              , "dirac19_N2_N2.out"            , "-d 15 -g"),
+        # F2 (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/92)
+        ("ref.F2.compress.out"                      , "result.F2.compress.out"                      , "F2_F2.out"                    , "-d 15 -g"),
     ]
     # fmt: on
 )
