@@ -24,27 +24,27 @@ class AtomInfo:
     label: str
     mul: int
     functions: ODict[str, int]
-    func_idx_per_sym: FuncIndices  # For DIRAC >= 21
-    func_idx_all_sym: FuncIndices  # For DIRAC < 21
+    func_idx_dirac21: FuncIndices
+    func_idx_dirac19: FuncIndices  # For DIRAC < 21
 
     def __init__(
         self,
         idx_within_same_atom: int = 0,
         label: str = "",
         multiplicity: int = 0,
-        func_idx_per_sym: FuncIndices = None,
-        func_idx_all_sym: FuncIndices = None,
+        func_idx_dirac21: FuncIndices = None,
+        func_idx_dirac19: FuncIndices = None,
     ) -> None:
         self.idx_within_same_atom = idx_within_same_atom
         self.label = label
         self.mul = multiplicity
         self.functions = OrderedDict()
-        self.func_idx_per_sym = func_idx_per_sym if func_idx_per_sym is not None else FuncIndices()
-        self.func_idx_all_sym = func_idx_all_sym if func_idx_all_sym is not None else FuncIndices()
+        self.func_idx_dirac21 = func_idx_dirac21 if func_idx_dirac21 is not None else FuncIndices()
+        self.func_idx_dirac19 = func_idx_dirac19 if func_idx_dirac19 is not None else FuncIndices()
 
     def __repr__(self) -> str:
         return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
-func_idx_per_sym: {self.func_idx_per_sym}, func_idx_all_sym: {self.func_idx_all_sym}, functions: {self.functions}"
+func_idx_dirac21: {self.func_idx_dirac21}, func_idx_dirac19: {self.func_idx_dirac19}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions

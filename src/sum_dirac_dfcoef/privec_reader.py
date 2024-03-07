@@ -195,14 +195,14 @@ class PrivecProcessor:
             if self.is_less_than_dirac_21:
                 return True
             for atom_info in self.functions_info[component_func][symmetry_label][atom_label].values():
-                if atom_info.func_idx_per_sym.first <= num_functions <= atom_info.func_idx_per_sym.last:
+                if atom_info.func_idx_dirac21.first <= num_functions <= atom_info.func_idx_dirac21.last:
                     # If the num_functions is include in the range of the current atom_info indices, it means that the current atom is DIRAC 21 or later.
                     return False
             return True
 
         def need_to_update_current_atom_info():
-            first = self.current_atom_info.func_idx_all_sym.first if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_per_sym.first
-            last = self.current_atom_info.func_idx_all_sym.last if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_per_sym.last
+            first = self.current_atom_info.func_idx_dirac19.first if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_dirac21.first
+            last = self.current_atom_info.func_idx_dirac19.last if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_dirac21.last
             if first <= num_functions <= last:
                 return False
             return True
@@ -218,8 +218,8 @@ class PrivecProcessor:
             self.is_less_than_dirac_21 = is_dirac_version_less_than_21()
             found_next_atom_info = False
             for atom_info in self.functions_info[component_func][symmetry_label][atom_label].values():
-                start = atom_info.func_idx_all_sym.first if self.is_less_than_dirac_21 else atom_info.func_idx_per_sym.first
-                end = atom_info.func_idx_all_sym.last if self.is_less_than_dirac_21 else atom_info.func_idx_per_sym.last
+                start = atom_info.func_idx_dirac19.first if self.is_less_than_dirac_21 else atom_info.func_idx_dirac21.first
+                end = atom_info.func_idx_dirac19.last if self.is_less_than_dirac_21 else atom_info.func_idx_dirac21.last
                 if start <= num_functions <= end:
                     found_next_atom_info = True
                     self.current_atom_info = fast_deepcopy_pickle(atom_info)
