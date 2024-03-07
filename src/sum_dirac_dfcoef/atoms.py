@@ -42,6 +42,9 @@ class FuncIndices:
         self.first = first
         self.last = last
 
+    def __repr__(self) -> str:
+        return f"first: {self.first}, last: {self.last}"
+
 
 class AtomInfo:
     idx_within_same_atom: int
@@ -70,7 +73,8 @@ class AtomInfo:
         self.last_func_num = last_func_num
 
     def __repr__(self) -> str:
-        return f"idx_within_same_atom: {self.idx_within_same_atom}, mul: {self.mul}, last_func_num: {self.last_func_num}, func_idx_per_sym.first: {self.func_idx_per_sym.first}, func_idx_per_sym.last: {self.func_idx_per_sym.last}, func_idx_all_sym.first: {self.func_idx_all_sym.first}, func_idx_all_sym.last: {self.func_idx_all_sym.last}, functions: {self.functions}"
+        return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
+            func_idx_per_sym: {self.func_idx_per_sym}, func_idx_all_sym: {self.func_idx_all_sym}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions
@@ -89,7 +93,6 @@ class AtomInfo:
         except KeyError as e:
             msg = f"self.functions[{gto_type}] is not found in self.functions: {self.functions.keys()}"
             raise KeyError(msg) from e
-
 
     def get_remaining_functions(self) -> "ODict[str, int]":
         return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
