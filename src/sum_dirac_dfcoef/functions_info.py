@@ -259,10 +259,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             label = symmetry + func.atom
             prev_atom_fn_idx_dirac21 = fn_summary.dirac21.get_current_func_idx(symmetry)
             prev_atom_fn_idx_dirac19 = fn_summary.dirac19.cur_func_idx
-            fn_idx_per_sym = FuncIndices(first=prev_atom_fn_idx_dirac21 + 1, last=prev_atom_fn_idx_dirac21 + func.num_functions)
-            fn_idx_all_sym = FuncIndices(first=prev_atom_fn_idx_dirac19 + 1, last=prev_atom_fn_idx_dirac19 + func.num_functions)
+            fn_idx_dirac21 = FuncIndices(first=prev_atom_fn_idx_dirac21 + 1, last=prev_atom_fn_idx_dirac21 + func.num_functions)
+            fn_idx_dirac19 = FuncIndices(first=prev_atom_fn_idx_dirac19 + 1, last=prev_atom_fn_idx_dirac19 + func.num_functions)
             functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
-                func.idx_within_same_atom, label, func.multiplicity, fn_idx_per_sym, fn_idx_all_sym
+                func.idx_within_same_atom, label, func.multiplicity, fn_idx_dirac21, fn_idx_dirac19
             )
         functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
 
