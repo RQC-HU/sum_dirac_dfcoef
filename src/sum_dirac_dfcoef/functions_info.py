@@ -132,10 +132,6 @@ class FuncNumSummary:
     def __repr__(self):
         return f"dirac19: {self.dirac19}, dirac21: {self.dirac21}"
 
-    def add_num_functions(self, symmetry: str, num_functions: int) -> None:
-        self.dirac19.add_num_functions(num_functions)
-        self.dirac21.add_num_functions(symmetry, num_functions)
-
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def is_start_symmetry_orbitals_section(words: List[str]) -> bool:
@@ -246,6 +242,27 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         else:
             orb_summary.all_sym = indices
 
+    def add_function(func: Function) -> None:
+        # Create an empty dictionary if the key does not exist
+        functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
+        # Add function information
+        if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
+            label = symmetry + func.atom
+            prev_idx_per_sym = fn_summary.dirac21.get_current_fn_idx(symmetry)
+            prev_idx_all_sym = fn_summary.dirac19.cur_func_idx
+            fn_idx_per_sym = FuncIndices(first=prev_idx_per_sym + 1, last=prev_idx_per_sym + func.num_functions)
+            fn_idx_all_sym = FuncIndices(first=prev_idx_all_sym + 1, last=prev_idx_all_sym + func.num_functions)
+            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
+                func.idx_within_same_atom, label, func.multiplicity, fn_idx_per_sym, fn_idx_all_sym
+            )
+        functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
+
+    def update_last_indices(func: Function) -> None:
+        fn_summary.dirac19.add_num_functions(func.num_functions)
+        fn_summary.dirac21.add_num_functions(symmetry, func.num_functions)
+        functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = fn_summary.dirac19.cur_func_idx
+        functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = fn_summary.dirac21.get_current_fn_idx(symmetry)
+
     def check_symmetry_orbitals_summary() -> None:
         if len(orb_summary.all_sym) == 0:
             msg = "error: The number of symmetry orbitals is not found."
@@ -288,23 +305,9 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
                 fn_summary.dirac19.set_indices(start, last)
         elif "functions" in line_str:
             func = read_func_info(words, line_str, component_func, symmetry)
-            # Create an empty dictionary if the key does not exist
-            functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
-            # Add function information
-            if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
-                label = symmetry + func.atom
-                prev_idx_per_sym = fn_summary.dirac21.get_current_fn_idx(symmetry)
-                prev_idx_all_sym = fn_summary.dirac19.cur_func_idx
-                fn_idx_per_sym = FuncIndices(first=prev_idx_per_sym + 1, last=prev_idx_per_sym + func.num_functions)
-                fn_idx_all_sym = FuncIndices(first=prev_idx_all_sym + 1, last=prev_idx_all_sym + func.num_functions)
-                functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
-                    func.idx_within_same_atom, label, func.multiplicity, fn_idx_per_sym, fn_idx_all_sym
-                )
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].add_function(func.gto_type, func.num_functions)
+            add_function(func)
+            update_last_indices(func)
 
-            fn_summary.add_num_functions(symmetry, func.num_functions)
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_all_sym.last = fn_summary.dirac19.cur_func_idx
-            functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom].func_idx_per_sym.last = fn_summary.dirac21.get_current_fn_idx(symmetry)
         elif all(char in "* \r\n" for char in line_str) and len(re.findall("[*]", line_str)) > 0:
             # all characters in line_str are * or space or line break and at least one * is included
             break  # Stop reading symmetry orbitals
