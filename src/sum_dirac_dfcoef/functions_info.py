@@ -62,7 +62,6 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     #                         "s": 3,
     #                         "p": 3,
     #                     },
-    #                     last_func_num: 6
     #                 }
     #            },
     #            "3": {
@@ -72,7 +71,6 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     #                         "s": 3,
     #                         "p": 3,
     #                     },
-    #                     last_func_num: 12
     #                 },...
     #             }
     #         }
@@ -251,11 +249,10 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
                 label = symmetry + func.atom
                 prev_num_per_sym = last_func_num.get(symmetry)
-                ln = last_func_num.get(symmetry)
                 fn_idx_per_sym = FuncIndices(first=prev_num_per_sym + 1, last=prev_num_per_sym + func.num_functions)
                 fn_idx_all_sym = FuncIndices(first=cur_orb_idx + 1, last=cur_orb_idx + func.num_functions)
                 functions_info[component_func][symmetry][func.atom][func.idx_within_same_atom] = AtomInfo(
-                    func.idx_within_same_atom, label, func.multiplicity, ln, fn_idx_per_sym, fn_idx_all_sym
+                    func.idx_within_same_atom, label, func.multiplicity, fn_idx_per_sym, fn_idx_all_sym
                 )
             last_func_num.add(symmetry, func.num_functions)
             cur_orb_idx += func.num_functions

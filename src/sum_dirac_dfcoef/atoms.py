@@ -26,14 +26,12 @@ class AtomInfo:
     functions: ODict[str, int]
     func_idx_per_sym: FuncIndices  # For DIRAC < 21
     func_idx_all_sym: FuncIndices  # For DIRAC >= 21
-    last_func_num: int
 
     def __init__(
         self,
         idx_within_same_atom: int = 0,
         label: str = "",
         multiplicity: int = 0,
-        last_func_num: int = 0,
         func_idx_per_sym: FuncIndices = None,
         func_idx_all_sym: FuncIndices = None,
     ) -> None:
@@ -43,7 +41,6 @@ class AtomInfo:
         self.functions = OrderedDict()
         self.func_idx_per_sym = func_idx_per_sym if func_idx_per_sym is not None else FuncIndices()
         self.func_idx_all_sym = func_idx_all_sym if func_idx_all_sym is not None else FuncIndices()
-        self.last_func_num = last_func_num
 
     def __repr__(self) -> str:
         return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
