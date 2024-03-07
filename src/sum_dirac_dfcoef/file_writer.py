@@ -48,7 +48,7 @@ class OutputFileWriter:
                 for c in mo.coef_list:
                     for idx in range(c.multiplication):
                         percentage = c.coefficient / mo.norm_const_sum * 100
-                        atomic_symmetry_label = f"{c.function_label}({c.start_idx + idx})" if c.need_identifier else c.function_label
+                        atomic_symmetry_label = f"{c.function_label}({c.idx_within_same_atom + idx})" if c.need_identifier else c.function_label
                         output_str: str
                         if args.compress:
                             output_str = f" {atomic_symmetry_label} {percentage:.{args.decimal}f}"

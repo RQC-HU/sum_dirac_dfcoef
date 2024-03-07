@@ -7,20 +7,44 @@ from pydantic import BaseModel, validator
 from sum_dirac_dfcoef.subshell import subshell_order
 
 
+class FuncIndices:
+    first: int
+    last: int
+
+    def __init__(self, first: int = 0, last: int = 0) -> None:
+        self.first = first
+        self.last = last
+
+    def __repr__(self) -> str:
+        return f"first: {self.first}, last: {self.last}"
+
+
 class AtomInfo:
-    start_idx: int
+    idx_within_same_atom: int
     label: str
     mul: int
     functions: ODict[str, int]
+    func_idx_dirac21: FuncIndices
+    func_idx_dirac19: FuncIndices  # For DIRAC < 21
 
-    def __init__(self, start_idx: int = 0, label: str = "", multiplicity: int = 0) -> None:
-        self.start_idx = start_idx
+    def __init__(
+        self,
+        idx_within_same_atom: int = 0,
+        label: str = "",
+        multiplicity: int = 0,
+        func_idx_dirac21: FuncIndices = None,
+        func_idx_dirac19: FuncIndices = None,
+    ) -> None:
+        self.idx_within_same_atom = idx_within_same_atom
         self.label = label
         self.mul = multiplicity
         self.functions = OrderedDict()
+        self.func_idx_dirac21 = func_idx_dirac21 if func_idx_dirac21 is not None else FuncIndices()
+        self.func_idx_dirac19 = func_idx_dirac19 if func_idx_dirac19 is not None else FuncIndices()
 
     def __repr__(self) -> str:
-        return f"start_idx: {self.start_idx}, mul: {self.mul}, functions: {self.functions}"
+        return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
+func_idx_dirac21: {self.func_idx_dirac21}, func_idx_dirac19: {self.func_idx_dirac19}, functions: {self.functions}"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions
@@ -34,9 +58,6 @@ class AtomInfo:
         except KeyError as e:
             msg = f"self.functions[{gto_type}] is not found in self.functions: {self.functions.keys()}"
             raise KeyError(msg) from e
-
-    def count_remaining_functions(self) -> int:
-        return sum(self.functions.values())
 
     def get_remaining_functions(self) -> "ODict[str, int]":
         return OrderedDict({k: v for k, v in self.functions.items() if v > 0})
@@ -71,13 +92,13 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
 class AtomicOrbitals(BaseModel, validate_assignment=True):
     prev_ao: AtomicOrbital = AtomicOrbital()
     current_ao: AtomicOrbital = AtomicOrbital()
-    start_idx: int = 1
+    idx_within_same_atom: int = 1
     function_types: Set[str] = set()
 
     def reset(self):
         self.prev_ao.reset()
         self.current_ao.reset()
-        self.start_idx = 1
+        self.idx_within_same_atom = 1
         self.function_types.clear()
 
 

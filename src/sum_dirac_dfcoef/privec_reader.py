@@ -31,6 +31,7 @@ class PrivecProcessor:
         self.dirac_output = dirac_output
         self.stage = STAGE.INIT
         self.is_electronic = False
+        self.is_less_than_dirac_21 = False
         self.eigenvalues = eigenvalues
         self.mo_sym_type = ""
         self.functions_info = functions_info
@@ -179,36 +180,57 @@ class PrivecProcessor:
         self.data_mo.sym_type = self.mo_sym_type
         self.data_mo.mo_info = mo_info
         self.used_atom_info.clear()  # reset used_atom_info because we need to delete used_atom_info of the previous MO
+        self.current_atom_info = AtomInfo()  # reset current_atom_info because self.current_atom_info.count_remaining_functions() may be larger than 0
 
     def add_coefficient(self, line_str: str) -> None:
+        def get_func_no() -> int:
+            try:
+                num_functions = int(line_str[:10])
+            except ValueError as e:
+                msg = f"num_functions must be integer, but got {line_str[:10]}"
+                raise ValueError(msg) from e
+            return num_functions
+
+        def is_dirac_version_less_than_21():
+            if self.is_less_than_dirac_21:
+                return True
+            for atom_info in self.functions_info[component_func][symmetry_label][atom_label].values():
+                if atom_info.func_idx_dirac21.first <= num_functions <= atom_info.func_idx_dirac21.last:
+                    # If the num_functions is include in the range of the current atom_info indices, it means that the current atom is DIRAC 21 or later.
+                    return False
+            return True
+
+        def need_to_update_current_atom_info():
+            first = self.current_atom_info.func_idx_dirac19.first if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_dirac21.first
+            last = self.current_atom_info.func_idx_dirac19.last if self.is_less_than_dirac_21 else self.current_atom_info.func_idx_dirac21.last
+            if first <= num_functions <= last:
+                return False
+            return True
+
+        num_functions = get_func_no()
         component_func = "large" if line_str[10] == "L" else ("small" if line_str[10] == "S" else "")  # CLS
         symmetry_label = line_str[12:15].strip()  # REP (e.g. "Ag "), symmetry_label="Ag"
         atom_label = line_str[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
         gto_type = line_str[18:22].strip()  # GTOTYP (e.g. "s   "), gto_type="s"
         label = symmetry_label + atom_label
 
-        if self.current_atom_info.count_remaining_functions() == 0 or label != self.current_atom_info.label:
-            # First, we need to read information about the current atom.
-            if label not in self.used_atom_info:
-                # It is the first time to read information about the current atom.
-                cur_atom_start_idx = 1
-            else:
-                # It is not the first time to read information about the current atom.
-                # So we need to read information about the previous atom from used_atom_info.
-                # current start_idx = previous start_idx + previous mul
-                cur_atom_start_idx = self.used_atom_info[label].start_idx + self.used_atom_info[label].mul
-            # Validate start_idx
-            if cur_atom_start_idx not in self.functions_info[component_func][symmetry_label][atom_label]:
-                msg = f"start_idx={cur_atom_start_idx} is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}]"
+        if need_to_update_current_atom_info():
+            self.is_less_than_dirac_21 = is_dirac_version_less_than_21()
+            found_next_atom_info = False
+            for atom_info in self.functions_info[component_func][symmetry_label][atom_label].values():
+                start = atom_info.func_idx_dirac19.first if self.is_less_than_dirac_21 else atom_info.func_idx_dirac21.first
+                end = atom_info.func_idx_dirac19.last if self.is_less_than_dirac_21 else atom_info.func_idx_dirac21.last
+                if start <= num_functions <= end:
+                    found_next_atom_info = True
+                    self.current_atom_info = fast_deepcopy_pickle(atom_info)
+                    self.used_atom_info[label] = atom_info
+            if not found_next_atom_info:
+                msg = f"The corresponding atom_info is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}],\
+                    list[atom_info] = {list(self.functions_info[component_func][symmetry_label][atom_label].values())}"
                 raise Exception(msg)
-            # We can get information about the current atom from functions_info with start_idx.
-            atom_info: AtomInfo = fast_deepcopy_pickle(self.functions_info[component_func][symmetry_label][atom_label][cur_atom_start_idx])
-            self.current_atom_info = atom_info
-            # Update used_atom_info with current_atom_info
-            self.used_atom_info[label] = atom_info
 
         self.current_atom_info.decrement_function(gto_type)
-        self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.start_idx))
+        self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.idx_within_same_atom))
 
     def add_current_mo_data_to_data_all_mo(self) -> None:
         self.data_mo.fileter_coefficients_by_threshold()
@@ -242,7 +264,7 @@ class PrivecProcessor:
                     if is_found:
                         self.eigenvalues.energies_used[sym_type_key][eigenvalue_no] = True
 
-        num_processes = args.parallel
+        num_processes: int = args.parallel
         if num_processes > 1:
             # Multi-process version
             with concurrent.futures.ProcessPoolExecutor() as executor:

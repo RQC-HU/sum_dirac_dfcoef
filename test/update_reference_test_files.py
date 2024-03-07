@@ -15,6 +15,9 @@ def main():
     references_dir = this_file_dir / "references"
     result_list = list(results_dir.glob("result.*.out"))
     for result in result_list:
+        # if result includes "multi-process", skip it
+        if "multi-process" in str(result):
+            continue
         # replace only the first occurrence of "result" with "reference"
         ref_name = result.name.replace("result", "ref", 1)
         ref_path = references_dir / ref_name
