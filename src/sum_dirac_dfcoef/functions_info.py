@@ -140,6 +140,15 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             return True
         return False
 
+    def get_component_func(line_str: str) -> str:
+        if "Large" in line_str:
+            return "large"
+        elif "Small" in line_str:
+            return "small"
+        else:
+            msg = f"error: Unknown/Unsupported component function: {line_str}"
+            raise ValueError(msg)
+
     def get_symmetry(words: List[str]) -> str:
         symmetry = words[1]  # e.g. "Ag"
         bra_idx = symmetry.find("(")
@@ -272,7 +281,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             raise ValueError(msg)
 
     start_symmetry_orbitals_section = False
-    component_func = ""  # "large" or "small"
+    component_func = "large"  # "large" or "small"
     symmetry = ""
     idx_symmetry = -1
     functions_info = FunctionsInfo()
@@ -288,7 +297,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
             update_symmetry_orbitals_summary(line_str)
         elif "component functions" in line_str:
             check_symmetry_orbitals_summary()
-            component_func = "large" if "Large" in line_str else ("small" if "Small" in line_str else "")
+            component_func = get_component_func(line_str)
             idx_symmetry = -1
         elif "Symmetry" in line_str:
             fn_summary.dirac19.check_prev_sym_idx()
