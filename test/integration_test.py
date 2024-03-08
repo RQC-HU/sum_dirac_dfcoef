@@ -151,8 +151,10 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     "input_filename, options, expected_error_message",
     # fmt: off
     [
-        ("H2O.invalid.eigpri.out"  , "-g -d 15", "Your .EIGPRI option in your DIRAC input file is invalid!"),
-        ("H2.noscf_H2.out"         , "-g -d 15", "Cannot find SCF calculation settings"),
+        ("H2O.invalid.eigpri.out"  , "-g -d 15"    , "Your .EIGPRI option in your DIRAC input file is invalid!"),
+        ("H2.noscf_H2.out"         , "-g -d 15"    , "Cannot find SCF calculation settings"),
+        ("Ar_Ar.out"               , "-g --no-scf" , "-g/--for-generator and --no-scf options cannot be set at the same time"),
+        ("Ar_Ar.out"               , "-g -p"       , "-g/--for-generator and -p/--positronic-write options cannot be set at the same time"),
     ],
     # fmt: on
 )
