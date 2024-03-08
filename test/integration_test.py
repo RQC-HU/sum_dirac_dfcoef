@@ -168,6 +168,52 @@ def test_invalid_option_raise_error(input_filename: str, options: str, expected_
     assert expected_error_message in p.stderr, f"Failed: Expected error message not found in output:\nexptected: {expected_error_message}\nstderr: {p.stderr}"
 
 
+@pytest.mark.parametrize(
+    "ref_filename, result_filename, input_filename, options, expected_warning_message",
+    # fmt: off
+    [
+        ("ref.Ar.no_vector_print_data.out", "result.Ar.no_vector_print_data.out", "no_vector_print_data_Ar_Ar.out", "-d 15", "WARNING: The next title is detected before the end of reading coefficients."),  # noqa: E501
+    ],
+    # fmt: on
+)
+def test_no_vector_print_data(ref_filename: str, result_filename: str, input_filename: str, options: str, expected_warning_message: str):
+    env = Env(input_filename, options, ref_filename, result_filename)
+    os.chdir(env.test_path)
+    print(f"{env.test_path} test start...\ncommand: {env.command}")
+    process = subprocess.run(env.command.split(), encoding="utf-8", check=True, stdout=subprocess.PIPE)
+
+    # Check the warning message
+    assert expected_warning_message in process.stdout, f"Failed: Expected warning message not found in output:\nexptected: {expected_warning_message}\nstdout: {process.stdout}"
+
+    # Check the output file
+    ref_list: List[List[str]] = get_output_list(env.ref_filepath)
+    result_list: List[List[str]] = get_output_list(env.result_filepath)
+    # File should have the same number of lines
+    assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
+    threshold: float = 1e-10
+    for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
+        # 1st and 2nd lines have header information about eigenvalues
+        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
+        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
+        if line_idx < 2:
+            assert ref == out
+            continue
+        if len(ref) < 2 or len(out) < 2:
+            continue
+        # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
+        # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+        assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
+        assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
+        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+        for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
+            if idx % 2 == 0:
+                assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
+            else:
+                assert float(ref_val) == pytest.approx(
+                    float(out_val), abs=threshold
+                ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
+
+
 def test_version_option():
     command = "sum_dirac_dfcoef -v"
     p = subprocess.run(command.split(), encoding="utf-8", check=True, stdout=subprocess.PIPE)

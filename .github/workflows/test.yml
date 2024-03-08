@@ -3,6 +3,7 @@ name: sum_dirac_dfcoef_test
 on:
   push:
     paths:
+      - "test/data/**"
       - "reference.**.out"
       - "**.py"
       - "sum_dirac_dfcoef"

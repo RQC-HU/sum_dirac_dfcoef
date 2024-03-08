@@ -12,12 +12,13 @@ from sum_dirac_dfcoef.utils import debug_print, fast_deepcopy_pickle, space_sepa
 
 
 class STAGE(Enum):
-    #                                             SKIP_READING_COEF
-    #                                                    ↑↓
-    # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
-    #                                             ↓               ↑
-    #                                      WAIT_FIRST_COEF -> READING_COEF
+    #                                                                             SKIP_READING_COEF
+    #                                                                                    ↑↓
+    # STAGE TRANSITION: INIT -> SKIP_AFTER_VECTOR_PRINT_LINE -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
+    #                                                                             ↓               ↑
+    #                                                                      WAIT_FIRST_COEF -> READING_COEF
     INIT = auto()
+    SKIP_AFTER_VECTOR_PRINT_LINE = auto()
     VECTOR_PRINT = auto()
     WAIT_END_READING_COEF = auto()
     SKIP_READING_COEF = auto()
@@ -54,18 +55,26 @@ class PrivecProcessor:
                 if len(line_str.strip()) == 0:
                     self.transition_stage(STAGE.WAIT_END_READING_COEF)
                 continue
+            elif self.stage == STAGE.SKIP_AFTER_VECTOR_PRINT_LINE:
+                self.transition_stage(STAGE.VECTOR_PRINT)
+                continue
 
             words = space_separated_parsing(line_str)
 
             if self.need_to_skip_this_line(words):
-                if self.stage == STAGE.READING_COEF:
+                if self.stage == STAGE.VECTOR_PRINT and self.detect_next_titler(line_str):
+                    msg = "WARNING: The next title is detected before the end of reading coefficients.\n\
+In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC option to the input file of DIRAC."
+                    print(msg)
+                    self.transition_stage(STAGE.END)
+                elif self.stage == STAGE.READING_COEF:
                     if self.need_to_create_results_for_current_mo(words):
                         self.add_current_mo_data_to_data_all_mo()
                         self.transition_stage(STAGE.WAIT_END_READING_COEF)
 
             elif self.stage == STAGE.INIT:
                 if self.check_start_vector_print(words):
-                    self.transition_stage(STAGE.VECTOR_PRINT)
+                    self.transition_stage(STAGE.SKIP_AFTER_VECTOR_PRINT_LINE)
 
             elif self.stage == STAGE.VECTOR_PRINT:
                 if self.need_to_get_mo_sym_type(words):
@@ -111,6 +120,13 @@ class PrivecProcessor:
 
     def need_to_create_results_for_current_mo(self, words: List[str]) -> bool:
         return True if self.stage == STAGE.READING_COEF and len(words) <= 1 else False
+
+    def detect_next_titler(self, line_str: str) -> bool:
+        """Detect all characters are asterisk or space or line break."""
+        stripped_line = line_str.strip().strip("\r\n")
+        if len(stripped_line) == 0:
+            return False
+        return all(c == "*" for c in stripped_line)
 
     def need_to_get_mo_sym_type(self, words: List[str]) -> bool:
         return True if len(words) == 3 and words[0] == "Fermion" and words[1] == "ircop" else False
@@ -224,6 +240,7 @@ class PrivecProcessor:
                     found_next_atom_info = True
                     self.current_atom_info = fast_deepcopy_pickle(atom_info)
                     self.used_atom_info[label] = atom_info
+                    break
             if not found_next_atom_info:
                 msg = f"The corresponding atom_info is not found in functions_info[{component_func}][{symmetry_label}][{atom_label}],\
                     list[atom_info] = {list(self.functions_info[component_func][symmetry_label][atom_label].values())}"
