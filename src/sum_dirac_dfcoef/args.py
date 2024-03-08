@@ -101,6 +101,16 @@ This options is useful when you want to use the result in a spreadsheet like Mic
 
     args.parallel = os.cpu_count() if args.parallel == -1 else args.parallel
 
+    # -g and -p, --no-scf options are exclusive
+    if args.for_generator and args.positronic_write:
+        msg = "-g/--for-generator and -p/--positronic-write options cannot be set at the same time \
+because dcaspt2_input_generator needs data of electronic orbitals."
+        parser.error(msg)
+    if args.for_generator and args.no_scf:
+        msg = "-g/--for-generator and --no-scf options cannot be set at the same time \
+because dcaspt2_input_generator needs eigenvalues information after SCF calculation."
+        parser.error(msg)
+
     if args.for_generator:
         args.no_scf = False
         args.compress = True
