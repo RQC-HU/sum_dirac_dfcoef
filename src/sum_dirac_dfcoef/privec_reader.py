@@ -12,12 +12,13 @@ from sum_dirac_dfcoef.utils import debug_print, fast_deepcopy_pickle, space_sepa
 
 
 class STAGE(Enum):
-    #                                             SKIP_READING_COEF
-    #                                                    ↑↓
-    # STAGE TRANSITION: INIT -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
-    #                                             ↓               ↑
-    #                                      WAIT_FIRST_COEF -> READING_COEF
+    #                                                                             SKIP_READING_COEF
+    #                                                                                    ↑↓
+    # STAGE TRANSITION: INIT -> SKIP_AFTER_VECTOR_PRINT_LINE -> VECTOR_PRINT -> WAIT_END_READING_COEF -> END
+    #                                                                             ↓               ↑
+    #                                                                      WAIT_FIRST_COEF -> READING_COEF
     INIT = auto()
+    SKIP_AFTER_VECTOR_PRINT_LINE = auto()
     VECTOR_PRINT = auto()
     WAIT_END_READING_COEF = auto()
     SKIP_READING_COEF = auto()
@@ -54,6 +55,9 @@ class PrivecProcessor:
                 if len(line_str.strip()) == 0:
                     self.transition_stage(STAGE.WAIT_END_READING_COEF)
                 continue
+            elif self.stage == STAGE.SKIP_AFTER_VECTOR_PRINT_LINE:
+                self.transition_stage(STAGE.VECTOR_PRINT)
+                continue
 
             words = space_separated_parsing(line_str)
 
@@ -70,7 +74,7 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
 
             elif self.stage == STAGE.INIT:
                 if self.check_start_vector_print(words):
-                    self.transition_stage(STAGE.VECTOR_PRINT)
+                    self.transition_stage(STAGE.SKIP_AFTER_VECTOR_PRINT_LINE)
 
             elif self.stage == STAGE.VECTOR_PRINT:
                 if self.need_to_get_mo_sym_type(words):
@@ -120,7 +124,6 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
     def detect_next_titler(self, line_str: str) -> bool:
         """Detect all characters are asterisk or space or line break."""
         stripped_line = line_str.strip().strip("\r\n")
-        print(stripped_line)
         if len(stripped_line) == 0:
             return False
         return all(c == "*" for c in stripped_line)
