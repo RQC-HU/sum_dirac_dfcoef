@@ -306,8 +306,8 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
         self.is_electronic = True
         for sym_type_key, val in self.eigenvalues.energies_used.items():
             self.mo_sym_type = sym_type_key
-            for eigenvalue_no, is_found in val.items():
-                if not is_found:
+            for eigenvalue_no, used in val.items():
+                if not used:
                     self.data_mo.reset()
                     self.data_mo.eigenvalue_no = eigenvalue_no
                     self.data_mo.mo_info = self.get_mo_info(eigenvalue_no)
