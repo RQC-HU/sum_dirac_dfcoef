@@ -5,7 +5,7 @@ from io import TextIOWrapper
 from typing import List, Tuple
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao, is_different_atom
+from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
@@ -224,7 +224,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         ao.current_ao.update(atom, subshell, gto_type)
 
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
-        if is_different_atom(ao, function_label):
+        if ao.is_different_atom(function_label):
             # Different atom
             ao.reset()
             ao.idx_within_same_atom = get_idx_within_the_same_atom()

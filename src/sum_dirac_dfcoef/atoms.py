@@ -102,35 +102,35 @@ class AtomicOrbitals(BaseModel, validate_assignment=True):
         self.function_types.clear()
 
 
-def is_different_atom(ao: AtomicOrbitals, function_label: str) -> bool:
-    def is_reverse_subshell() -> bool:
-        prev_subshell_idx = subshell_order.subshell_order.index(ao.prev_ao.subshell)
-        current_subshell_idx = subshell_order.subshell_order.index(ao.current_ao.subshell)
-        if prev_subshell_idx > current_subshell_idx:
-            return True
-        elif prev_subshell_idx < current_subshell_idx:
-            return False
-        else:  # Same subshell
-            subshell_idx = subshell_order.subshell_order.index(ao.prev_ao.subshell)
-            prev_gto_idx = subshell_order.gto_label_order[subshell_idx].index(ao.prev_ao.gto_type)
-            current_gto_idx = subshell_order.gto_label_order[subshell_idx].index(ao.current_ao.gto_type)
-            if prev_gto_idx > current_gto_idx:  # reverse subshell. e.g. ao.prev_ato.gto_type = "pz", ao.current_ao.gto_type = "px"
+    def is_different_atom(self, function_label: str) -> bool:
+        def is_reverse_subshell() -> bool:
+            prev_subshell_idx = subshell_order.subshell_order.index(self.prev_ao.subshell)
+            current_subshell_idx = subshell_order.subshell_order.index(self.current_ao.subshell)
+            if prev_subshell_idx > current_subshell_idx:
                 return True
-            else:
+            elif prev_subshell_idx < current_subshell_idx:
                 return False
+            else:  # Same subshell
+                subshell_idx = subshell_order.subshell_order.index(self.prev_ao.subshell)
+                prev_gto_idx = subshell_order.gto_label_order[subshell_idx].index(self.prev_ao.gto_type)
+                current_gto_idx = subshell_order.gto_label_order[subshell_idx].index(self.current_ao.gto_type)
+                if prev_gto_idx > current_gto_idx:  # reverse subshell. e.g. self.prev_ato.gto_type = "pz", self.current_ao.gto_type = "px"
+                    return True
+                else:
+                    return False
 
-    if ao.prev_ao.atom != ao.current_ao.atom:
-        return True
-    elif function_label in ao.function_types:
-        # They have the same element label but different atoms.
-        # Because the function_label of an atom is combined in one line,
-        # it is a different atom if the same function_label appears.
-        return True
-    elif is_reverse_subshell():
-        # e.g. "C  p" -> "C  s"
-        # Different atom
-        return True
-    return False  # Same atom
+        if self.prev_ao.atom != self.current_ao.atom:
+            return True
+        elif function_label in self.function_types:
+            # They have the same element label but different atoms.
+            # Because the function_label of an atom is combined in one line,
+            # it is a different atom if the same function_label appears.
+            return True
+        elif is_reverse_subshell():
+            # e.g. "C  p" -> "C  s"
+            # Different atom
+            return True
+        return False  # Same atom
 
 
 ao = AtomicOrbitals()
