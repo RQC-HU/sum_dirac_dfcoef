@@ -156,20 +156,20 @@ class HeaderInfo:
             for eigenvalue_no, is_used in within_moltra.items():
                 cur_mo_num = eigenvalue_no
                 if is_used:
-                    if left:
+                    if left:  # Add the first number of the series
                         if energy_str == "":
                             energy_str += f"{cur_mo_num}"
-                        else:
+                        else:  # Add the comma if the string is not empty to separate the series
                             energy_str += f",{cur_mo_num}"
                         start_mo_num = cur_mo_num
                         left = False
                         ser_end = True
-                elif ser_end:
+                elif ser_end:  # Add the last number of the series
                     if cur_mo_num > start_mo_num + 1:
                         energy_str += f"..{cur_mo_num - 1}"
                     left = True
                     ser_end = False
-            if ser_end:
+            if ser_end:  # Add the last number of the series if the series is not ended after the loop
                 energy_str += f"..{cur_mo_num}"
             return energy_str
 
