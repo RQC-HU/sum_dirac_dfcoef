@@ -70,8 +70,8 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
 
     @validator("subshell")
     def validate_subshell(cls, v: str) -> str:  # noqa: N805 (pydantic method)
-        if v not in subshell_order.subshell_order:
-            msg = f"subshell must be one of '{subshell_order.subshell_order}', but got '{v}'"
+        if v not in subshell_order.orbital_labels:
+            msg = f"subshell must be one of '{subshell_order.orbital_labels}', but got '{v}'"
             raise ValueError(msg)
         if len(v) != 1:
             msg = f"subshell must be one character, but got '{v}'"
@@ -104,14 +104,14 @@ class AtomicOrbitals(BaseModel, validate_assignment=True):
 
     def is_different_atom(self, function_label: str) -> bool:
         def is_reverse_subshell() -> bool:
-            prev_subshell_idx = subshell_order.subshell_order.index(self.prev_ao.subshell)
-            current_subshell_idx = subshell_order.subshell_order.index(self.current_ao.subshell)
+            prev_subshell_idx = subshell_order.orbital_labels.index(self.prev_ao.subshell)
+            current_subshell_idx = subshell_order.orbital_labels.index(self.current_ao.subshell)
             if prev_subshell_idx > current_subshell_idx:
                 return True
             elif prev_subshell_idx < current_subshell_idx:
                 return False
             else:  # Same subshell
-                subshell_idx = subshell_order.subshell_order.index(self.prev_ao.subshell)
+                subshell_idx = subshell_order.orbital_labels.index(self.prev_ao.subshell)
                 prev_gto_idx = subshell_order.gto_label_order[subshell_idx].index(self.prev_ao.gto_type)
                 current_gto_idx = subshell_order.gto_label_order[subshell_idx].index(self.current_ao.gto_type)
                 if prev_gto_idx > current_gto_idx:  # reverse subshell. e.g. self.prev_ato.gto_type = "pz", self.current_ao.gto_type = "px"
