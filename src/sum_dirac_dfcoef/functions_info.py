@@ -19,9 +19,6 @@ class Function:
         self.num_functions = num_functions  # e.g. 3
         self.multiplicity = multiplicity  # e.g. 2
 
-    def get_identifier(self) -> str:
-        return f"{self.component_func} {self.symmetry} {self.atom} {self.gto_type}"
-
 
 class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
     # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]
