@@ -16,6 +16,7 @@ class Coefficient(BaseModel, validate_assignment=True):
         super().__repr__()
         return f"Coefficient(vector_num: {self.vector_num}, \
 function_label: {self.function_label}, \
+need_identifier: {self.need_identifier}, \
 coefficient: {self.coefficient}, \
 idx_within_same_atom: {self.idx_within_same_atom}, \
 multiplication: {self.multiplication})"
