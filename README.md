@@ -2,7 +2,7 @@
 
 [![sum_dirac_dfcoef_test](https://github.com/RQC-HU/sum_dirac_dfcoef/actions/workflows/test.yml/badge.svg)](https://github.com/RQC-HU/sum_dirac_dfcoef/actions/workflows/test.yml)
 
-This program provides a utility to summarize the contribution of each atomic orbital per kramers pair from the [DIRAC](http://diracprogram.org/doku.php) output file that the [*PRIVEC and .VECPRI options](http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html) are used.
+This program provides a utility to summarize the contribution of each atomic orbital per kramers pair from the [DIRAC](http://diracprogram.org/doku.php) output file that the [.ANALYZE option](https://diracprogram.org/doc/master/manual/dirac.html#analyze) and [*PRIVEC and .VECPRI options in **ANALYZE section](http://www.diracprogram.org/doc/release-22/manual/analyze/privec.html) are used.
 
 ## Requirements
 
