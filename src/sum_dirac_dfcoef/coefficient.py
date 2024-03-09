@@ -5,6 +5,19 @@ from sum_dirac_dfcoef.utils import is_float, space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):
+    """ This class is used to store the specific coefficient information.
+
+    e.g.   1  L Ag U  s      -0.0012445973  0.0000000000  0.0000000000  0.0000000000
+    -> Coefficient(vector_num=1, function_label="AgUs", need_identifier=False, coefficient=1.54902243916729E-6, idx_within_same_atom=1, multiplication=1)
+
+    Attributes:
+        vector_num (int): Serial number of the vector
+        function_label (str): Information about the vector to identify the vector
+        need_identifier (bool): Whether the idx_within_same_atom is needed to print to the output file or not.
+        coefficient (float): Coefficient value
+        idx_within_same_atom (int): Index of the order of atoms in the same AtomLabel
+        multiplication (int): The multiplicity of the specified atom label.
+    """
     vector_num: int
     function_label: str
     need_identifier: bool
@@ -14,16 +27,17 @@ class Coefficient(BaseModel, validate_assignment=True):
 
     def __repr__(self) -> str:
         super().__repr__()
-        return f"vector_num: {self.vector_num}, \
+        return f"Coefficient(vector_num: {self.vector_num}, \
 function_label: {self.function_label}, \
+need_identifier: {self.need_identifier}, \
 coefficient: {self.coefficient}, \
 idx_within_same_atom: {self.idx_within_same_atom}, \
-multiplication: {self.multiplication}"
+multiplication: {self.multiplication})"
 
 
 def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom: int) -> Coefficient:
     """
-    Nested functions to get coefficient
+    This function parses the line that contains the coefficient and returns the Coefficient object.
     (e.g.)
     sym_and_atom_and_orb_str = "B3gCldyz"
     symmetry_type = "B3g"

@@ -5,11 +5,13 @@ from io import TextIOWrapper
 from typing import List, Tuple
 from typing import OrderedDict as ODict
 
-from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao, is_different_atom
+from sum_dirac_dfcoef.atoms import AtomInfo, FuncIndices, ao
 from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class Function:
+    """Data class for storing the information of specific atom + gto_type functions.
+    """
     def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, idx_within_same_atom: int, num_functions: int, multiplicity: int) -> None:
         self.component_func = component_func  # "large" or "small"
         self.symmetry = symmetry  # e.g. "Ag"
@@ -19,31 +21,50 @@ class Function:
         self.num_functions = num_functions  # e.g. 3
         self.multiplicity = multiplicity  # e.g. 2
 
-    def get_identifier(self) -> str:
-        return f"{self.component_func} {self.symmetry} {self.atom} {self.gto_type}"
-
 
 class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
+    """Data class for storing all information about Function numbers and atom labels.
+    """
     # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]
     # "large": {
     #     "Ag": {
     #         "Cl": {
     #            "1": {
     #                 AtomInfo: {
+    #                     idx_within_same_atom: 1,
+    #                     label: "AgCl",
     #                     mul: 2,
     #                     functions: {
     #                         "s": 3,
     #                         "p": 3,
     #                     },
+    #                     func_idx_dirac21: {
+    #                         first: 1,
+    #                         last: 6,
+    #                     },
+    #                     func_idx_dirac19: {
+    #                         first: 1,
+    #                         last: 6,
+    #                     }
     #                 }
     #            },
     #            "3": {
     #                 AtomInfo: {
+    #                     idx_within_same_atom: 3,
+    #                     label: "AgCl",
     #                     mul: 2,
     #                     functions: {
     #                         "s": 3,
     #                         "p": 3,
     #                     },
+    #                     func_idx_dirac21: {
+    #                         first: 7,
+    #                         last: 12,
+    #                     },
+    #                     func_idx_dirac19: {
+    #                         first: 7,
+    #                         last: 12,
+    #                     }
     #                 },...
     #             }
     #         }
@@ -53,6 +74,14 @@ class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
 
 
 class SymmetryOrbitalsSummary:
+    """Class for storing the tuple of the number of orbitals for each symmetry
+
+    Attributes:
+        all_sym (Tuple[int]): Number of all orbitals for each symmetry
+        large_sym (Tuple[int]): Number of large orbitals for each symmetry
+        small_sym (Tuple[int]): Number of small orbitals for each symmetry
+    """
+
     all_sym: Tuple[int]
     large_sym: Tuple[int]
     small_sym: Tuple[int]
@@ -63,10 +92,20 @@ class SymmetryOrbitalsSummary:
         self.small_sym = ()
 
     def __repr__(self):
-        return f"all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym}"
+        return f"SymmetryOrbitalsSummary(all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym})"
 
 
 class FuncIndicesDIRAC19:
+    """Class for storing the current and last function indices for DIRAC19 or older
+
+    Raises:
+        ValueError: If the current symmetry index is not the same as the last symmetry index when reading the next symmetry functions.
+
+    Attributes:
+        cur_func_idx (int): Current function index
+        last_func_idx (int): Last function index
+    """
+
     cur_func_idx: int
     last_func_idx: int
 
@@ -75,7 +114,7 @@ class FuncIndicesDIRAC19:
         self.last_func_idx = 0
 
     def __repr__(self):
-        return f"cur_func_idx: {self.cur_func_idx}, last_func_idx: {self.last_func_idx}"
+        return f"FuncIndicesDIRAC19(cur_func_idx: {self.cur_func_idx}, last_func_idx: {self.last_func_idx})"
 
     def add_num_functions(self, num_functions: int) -> None:
         self.cur_func_idx += num_functions
@@ -92,6 +131,14 @@ class FuncIndicesDIRAC19:
 
 
 class FuncNumDIRAC21:
+    """Class for storing the number of functions with gerade, ungerade, and no inversion symmetry
+
+    Attributes:
+        gerade (int): Number of functions with gerade symmetry (e.g. "A1g")
+        ungerade (int): Number of functions with ungerade symmetry (e.g. "B2u")
+        no_inv_sym (int): Number of functions with no inversion symmetry (e.g. "E1")
+    """
+
     gerade: int  # Number of functions with gerade symmetry
     ungerade: int  # Number of functions with ungerade symmetry
     no_inv_sym: int  # Number of functions with no inversion symmetry
@@ -102,7 +149,7 @@ class FuncNumDIRAC21:
         self.no_inv_sym = 0
 
     def __repr__(self):
-        return f"gerade: {self.gerade}, ungerade: {self.ungerade}, sum_all: {self.sum_all}"
+        return f"FuncNumDIRAC21(gerade: {self.gerade}, ungerade: {self.ungerade}, no_inv_sym: {self.no_inv_sym})"
 
     def add_num_functions(self, symmetry: str, num_functions: int) -> None:
         if symmetry[-1].lower() == "g":
@@ -122,6 +169,13 @@ class FuncNumDIRAC21:
 
 
 class FuncNumSummary:
+    """Class for storing the info of the number of function for DIRAC19 and DIRAC21
+
+    Attributes:
+        dirac19 (FuncIndicesDIRAC19): The current and last function indices for DIRAC19 or older
+        dirac21 (FuncNumDIRAC21): The number of functions with gerade, ungerade, and no inversion symmetry
+    """
+
     dirac19: FuncIndicesDIRAC19
     dirac21: FuncNumDIRAC21
 
@@ -130,7 +184,7 @@ class FuncNumSummary:
         self.dirac21 = FuncNumDIRAC21()
 
     def __repr__(self):
-        return f"dirac19: {self.dirac19}, dirac21: {self.dirac21}"
+        return f"FuncNumSummary(dirac19: {self.dirac19}, dirac21: {self.dirac21})"
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
@@ -227,7 +281,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
         ao.current_ao.update(atom, subshell, gto_type)
 
         function_label = symmetry + plabel.replace(" ", "")  # symmetry + PLABEL(I,2)(6:12) (e.g.) AgCms
-        if is_different_atom(ao, function_label):
+        if ao.is_different_atom(function_label):
             # Different atom
             ao.reset()
             ao.idx_within_same_atom = get_idx_within_the_same_atom()
@@ -254,7 +308,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def add_function(func: Function) -> None:
         # Create an empty dictionary if the key does not exist
         functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
-        # Add function information
+        # Add function information if the current atom does not exist in the functions_info (new atom)
         if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
             label = symmetry + func.atom
             prev_atom_fn_idx_dirac21 = fn_summary.dirac21.get_current_func_idx(symmetry)

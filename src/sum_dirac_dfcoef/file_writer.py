@@ -8,6 +8,8 @@ from sum_dirac_dfcoef.utils import debug_print
 
 
 class OutputFileWriter:
+    """ This class has methods to write data to the output file.
+    """
     def __init__(self) -> None:
         super().__init__()
         self.output_path = self.get_output_path()

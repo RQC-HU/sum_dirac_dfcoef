@@ -15,9 +15,9 @@ class HeaderInfo:
     """Class to store header information for the sum_dirac_dfcoef module.
 
     Attributes:
-        header (str): Header for the sum_dirac_dfcoef module.
-        subheader1 (str): First subheader for the sum_dirac_dfcoef module.
-        subheader2 (str): Second subheader for the sum_dirac_dfcoef module.
+        moltra_info (MoltraInfo): Moltra information
+        eigenvalues (Eigenvalues): Eigenvalues
+        electrons (int): Number of electrons
     """
 
     def __init__(self):
@@ -147,7 +147,15 @@ class HeaderInfo:
                 within_moltra[data_all_mo.electronic[idx].eigenvalue_no] = True
             return within_moltra
 
-        def create_energy_str(within_moltra: ODict[int, bool]):
+        def create_energy_str(within_moltra: ODict[int, bool]) -> str:
+            """ Create the energy string from the input boolean dictionary
+
+            Args:
+                within_moltra (ODict[int, bool]): Stores the boolean value of whether the eigenvalue is used or not. True: used, False: not used.
+
+            Returns:
+                energy_str (str): Energy string can be used in the DIRAC input file. (e.g.) "10..180,200..300,400..500"
+            """
             energy_str = ""
             cur_mo_num = 0
             start_mo_num = cur_mo_num
@@ -156,20 +164,20 @@ class HeaderInfo:
             for eigenvalue_no, is_used in within_moltra.items():
                 cur_mo_num = eigenvalue_no
                 if is_used:
-                    if left:
+                    if left:  # Add the first number of the series
                         if energy_str == "":
                             energy_str += f"{cur_mo_num}"
-                        else:
+                        else:  # Add the comma if the string is not empty to separate the series
                             energy_str += f",{cur_mo_num}"
                         start_mo_num = cur_mo_num
                         left = False
                         ser_end = True
-                elif ser_end:
+                elif ser_end:  # Add the last number of the series
                     if cur_mo_num > start_mo_num + 1:
                         energy_str += f"..{cur_mo_num - 1}"
                     left = True
                     ser_end = False
-            if ser_end:
+            if ser_end:  # Add the last number of the series if the series is not ended after the loop
                 energy_str += f"..{cur_mo_num}"
             return energy_str
 
