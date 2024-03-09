@@ -23,7 +23,7 @@ multiplication: {self.multiplication})"
 
 def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom: int) -> Coefficient:
     """
-    Nested functions to get coefficient
+    This function parses the line that contains the coefficient and returns the Coefficient object.
     (e.g.)
     sym_and_atom_and_orb_str = "B3gCldyz"
     symmetry_type = "B3g"

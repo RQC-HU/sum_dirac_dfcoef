@@ -251,7 +251,7 @@ def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:
     def add_function(func: Function) -> None:
         # Create an empty dictionary if the key does not exist
         functions_info.setdefault(component_func, OrderedDict()).setdefault(symmetry, OrderedDict()).setdefault(func.atom, OrderedDict())
-        # Add function information
+        # Add function information if the current atom does not exist in the functions_info (new atom)
         if func.idx_within_same_atom not in functions_info[component_func][symmetry][func.atom].keys():
             label = symmetry + func.atom
             prev_atom_fn_idx_dirac21 = fn_summary.dirac21.get_current_func_idx(symmetry)
