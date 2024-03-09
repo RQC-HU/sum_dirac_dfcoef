@@ -8,6 +8,12 @@ from sum_dirac_dfcoef.subshell import subshell_order
 
 
 class FuncIndices:
+    """Class for storing the first and last function indices of the specified atom label(AtomInfo).
+
+    Attributes:
+        first (int): The first function index of the specified atom label.
+        last (int): The last function index of the specified atom label.
+    """
     first: int
     last: int
 
@@ -20,6 +26,18 @@ class FuncIndices:
 
 
 class AtomInfo:
+    """ Class for handling the information of the specified atom label.
+
+    This class is used for FunctionInfo class and PrivecProcessor class.
+
+    Attributes:
+        idx_within_same_atom (int): Index of the order of atoms in the same AtomLabel
+        label (str): The label of the specified atom label.
+        mul (int): The multiplicity of the specified atom label.
+        functions (ODict[str, int]): The number of functions of the specified atom label.
+        func_idx_dirac21 (FuncIndices): The first and last function indices of the specified atom label. (For DIRAC >= 21)
+        func_idx_dirac19 (FuncIndices): The first and last function indices of the specified atom label. (For DIRAC < 21)
+    """
     idx_within_same_atom: int
     label: str
     mul: int
@@ -64,6 +82,17 @@ func_idx_dirac21: {self.func_idx_dirac21}, func_idx_dirac19: {self.func_idx_dira
 
 
 class AtomicOrbital(BaseModel, validate_assignment=True):
+    """Class for handling the information of the atomic orbital.
+
+    Raises:
+        ValueError: Raises an error if the subshell is not in the subshell_order.
+        ValueError: Raises an error if the subshell is not one character.
+
+    Attributes:
+        atom (str): The label of the atom. (e.g. "C", "H", "He")
+        subshell (str): The label of the subshell. (e.g. "s", "p", "d", "f")
+        gto_type (str): The label of the GTO type. (e.g. "s", "px", "dxy", "fxxx")
+    """
     atom: str = ""
     subshell: str = "s"
     gto_type: str = "s"
@@ -90,6 +119,20 @@ class AtomicOrbital(BaseModel, validate_assignment=True):
 
 
 class AtomicOrbitals(BaseModel, validate_assignment=True):
+    """Class for handling the information of the atomic orbitals.
+
+    Main purpose of this class is to check if the current ao and the previous ao are the same atom.
+
+    Attributes:
+        prev_ao (AtomicOrbital): The previous atomic orbital.
+        current_ao (AtomicOrbital): The current atomic orbital.
+        idx_within_same_atom (int): The index of the order of atoms in the same AtomLabel.
+        function_types (Set[str]): The set of function types.
+
+    Methods:
+        reset: Reset the AtomicOrbitals instance.
+        is_different_atom: Check if the current ao and the previous ao are the same atom.
+    """
     prev_ao: AtomicOrbital = AtomicOrbital()
     current_ao: AtomicOrbital = AtomicOrbital()
     idx_within_same_atom: int = 1

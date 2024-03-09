@@ -50,6 +50,21 @@ class StageEIGPRI(Enum):
 #     },
 # }
 class Eigenvalues:
+    """ This class stores the eigenvalues information after SCF calculation in the DIRAC output file.
+
+    Raises:
+        ValueError: Raises error when the .EIGPRI option in the DIRAC input file is invalid. (.EIGPRI 0 1 or .EIGPRI 0 0)
+        ValueError: Raises error when occ_idx[item] is not found in omega_list.
+
+    Attributes:
+        shell_num (ODict[str, Dict[str, int]]): The number of closed, open, and virtual orbitals for each symmetry type.
+        energies (ODict[str, Dict[int, float]]): The eigenvalues for each symmetry type.
+        energies_used (ODict[str, Dict[int, bool]]): The flag to check whether a specified index eigenvalue exists in the Vector print data or not.
+                                                     Set to True if the eigenvalue is found in the Vector print data.
+                                                     (read Vector print data at PrivecProcessor.read_privec_data_wrapper() method)
+                                                     This flag is used when filling the eigenvalues info which is not found in the Vector print data.
+
+    """
     shell_num: ODict[str, Dict[str, int]]
     energies: ODict[str, Dict[int, float]]
     energies_used: ODict[str, Dict[int, bool]]

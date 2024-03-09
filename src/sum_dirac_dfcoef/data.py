@@ -5,6 +5,17 @@ from sum_dirac_dfcoef.coefficient import Coefficient
 
 
 class DataMO:
+    """ This class is used to store the specific MO coefficient information.
+
+    Attributes:
+        norm_const_sum (float): The sum of the coefficients of the MO.
+        mo_energy (float): The energy of the MO.
+        mo_info (str): The information of the MO. (e.g. "Electronic no. 1 E1g")
+        sym_type (str): The symmetry type of the MO. (e.g. "E1g")
+        eigenvalue_no (int): The eigenvalue number of the MO.
+        coef_dict (Dict[str, Coefficient]): The dictionary of the coefficients, in the order written in the DIRAC output file.
+        coef_list (List[Coefficient]): The list of the coefficients, which is sorted by the coefficient value.
+    """
     norm_const_sum: float = 0.0
     mo_energy: float = 0.0
     mo_info: str = ""
@@ -54,6 +65,14 @@ class DataMO:
 
 
 class DataAllMO:
+    """This class stores all electronic and positronic MO data.
+
+    This class holds information used for output excluding header information.
+
+    Attributes:
+        electronic (List[DataMO]): The list of the electronic MO data.
+        positronic (List[DataMO]): The list of the positronic MO data.
+    """
     electronic: List[DataMO]
     positronic: List[DataMO]
 

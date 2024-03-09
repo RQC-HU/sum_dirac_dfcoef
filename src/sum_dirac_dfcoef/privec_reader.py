@@ -28,6 +28,23 @@ class STAGE(Enum):
 
 
 class PrivecProcessor:
+    """This class has methods to read coefficients from the output file of DIRAC and store them in self.data_all_mo (final result).
+
+    Attributes:
+        dirac_output (List[str]): Output file strings of DIRAC
+        stage (STAGE): Stage of reading coefficients
+        is_electronic (bool): True if the current MO is electronic
+        is_less_than_dirac_21 (bool): True if the current version of DIRAC is less than 21.
+                                      Use this variable to determine which attribute (func_idx_dirac21/19) of AtomInfo should be used.
+        eigenvalues (Eigenvalues): Eigenvalues
+        mo_sym_type (str): Symmetry type of the current MO
+        functions_info (FunctionsInfo): FunctionsInfo (used to handle which functions are used in the current MO)
+        data_mo (DataMO): DataMO (temporary result of current reading MO)
+        data_all_mo (DataAllMO): DataAllMO (final result)
+        used_atom_info (Dict[str, AtomInfo]): Used AtomInfo
+        current_atom_info (AtomInfo): Current AtomInfo
+    """
+
     def __init__(self, dirac_output: List[str], functions_info: FunctionsInfo, eigenvalues: Eigenvalues) -> None:
         self.dirac_output = dirac_output
         self.stage = STAGE.INIT

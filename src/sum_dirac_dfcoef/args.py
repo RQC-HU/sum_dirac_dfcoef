@@ -4,6 +4,8 @@ import sys
 
 
 class PrintVersionExitAction(argparse.Action):
+    """Print version and exit if -v or --version option is used.
+    """
     def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):  # noqa: A002
         super().__init__(
             option_strings=option_strings,
@@ -21,6 +23,8 @@ class PrintVersionExitAction(argparse.Action):
 
 
 class PrintHelpArgumentParser(argparse.ArgumentParser):
+    """Print help message and exit if error occurs during parsing arguments.
+    """
     def error(self, message):
         self.print_help(sys.stdout)
         err_msg = f"{self.prog}: error: {message}\n"

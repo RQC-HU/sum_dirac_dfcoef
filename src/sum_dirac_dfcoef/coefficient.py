@@ -5,6 +5,19 @@ from sum_dirac_dfcoef.utils import is_float, space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):
+    """ This class is used to store the specific coefficient information.
+
+    e.g.   1  L Ag U  s      -0.0012445973  0.0000000000  0.0000000000  0.0000000000
+    -> Coefficient(vector_num=1, function_label="AgUs", need_identifier=False, coefficient=1.54902243916729E-6, idx_within_same_atom=1, multiplication=1)
+
+    Attributes:
+        vector_num (int): Serial number of the vector
+        function_label (str): Information about the vector to identify the vector
+        need_identifier (bool): Whether the idx_within_same_atom is needed to print to the output file or not.
+        coefficient (float): Coefficient value
+        idx_within_same_atom (int): Index of the order of atoms in the same AtomLabel
+        multiplication (int): The multiplicity of the specified atom label.
+    """
     vector_num: int
     function_label: str
     need_identifier: bool

@@ -15,9 +15,9 @@ class HeaderInfo:
     """Class to store header information for the sum_dirac_dfcoef module.
 
     Attributes:
-        header (str): Header for the sum_dirac_dfcoef module.
-        subheader1 (str): First subheader for the sum_dirac_dfcoef module.
-        subheader2 (str): Second subheader for the sum_dirac_dfcoef module.
+        moltra_info (MoltraInfo): Moltra information
+        eigenvalues (Eigenvalues): Eigenvalues
+        electrons (int): Number of electrons
     """
 
     def __init__(self):
@@ -147,7 +147,15 @@ class HeaderInfo:
                 within_moltra[data_all_mo.electronic[idx].eigenvalue_no] = True
             return within_moltra
 
-        def create_energy_str(within_moltra: ODict[int, bool]):
+        def create_energy_str(within_moltra: ODict[int, bool]) -> str:
+            """ Create the energy string from the input boolean dictionary
+
+            Args:
+                within_moltra (ODict[int, bool]): Stores the boolean value of whether the eigenvalue is used or not. True: used, False: not used.
+
+            Returns:
+                energy_str (str): Energy string can be used in the DIRAC input file. (e.g.) "10..180,200..300,400..500"
+            """
             energy_str = ""
             cur_mo_num = 0
             start_mo_num = cur_mo_num
