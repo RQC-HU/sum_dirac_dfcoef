@@ -65,7 +65,7 @@ class Eigenvalues:
         self.energies_used = energies_used if energies_used is not None else OrderedDict()
 
     def __repr__(self) -> str:
-        return f"shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used}"
+        return f"Eigenvalues(shell_num: {self.shell_num}\nenergies: {self.energies}\nenergies_used: {self.energies_used})"
 
     def setdefault(self, key: str):
         self.shell_num.setdefault(key, {"closed": 0, "open": 0, "virtual": 0, "negative": 0, "positronic": 0})

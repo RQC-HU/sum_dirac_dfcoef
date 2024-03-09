@@ -16,7 +16,7 @@ class FuncIndices:
         self.last = last
 
     def __repr__(self) -> str:
-        return f"first: {self.first}, last: {self.last}"
+        return f"FunIndices(first: {self.first}, last: {self.last})"
 
 
 class AtomInfo:
@@ -43,8 +43,8 @@ class AtomInfo:
         self.func_idx_dirac19 = func_idx_dirac19 if func_idx_dirac19 is not None else FuncIndices()
 
     def __repr__(self) -> str:
-        return f"idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
-func_idx_dirac21: {self.func_idx_dirac21}, func_idx_dirac19: {self.func_idx_dirac19}, functions: {self.functions}"
+        return f"AtomInfo(idx_within_same_atom {self.idx_within_same_atom}, mul: {self.mul}, \
+func_idx_dirac21: {self.func_idx_dirac21}, func_idx_dirac19: {self.func_idx_dirac19}, functions: {self.functions})"
 
     def add_function(self, gto_type: str, num_functions: int) -> None:
         self.functions[gto_type] = num_functions

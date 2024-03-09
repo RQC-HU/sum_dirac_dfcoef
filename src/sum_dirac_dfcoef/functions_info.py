@@ -60,7 +60,7 @@ class SymmetryOrbitalsSummary:
         self.small_sym = ()
 
     def __repr__(self):
-        return f"SymmetryOrbitalsSummary{{all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym}}}"
+        return f"SymmetryOrbitalsSummary(all_sym: {self.all_sym}, large_sym: {self.large_sym}, small_sym: {self.small_sym})"
 
 
 class FuncIndicesDIRAC19:
@@ -72,7 +72,7 @@ class FuncIndicesDIRAC19:
         self.last_func_idx = 0
 
     def __repr__(self):
-        return f"FuncIndicesDIRAC19{{cur_func_idx: {self.cur_func_idx}, last_func_idx: {self.last_func_idx}}}"
+        return f"FuncIndicesDIRAC19(cur_func_idx: {self.cur_func_idx}, last_func_idx: {self.last_func_idx})"
 
     def add_num_functions(self, num_functions: int) -> None:
         self.cur_func_idx += num_functions
@@ -99,7 +99,7 @@ class FuncNumDIRAC21:
         self.no_inv_sym = 0
 
     def __repr__(self):
-        return f"FuncNumDIRAC21{{gerade: {self.gerade}, ungerade: {self.ungerade}, no_inv_sym: {self.no_inv_sym}}}"
+        return f"FuncNumDIRAC21(gerade: {self.gerade}, ungerade: {self.ungerade}, no_inv_sym: {self.no_inv_sym})"
 
     def add_num_functions(self, symmetry: str, num_functions: int) -> None:
         if symmetry[-1].lower() == "g":
@@ -127,7 +127,7 @@ class FuncNumSummary:
         self.dirac21 = FuncNumDIRAC21()
 
     def __repr__(self):
-        return f"FuncNumSummary{{dirac19: {self.dirac19}, dirac21: {self.dirac21}}}"
+        return f"FuncNumSummary(dirac19: {self.dirac19}, dirac21: {self.dirac21})"
 
 
 def get_functions_info(dirac_output: TextIOWrapper) -> FunctionsInfo:

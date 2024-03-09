@@ -30,7 +30,7 @@ class DataMO:
         self.coef_list = coef_list if coef_list is not None else []
 
     def __repr__(self) -> str:
-        return f"mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict}"
+        return f"DataMO(mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict})"
 
     def add_coefficient(self, coef: Coefficient) -> None:
         key = (coef.function_label, coef.idx_within_same_atom)
@@ -62,7 +62,7 @@ class DataAllMO:
         self.positronic = positronic if positronic is not None else []
 
     def __repr__(self) -> str:
-        return f"electronic: {self.electronic}, positronic: {self.positronic}"
+        return f"DataAllMO(electronic: {self.electronic}, positronic: {self.positronic})"
 
     def sort_mo_sym_type(self) -> None:
         self.electronic.sort(key=lambda mo: (mo.sym_type, mo.mo_energy))
