@@ -50,7 +50,6 @@ class HeaderInfo:
         symgrp_section = False
         err_msg = "The symmetry group is not found in the output file of DIRAC."
         for line in dirac_output:
-            print(line)
             if "SYMGRP" in line:
                 symgrp_section = True
                 continue
