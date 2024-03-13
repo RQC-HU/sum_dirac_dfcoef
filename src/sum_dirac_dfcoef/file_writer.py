@@ -35,7 +35,7 @@ class OutputFileWriter:
                     # only write closed, open, virtual (positive energy eigenvalues)
                     if eigenvalue_type in ("closed", "open", "virtual"):
                         line += f"{eigenvalue_type} {num} "
-            line += "\n"
+            line += f"point_group {header_info.point_group}\n"
             f.write(line)
 
     def write_mo_data(self, mo_data: List[DataMO]) -> None:

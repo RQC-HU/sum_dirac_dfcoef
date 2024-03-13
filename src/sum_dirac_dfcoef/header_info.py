@@ -17,12 +17,14 @@ class HeaderInfo:
     Attributes:
         moltra_info (MoltraInfo): Moltra information
         eigenvalues (Eigenvalues): Eigenvalues
+        point_group (str): Point group of the molecule (e.g.) "C2v"
         electrons (int): Number of electrons
     """
 
     def __init__(self):
         self.moltra_info = MoltraInfo()
         self.eigenvalues = Eigenvalues()
+        self.point_group = ""
         self.electrons = 0
 
     def read_header_info(self, dirac_output: TextIOWrapper) -> None:
@@ -40,8 +42,29 @@ class HeaderInfo:
         self.__validate_eigpri_option(dirac_output)
         dirac_output.seek(0)
         self.__read_moltra(dirac_output)
+        self.__read_point_group(dirac_output)
         self.__read_eigenvalues(dirac_output)
         self.__duplicate_moltra_str()
+
+    def __read_point_group(self, dirac_output: TextIOWrapper) -> None:
+        symgrp_section = False
+        err_msg = "The symmetry group is not found in the output file of DIRAC."
+        for line in dirac_output:
+            print(line)
+            if "SYMGRP" in line:
+                symgrp_section = True
+                continue
+            if symgrp_section:
+                if "Represented as" in line or "Point group:" in line:
+                    self.point_group = line.split()[-1]
+                    break
+                else:
+                    line_without_space = line.strip().strip("\r\n")
+                    if all("*" == char for char in line_without_space) and len(line_without_space) > 0:
+                        raise ValueError(err_msg)
+        if self.point_group == "":
+            raise ValueError(err_msg)
+
 
     def __read_electron_number(self, dirac_output: TextIOWrapper) -> None:
         self.electrons = get_electron_num_from_input(dirac_output)
@@ -148,7 +171,7 @@ class HeaderInfo:
             return within_moltra
 
         def create_energy_str(within_moltra: ODict[int, bool]) -> str:
-            """ Create the energy string from the input boolean dictionary
+            """Create the energy string from the input boolean dictionary
 
             Args:
                 within_moltra (ODict[int, bool]): Stores the boolean value of whether the eigenvalue is used or not. True: used, False: not used.

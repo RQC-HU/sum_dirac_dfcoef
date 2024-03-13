@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "sum_dirac_dfcoef"
 dynamic = ["version"]
-description = 'This is a utility to summarize the contribution of each atomic orbital per molecular orbital from the DIRAC output file that the *PRIVEC and .VECPRI options are used.'
+description = 'This is a utility to summarize the contribution of each atomic orbital per molecular orbital from the DIRAC output file that the .ANALYZE option and *PRIVEC and .VECPRI options are used.'
 readme = "README.md"
 requires-python = ">=3.7"
 license = "LGPL-2.1-or-later"
