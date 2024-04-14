@@ -53,6 +53,9 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.F2.compress.out"                      , "result.F2.compress.out"                      , "F2_F2.out"                    , "-d 15 -g"),
         # CO (No inversion symmetry linear molecule, https://github.com/RQC-HU/sum_dirac_dfcoef/issues/95)
         ("ref.CO.compress.out"                      , "result.CO.compress.out"                      , "CO_CO.out"                    , "-d 15 -g"),
+        # Explicitly set **MOLTRA > .SCHEME option (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/108)
+        ("ref.N2.scheme4.dirac22.compress.out"      , "result.N2.scheme4.dirac22.compress.out"      , "dirac22_scheme4_N2.out"       , "-d 15 -g"),
+        ("ref.N2.scheme6.dirac23.compress.out"      , "result.N2.scheme6.dirac23.compress.out"      , "dirac23_scheme6_N2.out"       , "-d 15 -g"),
     ]
     # fmt: on
 )
