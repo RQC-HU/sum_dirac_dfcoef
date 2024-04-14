@@ -1,5 +1,6 @@
-electron_num 314 E1 28..992 
-E1 closed 314 open 0 virtual 2906 point_group C1 moltra_scheme default 
+electron_num 314 point_group C1 moltra_scheme default
+E1 28..992 
+E1 closed 314 open 0 virtual 2906 
 
 E1 1 -4741.193644162000055
 E1 2 -908.732609848000038

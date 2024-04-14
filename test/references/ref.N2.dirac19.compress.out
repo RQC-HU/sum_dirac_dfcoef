@@ -1,5 +1,6 @@
-electron_num 14 E1g 1..43 E1u 1..43 
-E1g closed 6 open 0 virtual 90 E1u closed 8 open 0 virtual 88 point_group D2h moltra_scheme default 
+electron_num 14 point_group D2h moltra_scheme default
+E1g 1..43 E1u 1..43 
+E1g closed 6 open 0 virtual 90 E1u closed 8 open 0 virtual 88 
 
 E1g 1 -15.799667669125000 AgN2s(1) 49.999766514632022 AgN2s(2) 49.999766514632022
 E1u 1 -15.798895827698001 B1uN2s(1) 49.999806294754499 B1uN2s(2) 49.999806294754499
