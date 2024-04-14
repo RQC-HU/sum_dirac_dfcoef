@@ -20,7 +20,7 @@ class Env:
 
 
 def get_output_list(filepath: Path) -> List[List[str]]:
-    return [re.split(" +", line.rstrip("\n")) for line in list(open(filepath).read().splitlines())]
+    return [re.split(" +", line.rstrip("\r\n")) for line in list(open(filepath).read().splitlines())]
 
 
 @pytest.mark.parametrize(
@@ -74,21 +74,23 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         if header:
             assert ref == out
-            if len(ref) == 0 and len(out) == 0:  # End header
+            if len(ref) == 1 and len(out) == 1:  # End header
                 header = False
-            continue
-        # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
-        # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
-        assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
-        for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
-            if idx % 2 == 0:
-                assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
-            else:
-                assert float(ref_val) == pytest.approx(
-                    float(out_val), abs=threshold
-                ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
+        else:
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
+            # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+            assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+            for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
+                if idx % 2 == 0:
+                    assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
+                else:
+                    assert float(ref_val) == pytest.approx(
+                        float(out_val), abs=threshold
+                    ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
 
 
 @pytest.mark.parametrize(
@@ -129,21 +131,23 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         if header:
             assert ref == out
-            if len(ref) == 0 and len(out) == 0:  # End header
+            if len(ref) == 1 and len(out) == 1:  # End header
                 header = False
-            continue
-        if "%" in ref[-1]:
-            ref_value = float(ref[-2])
-            out_value = float(out[-2])
-            ref_list_str = " ".join(ref[:-2])
-            out_list_str = " ".join(out[:-2])
         else:
-            ref_value = float(ref[-1])
-            out_value = float(out[-1])
-            ref_list_str = " ".join(ref[:-1])
-            out_list_str = " ".join(out[:-1])
-        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
-        assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            if "%" in ref[-1]:
+                ref_value = float(ref[-2])
+                out_value = float(out[-2])
+                ref_list_str = " ".join(ref[:-2])
+                out_list_str = " ".join(out[:-2])
+            else:
+                ref_value = float(ref[-1])
+                out_value = float(out[-1])
+                ref_list_str = " ".join(ref[:-1])
+                out_list_str = " ".join(out[:-1])
+            assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+            assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
 
 
 @pytest.mark.parametrize(
@@ -194,21 +198,23 @@ def test_no_vector_print_data(ref_filename: str, result_filename: str, input_fil
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
         if header:
             assert ref == out
-            if len(ref) == 0 and len(out) == 0:  # End header
+            if len(ref) == 1 and len(out) == 1:  # End header
                 header = False
-            continue
-        # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
-        # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
-        assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
-        for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
-            if idx % 2 == 0:
-                assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
-            else:
-                assert float(ref_val) == pytest.approx(
-                    float(out_val), abs=threshold
-                ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
+        else:
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
+            # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+            assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+            for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
+                if idx % 2 == 0:
+                    assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
+                else:
+                    assert float(ref_val) == pytest.approx(
+                        float(out_val), abs=threshold
+                    ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
 
 
 def test_version_option():
