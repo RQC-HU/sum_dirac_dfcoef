@@ -171,7 +171,7 @@ def test_invalid_option_raise_error(input_filename: str, options: str, expected_
     "ref_filename, result_filename, input_filename, options, expected_warning_message",
     # fmt: off
     [
-        ("ref.Ar.no_vector_print_data.out", "result.Ar.no_vector_print_data.out", "no_vector_print_data_Ar_Ar.out", "-d 15", "WARNING: The next title is detected before the end of reading coefficients."),  # noqa: E501
+        ("ref.Ar.no_vector_print_data.out", "result.Ar.no_vector_print_data.out", "no_vector_print_data_Ar_Ar.out", "-d 15 -c", "WARNING: The next title is detected before the end of reading coefficients."),  # noqa: E501
     ],
     # fmt: on
 )
