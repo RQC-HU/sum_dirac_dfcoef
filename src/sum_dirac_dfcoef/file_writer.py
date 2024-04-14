@@ -25,7 +25,8 @@ class OutputFileWriter:
 
     def write_headerinfo(self, header_info: HeaderInfo) -> None:
         with open(self.output_path, "a", encoding="utf-8") as f:
-            line = f"electron_num {header_info.electrons} "
+            scheme = "default" if header_info.scheme.value == 0 else str(header_info.scheme.value)
+            line = f"electron_num {header_info.electrons} point_group {header_info.point_group} moltra_scheme {scheme}\n"
             for symmetry_type, d in header_info.moltra_info.range_dict.items():
                 line += f"{symmetry_type} {d} "
             line += "\n"
@@ -35,7 +36,7 @@ class OutputFileWriter:
                     # only write closed, open, virtual (positive energy eigenvalues)
                     if eigenvalue_type in ("closed", "open", "virtual"):
                         line += f"{eigenvalue_type} {num} "
-            line += f"point_group {header_info.point_group}\n"
+            line += "\n"
             f.write(line)
 
     def write_mo_data(self, mo_data: List[DataMO]) -> None:

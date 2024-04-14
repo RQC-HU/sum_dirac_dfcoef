@@ -1,5 +1,6 @@
-electron_num 321 E1 28..984,1367,1482,1485,1542..1546 
-E1 closed 316 open 10 virtual 2894 point_group C1
+electron_num 321 point_group C1 moltra_scheme default
+E1 28..984,1367,1482,1485,1542..1546 
+E1 closed 316 open 10 virtual 2894 
 
 E1 1 -4740.131627028000366
 E1 2 -907.660273131000054

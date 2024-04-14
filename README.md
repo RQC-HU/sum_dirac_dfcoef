@@ -106,7 +106,8 @@ AgUs           0.13729 %
 If you use -c or --compress option, you can get a compressed result like this.(one line per kramers pair)
 
 ```out
-electron_num 106 E1g 16..85 E1u 11..91 
+electron_num 106 point_group D2h moltra_scheme default
+E1g 16..85 E1u 11..91 
 E1g closed 52 open 0 virtual 268 E1u closed 54 open 0 virtual 314 
 
 E1u 19 -8.88244 B3uUpx 49.99917 B2uUpy 49.99917
@@ -197,16 +198,7 @@ optional arguments (--input is required)
 ## Development
 
 - Thank you for considering contributing to this project!
-- If you want to improve this project, please [fork this repository](https://github.com/RQC-HU/sum_dirac_dfcoef/fork) and [create a pull request](https://github.com/RQC-HU/sum_dirac_dfcoef/compare).
-- If you find a bug, please [create an issue](https://github.com/RQC-HU/sum_dirac_dfcoef/issues/new).
-- Setup development environment
-
-  ```sh
-  git clone https://github.com/yourname/sum_dirac_dfcoef.git
-  cd sum_dirac_dfcoef
-  pip install -e .[dev]
-  ```
-
+- Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before you start contributing.
 
 ## LICENSE
 

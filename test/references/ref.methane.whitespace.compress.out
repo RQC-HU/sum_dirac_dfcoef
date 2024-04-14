@@ -1,5 +1,6 @@
-electron_num 10 E1 1..27 
-E1 closed 10 open 0 virtual 44 point_group C1
+electron_num 10 point_group C1 moltra_scheme default
+E1 1..27 
+E1 closed 10 open 0 virtual 44 
 
 E1 1 -11.006820043798999 ACs 99.961920761575172
 E1 2 -1.191936184685200 ACs 75.887333608562770 AHs(3) 6.067641418468362 AHs(4) 6.028939092584189 AHs(1) 6.027547890798878 AHs(2) 5.987753687946769

@@ -20,7 +20,7 @@ class Env:
 
 
 def get_output_list(filepath: Path) -> List[List[str]]:
-    return [re.split(" +", line.rstrip("\n")) for line in list(open(filepath).read().splitlines())]
+    return [re.split(" +", line.rstrip("\r\n")) for line in list(open(filepath).read().splitlines())]
 
 
 @pytest.mark.parametrize(
@@ -53,6 +53,9 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.F2.compress.out"                      , "result.F2.compress.out"                      , "F2_F2.out"                    , "-d 15 -g"),
         # CO (No inversion symmetry linear molecule, https://github.com/RQC-HU/sum_dirac_dfcoef/issues/95)
         ("ref.CO.compress.out"                      , "result.CO.compress.out"                      , "CO_CO.out"                    , "-d 15 -g"),
+        # Explicitly set **MOLTRA > .SCHEME option (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/108)
+        ("ref.N2.scheme4.dirac22.compress.out"      , "result.N2.scheme4.dirac22.compress.out"      , "dirac22_scheme4_N2.out"       , "-d 15 -g"),
+        ("ref.N2.scheme6.dirac23.compress.out"      , "result.N2.scheme6.dirac23.compress.out"      , "dirac23_scheme6_N2.out"       , "-d 15 -g"),
     ]
     # fmt: on
 )
@@ -67,27 +70,27 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
-            continue
-        # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
-        # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
-        assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
-        for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
-            if idx % 2 == 0:
-                assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
-            else:
-                assert float(ref_val) == pytest.approx(
-                    float(out_val), abs=threshold
-                ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
+            if len(ref) == 1 and len(out) == 1:  # End header
+                header = False
+        else:
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
+            # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+            assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+            for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
+                if idx % 2 == 0:
+                    assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
+                else:
+                    assert float(ref_val) == pytest.approx(
+                        float(out_val), abs=threshold
+                    ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
 
 
 @pytest.mark.parametrize(
@@ -124,27 +127,27 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
-            continue
-        if "%" in ref[-1]:
-            ref_value = float(ref[-2])
-            out_value = float(out[-2])
-            ref_list_str = " ".join(ref[:-2])
-            out_list_str = " ".join(out[:-2])
+            if len(ref) == 1 and len(out) == 1:  # End header
+                header = False
         else:
-            ref_value = float(ref[-1])
-            out_value = float(out[-1])
-            ref_list_str = " ".join(ref[:-1])
-            out_list_str = " ".join(out[:-1])
-        assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
-        assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            if "%" in ref[-1]:
+                ref_value = float(ref[-2])
+                out_value = float(out[-2])
+                ref_list_str = " ".join(ref[:-2])
+                out_list_str = " ".join(out[:-2])
+            else:
+                ref_value = float(ref[-1])
+                out_value = float(out[-1])
+                ref_list_str = " ".join(ref[:-1])
+                out_list_str = " ".join(out[:-1])
+            assert ref_list_str == out_list_str, f"line {line_idx}: {ref_list_str} != {out_list_str}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
+            assert ref_value == pytest.approx(out_value, abs=threshold), f"line {line_idx}: {ref_value} != {out_value}\nref: {ref_list[line_idx]}\nout:{result_list[line_idx]}"
 
 
 @pytest.mark.parametrize(
@@ -172,7 +175,7 @@ def test_invalid_option_raise_error(input_filename: str, options: str, expected_
     "ref_filename, result_filename, input_filename, options, expected_warning_message",
     # fmt: off
     [
-        ("ref.Ar.no_vector_print_data.out", "result.Ar.no_vector_print_data.out", "no_vector_print_data_Ar_Ar.out", "-d 15", "WARNING: The next title is detected before the end of reading coefficients."),  # noqa: E501
+        ("ref.Ar.no_vector_print_data.out", "result.Ar.no_vector_print_data.out", "no_vector_print_data_Ar_Ar.out", "-d 15 -c", "WARNING: The next title is detected before the end of reading coefficients."),  # noqa: E501
     ],
     # fmt: on
 )
@@ -191,27 +194,27 @@ def test_no_vector_print_data(ref_filename: str, result_filename: str, input_fil
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
-            continue
-        # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
-        # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
-        assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
-        assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
-        for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
-            if idx % 2 == 0:
-                assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
-            else:
-                assert float(ref_val) == pytest.approx(
-                    float(out_val), abs=threshold
-                ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
+            if len(ref) == 1 and len(out) == 1:  # End header
+                header = False
+        else:
+            if len(ref) < 2 or len(out) < 2:
+                continue
+            # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
+            # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
+            assert ref[0] == out[0], f"irrep in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert ref[1] == out[1], f"Energy order index in line {line_idx} of {ref_filename} and {result_filename} are different."
+            assert float(ref[2]) == pytest.approx(float(out[2]), abs=threshold), f"Energy in line {line_idx} of {ref_filename} and {result_filename} are different."
+            for idx, (ref_val, out_val) in enumerate(zip(ref[3:], out[3:])):
+                if idx % 2 == 0:
+                    assert ref_val == out_val, f"Symmetry value in line {line_idx} of {ref_filename} and {result_filename} are different."
+                else:
+                    assert float(ref_val) == pytest.approx(
+                        float(out_val), abs=threshold
+                    ), f"Contribution of the AO in the MO in line {line_idx} of {ref_filename} and {result_filename} are different."
 
 
 def test_version_option():

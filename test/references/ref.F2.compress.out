@@ -1,5 +1,6 @@
-electron_num 18 E1 3..18 
-E1 closed 18 open 0 virtual 18 point_group C1
+electron_num 18 point_group C1 moltra_scheme default
+E1 3..18 
+E1 closed 18 open 0 virtual 18 
 
 E1 1 -26.413780143149001 AFs(2) 49.999643281086534 AFs(1) 49.999642328620197
 E1 2 -26.412828734796001 AFs(1) 49.997829138471431 AFs(2) 49.997828186211457
