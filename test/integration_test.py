@@ -70,14 +70,12 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
+            if len(ref) == 0 and len(out) == 0:  # End header
+                header = False
             continue
         # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
         # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
@@ -127,14 +125,12 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
+            if len(ref) == 0 and len(out) == 0:  # End header
+                header = False
             continue
         if "%" in ref[-1]:
             ref_value = float(ref[-2])
@@ -194,14 +190,12 @@ def test_no_vector_print_data(ref_filename: str, result_filename: str, input_fil
     # File should have the same number of lines
     assert len(ref_list) == len(result_list), f"Number of lines in {ref_filename}(={len(ref_list)}) and {result_filename}(={len(result_list)}) are different."
     threshold: float = 1e-10
+    header = True
     for line_idx, (ref, out) in enumerate(zip(ref_list, result_list)):
-        # 1st and 2nd lines have header information about eigenvalues
-        # (e.g.) electron_num 18 E1g 1..33 E1u 1..33
-        #        E1g closed 6 open 0 virtual 60 E1u closed 12 open 0 virtual 54
-        if line_idx < 2:
+        if header:
             assert ref == out
-            continue
-        if len(ref) < 2 or len(out) < 2:
+            if len(ref) == 0 and len(out) == 0:  # End header
+                header = False
             continue
         # ref[0]: irrep, ref[1]: energy order index in the irrep, ref[2]: energy, ref[3:]: Symmetry value and coefficient
         # (e.g.) E1u 19 -8.8824415703374 B3uUpx 49.999172476298732 B2uUpy 49.999172476298732
