@@ -106,7 +106,8 @@ AgUs           0.13729 %
 If you use -c or --compress option, you can get a compressed result like this.(one line per kramers pair)
 
 ```out
-electron_num 106 E1g 16..85 E1u 11..91 
+electron_num 106 point_group D2h moltra_scheme default
+E1g 16..85 E1u 11..91 
 E1g closed 52 open 0 virtual 268 E1u closed 54 open 0 virtual 314 
 
 E1u 19 -8.88244 B3uUpx 49.99917 B2uUpy 49.99917
