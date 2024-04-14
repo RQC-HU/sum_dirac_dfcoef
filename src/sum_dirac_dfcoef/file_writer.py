@@ -35,7 +35,10 @@ class OutputFileWriter:
                     # only write closed, open, virtual (positive energy eigenvalues)
                     if eigenvalue_type in ("closed", "open", "virtual"):
                         line += f"{eigenvalue_type} {num} "
-            line += f"point_group {header_info.point_group}\n"
+            line += f"point_group {header_info.point_group} "
+            scheme = "default" if header_info.scheme.value == 0 else str(header_info.scheme.value)
+            line += f"moltra_scheme {scheme} "
+            line += "\n"
             f.write(line)
 
     def write_mo_data(self, mo_data: List[DataMO]) -> None:

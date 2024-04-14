@@ -9,6 +9,7 @@ from sum_dirac_dfcoef.data import DataAllMO, DataMO
 from sum_dirac_dfcoef.eigenvalues import Eigenvalues
 from sum_dirac_dfcoef.electron_num import get_electron_num_from_input, get_electron_num_from_scf_field
 from sum_dirac_dfcoef.moltra import MoltraInfo
+from sum_dirac_dfcoef.scheme import Scheme
 
 
 class HeaderInfo:
@@ -25,6 +26,7 @@ class HeaderInfo:
         self.moltra_info = MoltraInfo()
         self.eigenvalues = Eigenvalues()
         self.point_group = ""
+        self.scheme = Scheme()
         self.electrons = 0
 
     def read_header_info(self, dirac_output: TextIOWrapper) -> None:
@@ -40,6 +42,8 @@ class HeaderInfo:
         self.__read_electron_number(dirac_output)
         dirac_output.seek(0)
         self.__validate_eigpri_option(dirac_output)
+        dirac_output.seek(0)
+        self.__read_scheme(dirac_output)
         dirac_output.seek(0)
         self.__read_moltra(dirac_output)
         self.__read_point_group(dirac_output)
@@ -64,7 +68,6 @@ class HeaderInfo:
         if self.point_group == "":
             raise ValueError(err_msg)
 
-
     def __read_electron_number(self, dirac_output: TextIOWrapper) -> None:
         self.electrons = get_electron_num_from_input(dirac_output)
         if self.electrons == 0:
@@ -72,6 +75,9 @@ class HeaderInfo:
 
     def __validate_eigpri_option(self, dirac_output: TextIOWrapper) -> None:
         self.eigenvalues.validate_eigpri_option(dirac_output)
+
+    def __read_scheme(self, dirac_output: TextIOWrapper) -> None:
+        self.scheme.get_scheme_num_from_input(dirac_output)
 
     def __read_eigenvalues(self, dirac_output: TextIOWrapper) -> None:
         self.eigenvalues.get_eigenvalues(dirac_output)
