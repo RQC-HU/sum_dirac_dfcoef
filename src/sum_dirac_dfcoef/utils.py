@@ -93,12 +93,10 @@ def delete_dirac_input_comment_out(line: str) -> str:
 def get_dirac_filepath() -> Path:
     from sum_dirac_dfcoef.args import args
 
-    if not args.file:
-        sys.exit("ERROR: DIRAC output file is not given. Please use -f option.")
-    elif not Path(args.file).exists():
-        sys.exit(f"ERROR: DIRAC output file is not found. file={args.file}")
-    path = Path(args.file)
-    return path
+    input_path = Path(args.input).expanduser().resolve()
+    if not input_path.exists():
+        sys.exit(f"ERROR: DIRAC output file is not found. file={input_path}")
+    return input_path
 
 
 def should_write_positronic_results_to_file() -> bool:

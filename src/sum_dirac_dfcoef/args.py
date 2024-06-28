@@ -35,7 +35,7 @@ def parse_args() -> "argparse.Namespace":
     parser = PrintHelpArgumentParser(
         description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
     )
-    parser.add_argument("-i", "--input", type=str, required=True, help="(required) file path of DIRAC output. Please quote if the path include spaces.", dest="file", metavar='"FILE"')
+    parser.add_argument("-i", "--input", type=str, required=True, help="(required) file path of DIRAC output. Please quote if the path include spaces.", dest="input", metavar='"INPUT"')
     parser.add_argument("-o", "--output", type=str, help="Output file name. Default: sum_dirac_dfcoef.out. Please quote if the path include spaces.", dest="output", metavar='"OUTPUT"')
     parser.add_argument(
         "-g",

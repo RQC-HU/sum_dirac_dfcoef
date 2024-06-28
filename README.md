@@ -130,7 +130,7 @@ optional arguments (--input is required)
 
   show this help message and exit
 
-- -i "FILE", --input "FILE"
+- -i "INPUT", --input "INPUT"
 
   (required) file path of DIRAC output.  
   Please quote if the path include spaces.
