@@ -72,11 +72,7 @@ class OutputFileWriter:
             output_name = "sum_dirac_dfcoef.out"
             output_path = Path.absolute(Path.cwd() / output_name)
         else:
-            output_name = args.output
-            if Path(output_name).is_absolute():
-                output_path = Path(output_name)
-            else:
-                output_path = Path.absolute(Path.cwd() / output_name)
+            output_path = Path(args.output).expanduser().resolve()
         return output_path
 
 

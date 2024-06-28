@@ -137,7 +137,7 @@ optional arguments (--input is required)
 
 - -o "OUTPUT", --output "OUTPUT"
 
-  Output file name.  
+  File path of sum_dirac_dfcoef output.  
   Default: sum_dirac_dfcoef.out.  
   Please quote if the path include spaces.  
 
