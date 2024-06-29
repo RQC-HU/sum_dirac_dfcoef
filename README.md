@@ -130,14 +130,16 @@ optional arguments (--input is required)
 
   show this help message and exit
 
-- -i FILE, --input FILE
+- -i "INPUT", --input "INPUT"
 
-  (required) file path of DIRAC output
+  (required) file path of DIRAC output.  
+  Please quote if the path include spaces.
 
-- -o OUTPUT, --output OUTPUT
+- -o "OUTPUT", --output "OUTPUT"
 
-  Output file name.  
-  Default: sum_dirac_dfcoef.out
+  File path of sum_dirac_dfcoef output.  
+  Default: sum_dirac_dfcoef.out.  
+  Please quote if the path include spaces.  
 
 - -g, --for-generator
 
