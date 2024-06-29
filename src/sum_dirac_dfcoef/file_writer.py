@@ -68,11 +68,17 @@ class OutputFileWriter:
         file.close()
 
     def get_output_path(self) -> Path:
+        import sys
+
         if args.output is None:
             output_name = "sum_dirac_dfcoef.out"
             output_path = Path.absolute(Path.cwd() / output_name)
         else:
             output_path = Path(args.output).expanduser().resolve()
+            if output_path.is_dir():
+                sys.exit(f"ERROR: The path you specified as the sum_dirac_dfcoef output is a directory. Not a file.\
+Please check your -o or --output option is correct.")
+
         return output_path
 
 

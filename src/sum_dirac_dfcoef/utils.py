@@ -96,6 +96,9 @@ def get_dirac_filepath() -> Path:
     input_path = Path(args.input).expanduser().resolve()
     if not input_path.exists():
         sys.exit(f"ERROR: DIRAC output file is not found. file={input_path}")
+    elif input_path.is_dir():
+        sys.exit(f"ERROR: The path you specified as the DIRAC output is a directory. Not a file.\
+Please check your -i or --input option is correct.")
     return input_path
 
 
