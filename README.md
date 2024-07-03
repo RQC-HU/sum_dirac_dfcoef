@@ -39,6 +39,8 @@ If you want to use this program on Windows, you can use it with the following co
 
 ```sh
 sum_dirac_dfcoef.exe -i DIRAC_OUPUT_FILE_PATH
+# or
+python -m sum_dirac_dfcoef -i DIRAC_OUPUT_FILE_PATH
 ```
 
 A part of x2c_uo2_238.out (DIRAC output file, ... represents an omission)
