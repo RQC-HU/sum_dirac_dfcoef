@@ -50,7 +50,7 @@ class StageEIGPRI(Enum):
 #     },
 # }
 class Eigenvalues:
-    """ This class stores the eigenvalues information after SCF calculation in the DIRAC output file.
+    """This class stores the eigenvalues information after SCF calculation in the DIRAC output file.
 
     Raises:
         ValueError: Raises error when the .EIGPRI option in the DIRAC input file is invalid. (.EIGPRI 0 1 or .EIGPRI 0 0)
@@ -65,6 +65,7 @@ class Eigenvalues:
                                                      This flag is used when filling the eigenvalues info which is not found in the Vector print data.
 
     """
+
     shell_num: ODict[str, Dict[str, int]]
     energies: ODict[str, Dict[int, float]]
     energies_used: ODict[str, Dict[int, bool]]
@@ -138,7 +139,7 @@ class Eigenvalues:
             # FREP(IFSYM) is a symmetry type
             in_idx = line.index("in")
             colon_idx = line.index(":")
-            current_symmetry_type = line[in_idx + 2:colon_idx].strip()
+            current_symmetry_type = line[in_idx + 2 : colon_idx].strip()
             return current_symmetry_type
 
         def get_omega_str(words: List[str]) -> str:
