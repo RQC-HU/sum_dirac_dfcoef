@@ -13,11 +13,12 @@ from sum_dirac_dfcoef.utils import (
 
 
 class Scheme:
-    """ Class to store **MOLTRA > .SCHEME information for the sum_dirac_dfcoef module.
+    """Class to store **MOLTRA > .SCHEME information for the sum_dirac_dfcoef module.
 
     Attributes:
         value (int): 0 if .SCHEME was not set, otherwise equals to the value of .SCHEME option.
     """
+
     def __init__(self) -> None:
         self.value: int = 0
 

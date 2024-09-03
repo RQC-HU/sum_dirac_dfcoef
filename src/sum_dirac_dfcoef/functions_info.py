@@ -10,8 +10,8 @@ from sum_dirac_dfcoef.utils import debug_print, space_separated_parsing
 
 
 class Function:
-    """Data class for storing the information of specific atom + gto_type functions.
-    """
+    """Data class for storing the information of specific atom + gto_type functions."""
+
     def __init__(self, component_func: str, symmetry: str, atom: str, gto_type: str, idx_within_same_atom: int, num_functions: int, multiplicity: int) -> None:
         self.component_func = component_func  # "large" or "small"
         self.symmetry = symmetry  # e.g. "Ag"
@@ -23,8 +23,8 @@ class Function:
 
 
 class FunctionsInfo(ODict[str, ODict[str, ODict[str, ODict[int, AtomInfo]]]]):
-    """Data class for storing all information about Function numbers and atom labels.
-    """
+    """Data class for storing all information about Function numbers and atom labels."""
+
     # FunctionsInfo(OrderedDict[str, OrderedDict[str, OrderedDict[str, OrderedDict[int, AtomInfo]]]]
     # "large": {
     #     "Ag": {

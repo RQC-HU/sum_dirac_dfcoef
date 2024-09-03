@@ -8,8 +8,8 @@ from sum_dirac_dfcoef.utils import debug_print
 
 
 class OutputFileWriter:
-    """ This class has methods to write data to the output file.
-    """
+    """This class has methods to write data to the output file."""
+
     def __init__(self) -> None:
         super().__init__()
         self.output_path = self.get_output_path()
@@ -79,8 +79,10 @@ class OutputFileWriter:
         else:
             output_path = Path(args.output).expanduser().resolve()
             if output_path.is_dir():
-                sys.exit(f"ERROR: The path you specified as the sum_dirac_dfcoef output is a directory. Not a file.\
-Please check your -o or --output option is correct.")
+                sys.exit(
+                    "ERROR: The path you specified as the sum_dirac_dfcoef output is a directory. Not a file.\
+Please check your -o or --output option is correct."
+                )
 
         return output_path
 

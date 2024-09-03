@@ -8,6 +8,7 @@ class Subshell:
         orbital_labels (str): All possible orbital labels.
         gto_label_order (List[List[str]]): All possible subshell labels and their order. i.e. gto_label_order = [["s"], ["px", "py", "pz"], ...] after initialization.
     """
+
     orbital_labels = "spdfghiklmnoqrtuvwxyz"
     gto_label_order: ClassVar[List[List[str]]] = []
 

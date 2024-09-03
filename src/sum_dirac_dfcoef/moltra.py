@@ -14,13 +14,14 @@ from sum_dirac_dfcoef.utils import (
 
 
 class MoltraInfo:
-    """ Class to store MOLTRA information for the sum_dirac_dfcoef module.
+    """Class to store MOLTRA information for the sum_dirac_dfcoef module.
 
     Attributes:
         is_default (bool): True if the .ACTIVE section is not found
         range_str (List[str]): List of strings in the .ACTIVE section
         range_dict (Dict[str, str]): Dictionary of the .ACTIVE section. Key: symmetry type, Value: range string
     """
+
     is_default: bool = True
     range_str: ClassVar[List[str]] = []
     # range_str Example:

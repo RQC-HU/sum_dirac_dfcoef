@@ -5,10 +5,19 @@ from sum_dirac_dfcoef.utils import is_float, space_separated_parsing
 
 
 class Coefficient(BaseModel, validate_assignment=True):
-    """ This class is used to store the specific coefficient information.
+    """This class is used to store the specific coefficient information.
 
     e.g.  35  L Ag U  dzz     0.0000000014  0.0000000000  0.0000000000  0.0000000000
-    -> Coefficient(vector_num=35, symmetry_label="Ag", atom_azimuthal="Ud", magnetic_label="zz", need_identifier=False, coefficient=1.96E-18, idx_within_same_atom=0, multiplication=1)
+    -> Coefficient(
+        vector_num=35,
+        symmetry_label="Ag",
+        atom_azimuthal="Ud",
+        magnetic_label="zz",
+        need_identifier=False,
+        coefficient=1.96E-18,
+        idx_within_same_atom=0,
+        multiplication=1
+    )
     Attributes:
         vector_num (int): Serial number of the vector
         symmetry_label (str): The symmetry label to identify the vector
@@ -20,6 +29,7 @@ class Coefficient(BaseModel, validate_assignment=True):
         idx_within_same_atom (int): Index of the order of atoms in the same AtomLabel
         multiplication (int): The multiplicity of the specified atom label.
     """
+
     vector_num: int
     symmetry_label: str
     atom_label: str
