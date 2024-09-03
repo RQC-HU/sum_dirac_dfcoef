@@ -4,8 +4,8 @@ import sys
 
 
 class PrintVersionExitAction(argparse.Action):
-    """Print version and exit if -v or --version option is used.
-    """
+    """Print version and exit if -v or --version option is used."""
+
     def __init__(self, option_strings, dest=argparse.SUPPRESS, default=argparse.SUPPRESS, help=None):  # noqa: A002
         super().__init__(
             option_strings=option_strings,
@@ -23,8 +23,8 @@ class PrintVersionExitAction(argparse.Action):
 
 
 class PrintHelpArgumentParser(argparse.ArgumentParser):
-    """Print help message and exit if error occurs during parsing arguments.
-    """
+    """Print help message and exit if error occurs during parsing arguments."""
+
     def error(self, message):
         self.print_help(sys.stdout)
         err_msg = f"{self.prog}: error: {message}\n"
@@ -35,8 +35,17 @@ def parse_args() -> "argparse.Namespace":
     parser = PrintHelpArgumentParser(
         description="Summarize the coefficients from DIRAC output file that *PRIVEC option is used. (c.f. http://www.diracprogram.org/doc/master/manual/analyze/privec.html)"
     )
-    parser.add_argument("-i", "--input", type=str, required=True, help="(required) file path of DIRAC output. Please quote if the path include spaces.", dest="input", metavar='"INPUT"')
-    parser.add_argument("-o", "--output", type=str, help="File path of sum_dirac_dfcoef output. Default: sum_dirac_dfcoef.out. Please quote if the path include spaces.", dest="output", metavar='"OUTPUT"')
+    parser.add_argument(
+        "-i", "--input", type=str, required=True, help="(required) file path of DIRAC output. Please quote if the path include spaces.", dest="input", metavar='"INPUT"'
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="File path of sum_dirac_dfcoef output. Default: sum_dirac_dfcoef.out. Please quote if the path include spaces.",
+        dest="output",
+        metavar='"OUTPUT"',
+    )
     parser.add_argument(
         "-g",
         "--for-generator",
@@ -81,6 +90,13 @@ This options is useful when you want to use the result in a spreadsheet like Mic
         choices=range(1, 16),
         help="Set the decimal places. Default: 5 (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...). range: 1-15",
         dest="decimal",
+    )
+    parser.add_argument(
+        "--ignore-ml",
+        action="store_true",
+        help="Ignore the magnetic quantum number label. This option is useful when you want to sum the coefficients of the same atomic orbital\
+            except for the magnetic quantum number label.",
+        dest="ignore_ml",
     )
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all kramers pairs(Positronic and Electronic).", dest="all_write")
     parser.add_argument(

@@ -45,6 +45,8 @@ class DataMO:
 
     def add_coefficient(self, coef: Coefficient) -> None:
         key = (coef.function_label, coef.idx_within_same_atom)
+        if not args.ignore_ml:
+            key += (coef.magnetic_label,)
         if key in self.coef_dict:
             self.coef_dict[key].coefficient += coef.coefficient
         else:

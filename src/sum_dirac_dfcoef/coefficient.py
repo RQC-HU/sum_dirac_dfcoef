@@ -7,12 +7,12 @@ from sum_dirac_dfcoef.utils import is_float, space_separated_parsing
 class Coefficient(BaseModel, validate_assignment=True):
     """ This class is used to store the specific coefficient information.
 
-    e.g.   1  L Ag U  s      -0.0012445973  0.0000000000  0.0000000000  0.0000000000
-    -> Coefficient(vector_num=1, function_label="AgUs", need_identifier=False, coefficient=1.54902243916729E-6, idx_within_same_atom=1, multiplication=1)
-
+    e.g.  35  L Ag U  dzz     0.0000000014  0.0000000000  0.0000000000  0.0000000000
+    -> Coefficient(vector_num=35, function_label="AgUd", magnetic_label="zz", need_identifier=False, coefficient=1.96E-18, idx_within_same_atom=0, multiplication=1)
     Attributes:
         vector_num (int): Serial number of the vector
         function_label (str): Information about the vector to identify the vector
+        magnetic_label (str): The magnetic quantum number label to identify the vector
         need_identifier (bool): Whether the idx_within_same_atom is needed to print to the output file or not.
         coefficient (float): Coefficient value
         idx_within_same_atom (int): Index of the order of atoms in the same AtomLabel
@@ -20,6 +20,7 @@ class Coefficient(BaseModel, validate_assignment=True):
     """
     vector_num: int
     function_label: str
+    magnetic_label: str
     need_identifier: bool
     coefficient: float
     idx_within_same_atom: int
@@ -29,6 +30,7 @@ class Coefficient(BaseModel, validate_assignment=True):
         super().__repr__()
         return f"Coefficient(vector_num: {self.vector_num}, \
 function_label: {self.function_label}, \
+magnetic_label: {self.magnetic_label}, \
 need_identifier: {self.need_identifier}, \
 coefficient: {self.coefficient}, \
 idx_within_same_atom: {self.idx_within_same_atom}, \
@@ -73,7 +75,9 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom
         component_func = "large" if line_str[10] == "L" else ("small" if line_str[10] == "S" else "")  # CLS
         symmetry_label = line_str[12:15].strip()  # REP (e.g. "Ag ")
         atom_label = line_str[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
-        function_label = line_str[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag Cm s   " => "AgCms")
+        # function_label = line_str[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag U dzz   " => "AgUdzz")
+        function_label = line_str[12:19].strip().replace(" ", "")  # REP + NAMN (e.g. "Ag U  dzz " => "AgUd")
+        magnetic_label = line_str[19:22].strip().replace(" ", "")  # GTOTYP (e.g. "Ag U  dzz " => "zz")
 
         # COEF (4F14.10)
         # coefficients = [line_str[24:38], line_str[38:52], line_str[52:66], line_str[66:80]]
@@ -93,6 +97,7 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom
         return Coefficient(
             vector_num=vec_num,
             function_label=function_label,
+            magnetic_label=magnetic_label,
             need_identifier=need_identifier,
             coefficient=coefficient,
             idx_within_same_atom=idx_within_same_atom,
