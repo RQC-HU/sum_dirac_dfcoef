@@ -58,6 +58,10 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.N2.scheme6.dirac23.compress.out"      , "result.N2.scheme6.dirac23.compress.out"      , "dirac23_scheme6_N2.out"       , "-d 15 -g"),
         # Ignore magnetic quantum number label (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/115)
         ("ref.ucl4.ignore_ml.compress.out"          , "result.ucl4.ignore_ml.compress.out"          , "x2c_ucl4.out"                 , "-d 15 -g --ignore-ml"),
+        # Ignore symmetry label (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/117)
+        ("ref.uo2.ignore_sym.compress.out"          , "result.uo2.ignore_sym.compress.out"          , "x2c_uo2_238.out"              , "-d 15 -c --ignore-sym"),
+        # Both ignore labels
+        ("ref.ucl4.ignore_ml_and_sym.compress.out"  , "result.ucl4.ignore_ml_and_sym.compress.out"  , "x2c_ucl4.out"                 , "-d 15 -g --ignore-ml --ignore-sym"),
     ]
     # fmt: on
 )
