@@ -178,6 +178,11 @@ optional arguments (--input is required)
   Ignore the magnetic quantum number label.  
   This option is useful when you want to sum the coefficients of the same atomic orbital except for the magnetic quantum number label.
 
+- --ignore-sym
+
+  Ignore symmetry label (e.g. Ag, B3g, ...).  
+  This option is useful when you want to sum the coefficients of the same atomic orbital except for the symmetry label.
+
 - -a, --all-write
 
   Print all kramers pairs(Positronic and Electronic).
