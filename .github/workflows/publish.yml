@@ -17,8 +17,8 @@ jobs:
     # If PR is merged and the branch name starts with "release-v", then publish to PyPI
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'release-v')
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
       - name: Install dependencies
@@ -41,7 +41,7 @@ jobs:
           git tag ${{ steps.get_tag_name.outputs.tag_name }}
           git push origin ${{ steps.get_tag_name.outputs.tag_name }}
       - name: Create release draft
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         with:
           publish: true
         env:
