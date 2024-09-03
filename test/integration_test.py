@@ -56,6 +56,8 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         # Explicitly set **MOLTRA > .SCHEME option (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/108)
         ("ref.N2.scheme4.dirac22.compress.out"      , "result.N2.scheme4.dirac22.compress.out"      , "dirac22_scheme4_N2.out"       , "-d 15 -g"),
         ("ref.N2.scheme6.dirac23.compress.out"      , "result.N2.scheme6.dirac23.compress.out"      , "dirac23_scheme6_N2.out"       , "-d 15 -g"),
+        # Ignore magnetic quantum number label (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/115)
+        ("ref.ucl4.ignore_ml.compress.out"          , "result.ucl4.ignore_ml.compress.out"          , "x2c_ucl4.out"                 , "-d 15 -g --ignore-ml"),
     ]
     # fmt: on
 )
