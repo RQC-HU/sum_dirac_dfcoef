@@ -51,7 +51,9 @@ class OutputFileWriter:
                 for c in mo.coef_list:
                     for idx in range(c.multiplication):
                         percentage = c.coefficient / mo.norm_const_sum * 100
-                        func_label = f"{c.function_label}" if args.ignore_ml else f"{c.function_label}{c.magnetic_label}"
+                        sym_label = c.symmetry_label if not args.ignore_sym else ""
+                        ml_label = c.magnetic_label if not args.ignore_ml else ""
+                        func_label = f"{sym_label}{c.atom_label}{c.azimuthal_label}{ml_label}"
                         atomic_symmetry_label = f"{func_label}({c.idx_within_same_atom + idx})" if c.need_identifier else func_label
                         output_str: str
                         if args.compress:

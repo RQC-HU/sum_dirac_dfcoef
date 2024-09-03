@@ -98,6 +98,13 @@ This options is useful when you want to use the result in a spreadsheet like Mic
             except for the magnetic quantum number label.",
         dest="ignore_ml",
     )
+    parser.add_argument(
+        "--ignore-sym",
+        action="store_true",
+        help="Ignore symmetry label (e.g. Ag, B3g, ...). This option is useful when you want to sum the coefficients of the same atomic orbital\
+            except for the symmetry label.",
+        dest="ignore_sym",
+    )
     parser.add_argument("-a", "--all-write", action="store_true", help="Print all kramers pairs(Positronic and Electronic).", dest="all_write")
     parser.add_argument(
         "-p",

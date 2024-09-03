@@ -5,7 +5,7 @@ from sum_dirac_dfcoef.coefficient import Coefficient
 
 
 class DataMO:
-    """ This class is used to store the specific MO coefficient information.
+    """This class is used to store the specific MO coefficient information.
 
     Attributes:
         norm_const_sum (float): The sum of the coefficients of the MO.
@@ -16,6 +16,7 @@ class DataMO:
         coef_dict (Dict[str, Coefficient]): The dictionary of the coefficients, in the order written in the DIRAC output file.
         coef_list (List[Coefficient]): The list of the coefficients, which is sorted by the coefficient value.
     """
+
     norm_const_sum: float = 0.0
     mo_energy: float = 0.0
     mo_info: str = ""
@@ -44,9 +45,15 @@ class DataMO:
         return f"DataMO(mo_info: {self.mo_info}, mo_energy: {self.mo_energy}, eigenvalue_no: {self.eigenvalue_no}, mo_sym_type: {self.sym_type}, coef_dict: {self.coef_dict})"
 
     def add_coefficient(self, coef: Coefficient) -> None:
-        key = (coef.function_label, coef.idx_within_same_atom)
-        if not args.ignore_ml:
-            key += (coef.magnetic_label,)
+        def generate_key(coef: Coefficient) -> str:
+            key = (coef.atom_label, coef.azimuthal_label, coef.idx_within_same_atom)
+            if not args.ignore_sym:
+                key += (coef.symmetry_label,)
+            if not args.ignore_ml:
+                key += (coef.magnetic_label,)
+            return key
+
+        key = generate_key(coef)
         if key in self.coef_dict:
             self.coef_dict[key].coefficient += coef.coefficient
         else:
@@ -75,6 +82,7 @@ class DataAllMO:
         electronic (List[DataMO]): The list of the electronic MO data.
         positronic (List[DataMO]): The list of the positronic MO data.
     """
+
     electronic: List[DataMO]
     positronic: List[DataMO]
 
