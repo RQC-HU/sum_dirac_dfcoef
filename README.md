@@ -173,6 +173,11 @@ optional arguments (--input is required)
   (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...).  
   range: 1-15
 
+- --ignore-ml
+
+  Ignore the magnetic quantum number label.  
+  This option is useful when you want to sum the coefficients of the same atomic orbital except for the magnetic quantum number label.
+
 - -a, --all-write
 
   Print all kramers pairs(Positronic and Electronic).
