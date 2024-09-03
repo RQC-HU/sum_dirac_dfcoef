@@ -8,10 +8,12 @@ class Coefficient(BaseModel, validate_assignment=True):
     """ This class is used to store the specific coefficient information.
 
     e.g.  35  L Ag U  dzz     0.0000000014  0.0000000000  0.0000000000  0.0000000000
-    -> Coefficient(vector_num=35, function_label="AgUd", magnetic_label="zz", need_identifier=False, coefficient=1.96E-18, idx_within_same_atom=0, multiplication=1)
+    -> Coefficient(vector_num=35, symmetry_label="Ag", atom_azimuthal="Ud", magnetic_label="zz", need_identifier=False, coefficient=1.96E-18, idx_within_same_atom=0, multiplication=1)
     Attributes:
         vector_num (int): Serial number of the vector
-        function_label (str): Information about the vector to identify the vector
+        symmetry_label (str): The symmetry label to identify the vector
+        atom_label (str): The atom label to identify the vector
+        azimuthal_label (str): The azimuthal quantum number label to identify the vector
         magnetic_label (str): The magnetic quantum number label to identify the vector
         need_identifier (bool): Whether the idx_within_same_atom is needed to print to the output file or not.
         coefficient (float): Coefficient value
@@ -19,7 +21,9 @@ class Coefficient(BaseModel, validate_assignment=True):
         multiplication (int): The multiplicity of the specified atom label.
     """
     vector_num: int
-    function_label: str
+    symmetry_label: str
+    atom_label: str
+    azimuthal_label: str
     magnetic_label: str
     need_identifier: bool
     coefficient: float
@@ -29,7 +33,9 @@ class Coefficient(BaseModel, validate_assignment=True):
     def __repr__(self) -> str:
         super().__repr__()
         return f"Coefficient(vector_num: {self.vector_num}, \
-function_label: {self.function_label}, \
+symmetry_label: {self.symmetry_label}, \
+atom_label: {self.atom_label}, \
+azimuthal_label: {self.azimuthal_label}, \
 magnetic_label: {self.magnetic_label}, \
 need_identifier: {self.need_identifier}, \
 coefficient: {self.coefficient}, \
@@ -73,10 +79,9 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom
         # NAMN (A3, defined as A4, but only (1:3) is used): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/nuclei.h#L25
         # GTOTYP (A4): https://gitlab.com/dirac/dirac/-/blob/b10f505a6f00c29a062f5cad70ca156e72e012d7/src/include/ccom.h#L8
         component_func = "large" if line_str[10] == "L" else ("small" if line_str[10] == "S" else "")  # CLS
-        symmetry_label = line_str[12:15].strip()  # REP (e.g. "Ag ")
-        atom_label = line_str[15:18].strip()  # NAMN (e.g. "Cm "), atom_labe="Cm"
-        # function_label = line_str[12:22].strip().replace(" ", "")  # REP + NAMN + GTOTYP (e.g. "Ag U dzz   " => "AgUdzz")
-        function_label = line_str[12:19].strip().replace(" ", "")  # REP + NAMN (e.g. "Ag U  dzz " => "AgUd")
+        symmetry_label = line_str[12:15].strip().replace(" ", "")  # REP (e.g. "Ag ")
+        atom_label = line_str[15:18].strip().replace(" ", "")  # NAMN (e.g. "Ag U  dzz " => "U")
+        azimuthal_label = line_str[18:19].strip().replace(" ", "")  # NAMN (e.g. "Ag U  dzz   " => "d")
         magnetic_label = line_str[19:22].strip().replace(" ", "")  # GTOTYP (e.g. "Ag U  dzz " => "zz")
 
         # COEF (4F14.10)
@@ -96,7 +101,9 @@ def get_coefficient(line_str: str, orbitals: FunctionsInfo, idx_within_same_atom
 
         return Coefficient(
             vector_num=vec_num,
-            function_label=function_label,
+            symmetry_label=symmetry_label,
+            atom_label=atom_label,
+            azimuthal_label=azimuthal_label,
             magnetic_label=magnetic_label,
             need_identifier=need_identifier,
             coefficient=coefficient,
