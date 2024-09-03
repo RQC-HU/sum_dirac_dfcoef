@@ -80,7 +80,7 @@ class OutputFileWriter:
             output_path = Path(args.output).expanduser().resolve()
             if output_path.is_dir():
                 sys.exit(
-                    f"ERROR: The path you specified as the sum_dirac_dfcoef output is a directory. Not a file.\
+                    "ERROR: The path you specified as the sum_dirac_dfcoef output is a directory. Not a file.\
 Please check your -o or --output option is correct."
                 )
 
