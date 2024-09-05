@@ -34,7 +34,7 @@ jobs:
     uses: ./.github/workflows/reusable_test.yml
   release-pr:
     needs: test
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
