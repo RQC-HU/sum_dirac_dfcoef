@@ -48,19 +48,18 @@ class OutputFileWriter:
                 mo_info_energy = f"{mo.mo_info} {mo.mo_energy:{digit_int}.{args.decimal}f}" + ("\n" if not args.compress else "")
                 f.write(mo_info_energy)
 
-                for c in mo.coef_list:
-                    for idx in range(c.multiplication):
-                        percentage = c.coefficient / mo.norm_const_sum * 100
-                        sym_label = c.symmetry_label if not args.ignore_sym else ""
-                        ml_label = c.magnetic_label if not args.ignore_ml else ""
-                        func_label = f"{sym_label}{c.atom_label}{c.azimuthal_label}{ml_label}"
-                        atomic_symmetry_label = f"{func_label}({c.idx_within_same_atom + idx})" if c.need_identifier else func_label
-                        output_str: str
-                        if args.compress:
-                            output_str = f" {atomic_symmetry_label} {percentage:.{args.decimal}f}"
-                        else:
-                            output_str = f"{atomic_symmetry_label:<12} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
-                        f.write(output_str)
+                for key, coef in mo.coef_dict.items():
+                    percentage = coef / mo.norm_const_sum * 100
+                    atom_num_label = f"({key.atom_idx})" if key.need_identifier and not args.ignore_atom_num else ""
+                    sym_label = key.symmetry_label if not args.ignore_sym else ""
+                    ml_label = key.magnetic_label if not args.ignore_ml else ""
+                    atomic_symmetry_label = f"{sym_label}{key.atom_label}{key.azimuthal_label}{ml_label}{atom_num_label}"
+                    output_str: str
+                    if args.compress:
+                        output_str = f" {atomic_symmetry_label} {percentage:.{args.decimal}f}"
+                    else:
+                        output_str = f"{atomic_symmetry_label:<12} {percentage:{args.decimal+4}.{args.decimal}f} %\n"
+                    f.write(output_str)
                 f.write("\n")  # add empty line
                 debug_print(f"sum of coefficient {mo.norm_const_sum:.{args.decimal}f}")
 

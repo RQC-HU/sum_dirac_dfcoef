@@ -60,8 +60,12 @@ def get_output_list(filepath: Path) -> List[List[str]]:
         ("ref.ucl4.ignore_ml.compress.out"          , "result.ucl4.ignore_ml.compress.out"          , "x2c_ucl4.out"                 , "-d 15 -g --ignore-ml"),
         # Ignore symmetry label (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/117)
         ("ref.uo2.ignore_sym.compress.out"          , "result.uo2.ignore_sym.compress.out"          , "x2c_uo2_238.out"              , "-d 15 -c --ignore-sym"),
-        # Both ignore labels
+        # Ignore atom num label (https://github.com/RQC-HU/sum_dirac_dfcoef/issues/123)
+        ("ref.uo2.ignore_atom_num.compress.out"     , "result.uo2.ignore_atom_num.compress.out"     , "x2c_uo2_238.out"              , "-d 15 -c --ignore-atom-num"),
+        # ignore magnetic quantum number label and symmetry label
         ("ref.ucl4.ignore_ml_and_sym.compress.out"  , "result.ucl4.ignore_ml_and_sym.compress.out"  , "x2c_ucl4.out"                 , "-d 15 -g --ignore-ml --ignore-sym"),
+        # ignore all labels
+        ("ref.uo2.ignore_all.compress.out"          , "result.uo2.ignore_all.compress.out"          , "x2c_uo2_238.out"              , "-d 15 -c --ignore-ml --ignore-sym --ignore-atom-num"),  # noqa: E501
     ]
     # fmt: on
 )

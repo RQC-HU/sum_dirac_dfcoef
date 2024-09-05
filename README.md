@@ -173,6 +173,11 @@ optional arguments (--input is required)
   (e.g) --decimal=3 → print orbital with 3 decimal places (0.123, 2.456, ...).  
   range: 1-15
 
+- --ignore-atom-num
+
+  Ignore the atom number label.  
+  This option is useful when you want to sum the coefficients of the same atomic orbital except for the atom number label.
+
 - --ignore-ml
 
   Ignore the magnetic quantum number label.  
