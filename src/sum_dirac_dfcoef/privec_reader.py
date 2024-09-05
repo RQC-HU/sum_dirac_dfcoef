@@ -270,7 +270,7 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
             self.data_mo.add_coefficient(atom_idx, fast_deepcopy_pickle(coef))
 
     def add_current_mo_data_to_data_all_mo(self) -> None:
-        self.data_mo.fileter_coefficients_by_threshold()
+        self.data_mo.filter_coefficients_by_threshold()
         # add current MO data to data_all_mo
         # create a new DataMO object using pickle
         copy_data_mo = fast_deepcopy_pickle(self.data_mo)

@@ -110,7 +110,7 @@ class DataMO:
         self.eigenvalue_no = 0
         self.coef_dict.clear()
 
-    def fileter_coefficients_by_threshold(self) -> None:
+    def filter_coefficients_by_threshold(self) -> None:
         self.coef_dict = OrderedDict((key, coef) for key, coef in self.coef_dict.items() if abs(coef.coefficient / self.norm_const_sum * 100) >= args.threshold)
         self.coef_dict = OrderedDict(sorted(self.coef_dict.items(), key=lambda x: x[1].coefficient, reverse=True))
 
