@@ -49,8 +49,8 @@ class OutputFileWriter:
                 f.write(mo_info_energy)
 
                 for key, coef in mo.coef_dict.items():
-                    percentage = coef.coefficient / mo.norm_const_sum * 100
-                    atom_num_label = f"({key.atom_idx})" if coef.need_identifier and not args.ignore_atom_num else ""
+                    percentage = coef / mo.norm_const_sum * 100
+                    atom_num_label = f"({key.atom_idx})" if key.need_identifier and not args.ignore_atom_num else ""
                     sym_label = key.symmetry_label if not args.ignore_sym else ""
                     ml_label = key.magnetic_label if not args.ignore_ml else ""
                     atomic_symmetry_label = f"{sym_label}{key.atom_label}{key.azimuthal_label}{ml_label}{atom_num_label}"
