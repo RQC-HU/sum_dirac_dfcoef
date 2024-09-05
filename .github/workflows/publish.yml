@@ -11,7 +11,7 @@ jobs:
   test:
     uses: ./.github/workflows/reusable_test.yml
   publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     needs: test
     timeout-minutes: 10
     # If PR is merged and the branch name starts with "release-v", then publish to PyPI
