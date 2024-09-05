@@ -92,6 +92,13 @@ This options is useful when you want to use the result in a spreadsheet like Mic
         dest="decimal",
     )
     parser.add_argument(
+        "--ignore-atom-num",
+        action="store_true",
+        help="Ignore the atom number label. This option is useful when you want to sum the coefficients of the same atomic orbital\
+            except for the atom number label.",
+        dest="ignore_atom_num",
+    )
+    parser.add_argument(
         "--ignore-ml",
         action="store_true",
         help="Ignore the magnetic quantum number label. This option is useful when you want to sum the coefficients of the same atomic orbital\

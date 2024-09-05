@@ -264,7 +264,10 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
                 raise Exception(msg)
 
         self.current_atom_info.decrement_function(gto_type)
-        self.data_mo.add_coefficient(get_coefficient(line_str, self.functions_info, self.current_atom_info.idx_within_same_atom))
+        coef = get_coefficient(line_str, self.functions_info, self.current_atom_info.idx_within_same_atom)
+        for idx in range(coef.multiplication):
+            atom_idx = coef.idx_within_same_atom + idx
+            self.data_mo.add_coefficient(atom_idx, fast_deepcopy_pickle(coef))
 
     def add_current_mo_data_to_data_all_mo(self) -> None:
         self.data_mo.fileter_coefficients_by_threshold()
