@@ -1,6 +1,6 @@
 from collections import OrderedDict
+from typing import Optional, Set
 from typing import OrderedDict as ODict
-from typing import Set
 
 from pydantic import BaseModel, validator
 
@@ -52,8 +52,8 @@ class AtomInfo:
         idx_within_same_atom: int = 0,
         label: str = "",
         multiplicity: int = 0,
-        func_idx_dirac21: FuncIndices = None,
-        func_idx_dirac19: FuncIndices = None,
+        func_idx_dirac21: Optional[FuncIndices] = None,
+        func_idx_dirac19: Optional[FuncIndices] = None,
     ) -> None:
         self.idx_within_same_atom = idx_within_same_atom
         self.label = label

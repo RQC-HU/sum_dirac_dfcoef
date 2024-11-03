@@ -301,13 +301,12 @@ In order to force DIRAC to print vector print, please add .ANALYZE and .PRIVEC o
                     if is_found:
                         self.eigenvalues.energies_used[sym_type_key][eigenvalue_no] = True
 
-        num_processes: int = args.parallel
+        num_processes = int(args.parallel)
         if num_processes > 1:
             # Multi-process version
             with concurrent.futures.ProcessPoolExecutor() as executor:
                 futures = [executor.submit(self.read_privec_data, i) for i in range(num_processes)]
                 result_list = [future.result() for future in concurrent.futures.as_completed(futures)]
-            result: Tuple[DataAllMO, Eigenvalues]
             for result in result_list:
                 data_all_mo = result[0]
                 self.data_all_mo.electronic.extend(data_all_mo.electronic)

@@ -27,7 +27,12 @@ def get_electron_num_from_input(dirac_output: TextIOWrapper) -> int:
         # OPEN SHELL and CLOSED SHELL electron number settings
         # must be written as a natural number (negative number is not allowed)
         regex_number = r"[-]?[0-9]+"
-        number = int(re.search(regex_number, word).group())
+        match = re.search(regex_number, word)
+        if match is None:
+            msg = "Failed to get a number related to the electron number or spinor number from your DIRAC input file.\n\
+Please check your DIRAC input file and try again.\n"
+            raise ValueError(msg)
+        number = int(match.group())
         if number < 0:
             msg = "The number of electrons in OPEN SHELL and CLOSED SHELL must be a natural number.\n\
 But we found a negative number in your DIRAC input file.\n\
