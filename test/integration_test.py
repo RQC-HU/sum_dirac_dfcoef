@@ -16,7 +16,7 @@ class Env:
         if ref_filename == "":
             self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} {options}"
         else:
-            self.command: str = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
+            self.command = f"sum_dirac_dfcoef -i {self.input_filepath} -o {self.result_filepath} {options}"
 
 
 def get_output_list(filepath: Path) -> List[List[str]]:

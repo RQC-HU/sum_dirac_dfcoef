@@ -42,7 +42,9 @@ atom_idx: {self.atom_idx}, \
 symmetry_label: {self.symmetry_label}, \
 magnetic_label: {self.magnetic_label})"
 
-    def __eq__(self, other: "CoefKey") -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, CoefKey):
+            return NotImplemented
         return (
             self.atom_label == other.atom_label
             and self.azimuthal_label == other.azimuthal_label

@@ -219,7 +219,7 @@ class Eigenvalues:
         occ_idx: Dict[str, int] = {}
         omega: Dict[str, Dict[str, Dict[int, float]]] = {}
         omega_str = ""  # 1/2 or 3/2 or 5/2 or p 3/2 -3/2 ...
-        omega_list = []
+        omega_list: List[str] = []
         current_eigenvalue_type = ""  # "closed" or "open" or "virtual"
         current_symmetry_type = ""  # "E1g" or "E1u" or "E1" ...
         eigenvalue_type_omega_replacement = {"inactive": "closed", "active": "open", "virtual": "virtual"}

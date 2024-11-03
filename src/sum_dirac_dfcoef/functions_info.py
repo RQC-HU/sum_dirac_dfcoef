@@ -82,9 +82,9 @@ class SymmetryOrbitalsSummary:
         small_sym (Tuple[int]): Number of small orbitals for each symmetry
     """
 
-    all_sym: Tuple[int]
-    large_sym: Tuple[int]
-    small_sym: Tuple[int]
+    all_sym: Tuple[int, ...]
+    large_sym: Tuple[int, ...]
+    small_sym: Tuple[int, ...]
 
     def __init__(self):
         self.all_sym = ()
