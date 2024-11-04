@@ -24,10 +24,6 @@ permissions:
   pull-requests: write
 
 env:
-  NEW_VERSION: ""
-  BRANCH_NAME: ""
-  TAG_NAME: ""
-  VERSION_UP_TYPE: ""
   PACKAGE_NAME: sum_dirac_dfcoef
 jobs:
   test:
@@ -47,31 +43,33 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install hatch twine
       - name: Update version
+        id: version_up_type
         run: |
           if ${{ github.event.inputs.major_versionup }}; then
             python .github/scripts/versionup.py --major
-            echo "VERSION_UP_TYPE=major" >> $GITHUB_ENV
+            echo "VERSION_UP_TYPE=major" >> $GITHUB_OUTPUT
           elif ${{ github.event.inputs.minor_versionup }}; then
             python .github/scripts/versionup.py --minor
-            echo "VERSION_UP_TYPE=minor" >> $GITHUB_ENV
+            echo "VERSION_UP_TYPE=minor" >> $GITHUB_OUTPUT
           elif ${{ github.event.inputs.patch_versionup }}; then
             python .github/scripts/versionup.py --patch
-            echo "VERSION_UP_TYPE=patch" >> $GITHUB_ENV
+            echo "VERSION_UP_TYPE=patch" >> $GITHUB_OUTPUT
           fi
       - name: Get the NEW_VERSION
+        id: new_version
         run: |
-          NEW_VERSION=$(hatch version)
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "BRANCH_NAME=release-v$NEW_VERSION" >> $GITHUB_ENV
-          echo "TAG_NAME=v$NEW_VERSION" >> $GITHUB_ENV
-      - name: Create Pull request with release-v${{ env.NEW_VERSION }} tag
+          echo "NEW_VERSION=$(hatch version)" >> $GITHUB_OUTPUT
+      - name: Create branch name
+        id: branch_name
+        run: |
+          echo "BRANCH_NAME=release-v${{ steps.new_version.outputs.NEW_VERSION }}" >> $GITHUB_OUTPUT
+      - name: Create Pull request with release-v${{ steps.new_version.outputs.NEW_VERSION }} tag
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "${{ env.BRANCH_NAME }}"
+          git checkout -b "${{ steps.branch_name.outputs.BRANCH_NAME }}"
           git add .
-          git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}"
-          git push origin "${{ env.BRANCH_NAME }}"
-          gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ env.NEW_VERSION }}" --label ${{ env.VERSION_UP_TYPE }} --label "release"
-        env:
+          git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}"
+          git push origin "${{ steps.branch_name.outputs.BRANCH_NAME }}"
+          gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}" --label ${{ steps.version_up_type.outputs.VERSION_UP_TYPE }} --label "release"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
