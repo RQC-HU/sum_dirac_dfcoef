@@ -72,4 +72,5 @@ jobs:
           git commit -m "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}"
           git push origin "${{ steps.branch_name.outputs.BRANCH_NAME }}"
           gh pr create --title "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}" --body "Release ${{ env.PACKAGE_NAME }} ${{ steps.new_version.outputs.NEW_VERSION }}" --label ${{ steps.version_up_type.outputs.VERSION_UP_TYPE }} --label "release"
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
