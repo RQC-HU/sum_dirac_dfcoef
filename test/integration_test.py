@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 from pathlib import Path
 from typing import List
@@ -73,6 +74,7 @@ def test_sum_dirac_dfcoeff_compress(ref_filename: str, result_filename: str, inp
     env = Env(input_filename, options, ref_filename, result_filename)
     os.chdir(env.test_path)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
+    shutil.rmtree(result_filename, ignore_errors=True)
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
     ref_list: List[List[str]] = get_output_list(env.ref_filepath)
@@ -130,6 +132,7 @@ def test_sum_dirac_dfcoeff(ref_filename: str, result_filename: str, input_filena
     env = Env(input_filename, options, ref_filename, result_filename)
     os.chdir(env.test_path)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
+    shutil.rmtree(result_filename, ignore_errors=True)
     subprocess.run(env.command.split(), encoding="utf-8", check=True)
 
     ref_list: List[List[str]] = get_output_list(env.ref_filepath)
@@ -192,6 +195,7 @@ def test_invalid_option_raise_error(input_filename: str, options: str, expected_
 def test_no_vector_print_data(ref_filename: str, result_filename: str, input_filename: str, options: str, expected_warning_message: str):
     env = Env(input_filename, options, ref_filename, result_filename)
     os.chdir(env.test_path)
+    shutil.rmtree(result_filename, ignore_errors=True)
     print(f"{env.test_path} test start...\ncommand: {env.command}")
     process = subprocess.run(env.command.split(), encoding="utf-8", check=True, stdout=subprocess.PIPE)
 
